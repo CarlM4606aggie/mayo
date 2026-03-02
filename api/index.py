@@ -316,33 +316,35 @@ def cron_job():
 
         # Analysis Phase: Pick a random source file directly (skip Gemini file picker)
         structure = get_repo_structure(target_repo, max_depth=2)
-        print(f"DEBUG: Repo structure:\n{structure[:500]}")
+        print(f"DEBUG: Repo structure fetched (len: {len(structure)})")
         
-        # Get actual files from root
+        # Always try to get README for global context
+        readme_content = read_file_content(target_repo, "README.md") or "(No README found)"
+        
+        # List root files + common directories
+        source_files = []
         try:
             contents = target_repo.get_contents("")
-            source_files = []
             for item in contents:
-                if item.type == 'file' and any(item.name.endswith(ext) for ext in ['.py', '.js', '.ts', '.go', '.md', '.jsx', '.tsx', '.java', '.rb', '.rs']):
+                if item.type == 'file' and any(item.name.endswith(ext) for ext in ['.py', '.js', '.ts', '.go', '.c', '.cpp', '.h', '.md', '.json']):
                     source_files.append(item.path)
             # Also check common dirs
             for dirname in ['src', 'api', 'lib', 'app', 'pages']:
                 try:
                     dir_contents = target_repo.get_contents(dirname)
                     for item in dir_contents:
-                        if item.type == 'file' and any(item.name.endswith(ext) for ext in ['.py', '.js', '.ts', '.go', '.jsx', '.tsx', '.java', '.rb', '.rs']):
+                        if item.type == 'file' and any(item.name.endswith(ext) for ext in ['.py', '.js', '.ts', '.go', '.jsx', '.tsx', '.c', '.cpp', '.h']):
                             source_files.append(item.path)
                 except:
                     pass
-            print(f"DEBUG: Found {len(source_files)} source files: {source_files[:10]}")
+            print(f"DEBUG: Found {len(source_files)} source files")
         except Exception as e:
             print(f"DEBUG: Error listing files: {e}")
             source_files = []
         
         if not source_files:
-            # Fallback to README
-            readme = read_file_content(target_repo, "README.md") or ""
-            if readme:
+            # Fallback to README if it exists
+            if readme_content != "(No README found)":
                 source_files = ["README.md"]
             else:
                 print("DEBUG: No source files or README found")
@@ -364,6 +366,8 @@ def cron_job():
             
             improvement_prompt = prompt_template.replace('{{REPO_NAME}}', target_repo.full_name)\
                                               .replace('{{FILE_PATH}}', target_path)\
+                                              .replace('{{REPO_STRUCTURE}}', structure)\
+                                              .replace('{{README_CONTENT}}', readme_content)\
                                               .replace('{{FILE_CONTENT}}', file_content)\
                                               .replace('{{TIMESTAMP}}', str(ts))
         except Exception as e:
