@@ -1,32 +1,62 @@
-# joe-gemini 🤖
+# Joe-Gemini 🦾🤖
+### The Autonomous Senior AI Maintainer
 
-Joe-Gemini is an autonomous GitHub bot powered by **Google Gemini 2.5 Flash**. It lives in your repository, reviews code, fixes bugs, and improves your project autonomously.
+Joe-Gemini is not just a chatbot—it is a **Self-Improving Senior Technical Architect** integrated directly into your GitHub ecosystem. Powered by **Google Gemini 2.5 Flash**, it autonomously performs high-value technical maintenance, learns from every commit, and ensures your codebase stays robust, secure, and well-documented.
 
-## ✨ Features
-- **Smart Reviews**: Analyzes PRs and Issues using advanced AI.
-- **Autonomous Fixes**: Can write code, create branches, and open PRs for you.
-- **Context Aware**: Remembers previous interactions in the thread.
-- **Conversation Capable**: Chat with it by tagging `@joe-gemini` (or just mentioning `joe-gemini`).
-- **Custom Identity**: Uses your own avatar/account for commits (if configured).
+---
 
-## 🚀 Deployment (Vercel)
-This bot is designed to be deployed as a **GitHub App** hosted on **Vercel**.
+## 🚀 Key Intelligence Features
 
-1.  **Create GitHub App**: Point Webhook URL to `https://your-vercel-app.vercel.app/webhook`.
-2.  **Deploy to Vercel**: `vercel --prod`.
-3.  **Environment Variables**:
-    *   `GEMINI_API_KEY`: Google Gemini API Key.
-    *   `APP_ID`: GitHub App ID.
-    *   `PRIVATE_KEY`: GitHub App Private Key.
-    *   `WEBHOOK_SECRET`: GitHub App Webhook Secret.
-4.  **Install**: Click "Install" on your GitHub App page to add it to any repository.
+### 🧠 Cross-Repo Global Memory
+Unlike standard AI bots that start fresh every time, Joe-Gemini has a **persistent memory**. It maintains a global log of successes, failures, and "lessons learned" across your entire codebase. If it discovers a clever DX improvement in one repository, it carries that insight into every other repo it manages.
 
-## �️ Tech Stack
--   **Python 3.9+**
--   **Flask**: Web server for webhooks.
--   **Google Gemini 2.5 Flash**: AI Intelligence.
--   **PyGithub**: GitHub API interaction.
--   **Vercel**: Serverless hosting.
+### 🩺 Surgical Precision (Zero-Slop Edits)
+The bot uses a sophisticated **Search/Replace block system**. It never rewrites entire files. Instead, it performs surgical, line-by-line edits. This guarantees:
+- **100% preservation** of your original indentations, comments, and structure.
+- **Zero Hallucination** of unrelated code.
+- **Perfect PRs** that look like they were written by an expert human.
 
-## ℹ️ Note
-This bot was built for my own personal usage to automate my workflows, but anyone is welcome to use it, deploy it, or fork it for their own projects! Happy coding! 🚀 (v1.0)
+### 🏗️ Architect-Level Reasoning
+Before every PR, the bot undergoes a rigorous **6-step analysis**:
+1. **Developer Experience Audit**: Fixes missing setup/build/run guides.
+2. **Security Scan**: Identifies vulnerabilities and insecure patterns.
+3. **Logic Verification**: Finds edge cases and error-handling gaps.
+4. **Consistency Check**: Ensures new code matches repo-wide patterns.
+5. **Impact Ranking**: Only opens a PR if the improvement is truly meaningful.
+6. **Creative Free Will**: Proactively implements "expert touches" (the cool little stuff).
+
+---
+
+## 🛠️ Performance Engine
+
+- **Model**: Google Gemini 2.5 Flash (March 2026 Edition)
+- **Schedule**: Autonomous Hourly Maintenance via GitHub Actions Cron.
+- **Visibility**: Automatically assigns the owner, mentions @HOLYKEYZ, and requests reviews for every action.
+- **Strategy**: Multimodal analysis including Repo Structure, README Context, and target source code.
+
+---
+
+## ⚙️ Setup & Deployment
+
+Joe-Gemini is designed for effortless deployment as a **GitHub App** on **Vercel**.
+
+### 1. GitHub App Configuration
+- **Webhook URL**: `https://your-vercel-app.vercel.app/webhook`
+- **Permissions**: Needs `Contents: Write`, `Metadata: Read`, `Pull Requests: Write`, `Actions: Write`.
+
+### 2. Deployment
+- **Environment Variables**:
+    - `GEMINI_API_KEY`: Your dedicated Google AI Studio key.
+    - `GITHUB_TOKEN`: For Actions-based hourly triggers.
+    - `APP_ID` / `PRIVATE_KEY`: Standard GitHub App auth.
+    - `CRON_SECRET`: Ensures only your Action triggers the hourly bot.
+
+### 3. Hourly Trigger
+The bot is powered by `.github/workflows/cron.yml`, calling your `/cron` endpoint every hour on the hour.
+
+---
+
+## ℹ️ Author
+Created by **Joseph (@HOLYKEYZ)**. This bot is the culmination of advanced agentic engineering, designed to automate the technical drudgery of maintenance while providing the creative insights of a senior lead.
+
+Happy coding! 🚀 (v2.0 - The Intelligence Update)
