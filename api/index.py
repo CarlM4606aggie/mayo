@@ -17,7 +17,7 @@ APP_ID = os.environ.get('APP_ID')
 PRIVATE_KEY = os.environ.get('PRIVATE_KEY', '').replace('\\n', '\n')
 WEBHOOK_SECRET = os.environ.get('WEBHOOK_SECRET')
 # GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 # Helper: Verify Webhook Signature
 def verify_signature(req):
@@ -218,6 +218,18 @@ def commit_changes_via_api(repo, branch_name, file_changes, commit_message):
         print(f"API Commit Error: {e}")
         return False
 
+def apply_surgical_edits(content, edits):
+    """Apply search/replace blocks to content."""
+    new_content = content
+    for edit in edits:
+        search = edit.get('search')
+        replace = edit.get('replace')
+        if search and search in new_content:
+            new_content = new_content.replace(search, replace, 1)
+        else:
+            print(f"DEBUG: Search block not found in file: {search[:50]}...")
+    return new_content
+
 def query_gemini(prompt, context="", temperature=0.4):
     headers = {'Content-Type': 'application/json'}
     final_prompt = f"""You are an autonomous GitHub bot called @joe-gemini.
@@ -343,36 +355,54 @@ def cron_job():
             print(f"DEBUG: Could not read target file: {target_path}")
             return jsonify({'status': 'Could not identify target file'}), 200
 
-        # Generate Improvement (use regular string concat to avoid f-string issues)
+        # Generate High-Quality Improvement
         ts = int(time.time())
         improvement_prompt = (
             f"Repository: {target_repo.full_name}\n"
-            f"File: {target_path}\n"
-            f"Content:\n{file_content}\n\n"
-            "Task: Propose a meaningful, safe code improvement.\n"
-            "Examples: formatting fixes, adding types, improving docstrings, fixing potential bugs.\n"
-            "Do NOT break existing logic.\n\n"
-            "Respond with strict JSON:\n"
+            f"File Path: {target_path}\n"
+            "File Content:\n"
+            "--- START OF FILE ---\n"
+            f"{file_content}\n"
+            "--- END OF FILE ---\n\n"
+            "TASK: Propose a HIGH-VALUE, TECHNICAL improvement for this file.\n\n"
+            "CRITICAL RULES:\n"
+            "1. NO SLOP: Strictly forbid trivial changes like whitespace, simple comments, or basic docstrings.\n"
+            "2. TECHNICAL DEPTH: Focus on Security (vulns), Performance (O-notation), Logic Bugs, or Advanced Refactoring (DRY, Patterns).\n"
+            "3. SURGICAL EDITS: Use search/replace blocks. DO NOT rewrite the whole file.\n"
+            "4. PRESERVATION: Ensure 100% of unrelated code, comments, and documentation are preserved.\n"
+            "5. NO PLACEHOLDERS: Your 'replace' block must be fully working code.\n\n"
+            "RESPONSE FORMAT (Strict JSON only):\n"
             "{\n"
-            '  "title": "Short PR Title",\n'
-            '  "body": "Detailed PR description explaining the change.",\n'
-            f'  "branch_name": "bot/improvement-{ts}",\n'
-            '  "files": {\n'
-            f'      "{target_path}": "FULL NEW CONTENT OF THE FILE"\n'
-            "  }\n"
+            '  "title": "Technical PR Title",\n'
+            '  "body": "Explain WHY this is a high-value technical improvement.",\n'
+            f'  "branch_name": "bot/tech-fix-{ts}",\n'
+            '  "edits": [\n'
+            '    {\n'
+            '      "search": "EXACT block of original code (include indentation)",\n'
+            '      "replace": "The improved code block"\n'
+            '    }\n'
+            '  ]\n'
             "}\n"
         )
-        raw_response = query_gemini(improvement_prompt, temperature=0.2)
+        raw_response = query_gemini(improvement_prompt, temperature=0.1)
         print(f"DEBUG: Gemini raw response length: {len(raw_response) if raw_response else 0}")
         improvement_data = extract_json_from_response(raw_response)
         
-        if improvement_data and 'files' in improvement_data:
-            branch = improvement_data.get('branch_name', f'bot/fix-{ts}')
-            title = improvement_data.get('title', 'Automated improvement')
-            body = improvement_data.get('body', 'Automated changes by Joe-Gemini.')
+        if improvement_data and 'edits' in improvement_data:
+            edits = improvement_data['edits']
+            new_file_content = apply_surgical_edits(file_content, edits)
             
-            print(f"DEBUG: Creating branch {branch} with {len(improvement_data['files'])} file(s)")
-            success = commit_changes_via_api(target_repo, branch, improvement_data['files'], title)
+            if new_file_content == file_content:
+                print("DEBUG: No changes applied after surgical edits.")
+                return jsonify({'status': 'No changes applied'}), 200
+
+            branch = improvement_data.get('branch_name', f'bot/fix-{ts}')
+            title = improvement_data.get('title', 'Automated technical improvement')
+            body = improvement_data.get('body', 'Automated technical changes by Joe-Gemini.')
+            
+            file_changes = {target_path: new_file_content}
+            print(f"DEBUG: Creating branch {branch} with surgical edits for {target_path}")
+            success = commit_changes_via_api(target_repo, branch, file_changes, title)
             
             if success:
                 owner_login = target_repo.owner.login
