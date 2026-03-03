@@ -1,62 +1,88 @@
 # Joe-Gemini 🦾🤖
-### The Autonomous Senior AI Maintainer
+### The Autonomous Triple-AI Maintainer
 
-Joe-Gemini is not just a chatbot—it is a **Self-Improving Senior Technical Architect** integrated directly into your GitHub ecosystem. Powered by **Google Gemini 2.5 Flash**, it autonomously performs high-value technical maintenance, learns from every commit, and ensures your codebase stays robust, secure, and well-documented.
-
----
-
-## 🚀 Key Intelligence Features
-
-### 🧠 Cross-Repo Global Memory
-Unlike standard AI bots that start fresh every time, Joe-Gemini has a **persistent memory**. It maintains a global log of successes, failures, and "lessons learned" across your entire codebase. If it discovers a clever DX improvement in one repository, it carries that insight into every other repo it manages.
-
-### 🩺 Surgical Precision (Zero-Slop Edits)
-The bot uses a sophisticated **Search/Replace block system**. It never rewrites entire files. Instead, it performs surgical, line-by-line edits. This guarantees:
-- **100% preservation** of your original indentations, comments, and structure.
-- **Zero Hallucination** of unrelated code.
-- **Perfect PRs** that look like they were written by an expert human.
-
-### 🏗️ Architect-Level Reasoning
-Before every PR, the bot undergoes a rigorous **6-step analysis**:
-1. **Developer Experience Audit**: Fixes missing setup/build/run guides.
-2. **Security Scan**: Identifies vulnerabilities and insecure patterns.
-3. **Logic Verification**: Finds edge cases and error-handling gaps.
-4. **Consistency Check**: Ensures new code matches repo-wide patterns.
-5. **Impact Ranking**: Only opens a PR if the improvement is truly meaningful.
-6. **Creative Free Will**: Proactively implements "expert touches" (the cool little stuff).
+Joe-Gemini is a **Self-Improving Autonomous Maintenance Engine** integrated directly into your GitHub ecosystem. It uses a **Triple-AI Pipeline** — three specialized AI models working in concert — to produce high-value, validated code improvements across all your repositories.
 
 ---
 
-## 🛠️ Performance Engine
+## 🧬 Triple-AI Pipeline
 
-- **Model**: Google Gemini 2.5 Flash (March 2026 Edition)
-- **Schedule**: Autonomous Hourly Maintenance via GitHub Actions Cron.
-- **Visibility**: Automatically assigns the owner, mentions @HOLYKEYZ, and requests reviews for every action.
-- **Strategy**: Multimodal analysis including Repo Structure, README Context, and target source code.
+Every improvement goes through 3 AI models before it becomes a PR:
+
+```mermaid
+flowchart TD
+    A["⏰ Hourly Cron Trigger"] --> R0["🛡️ REVIEWER: Audit pending PR statuses"]
+    R0 --> B["🔭 SCANNER: Deep codebase analysis"]
+    B -->|"Text-only summary + plan"| C["⚡ EXECUTOR: Generate surgical edits"]
+    C -->|"Proposed search/replace JSON"| D["🛡️ REVIEWER: Validate edits"]
+    D -->|"✅ APPROVE"| E["📦 Create PR"]
+    D -->|"🔧 CORRECT"| F["Apply corrected edits → Create PR"]
+    D -->|"❌ REJECT + feedback"| C2["⚡ EXECUTOR: Retry with feedback"]
+    C2 --> D2["🛡️ REVIEWER: Validate retry"]
+    D2 -->|"✅ APPROVE"| E
+    D2 -->|"❌ REJECT"| SKIP["⏭️ Skip, save failure to memory"]
+    E --> MEM["🧠 All 3 AIs save lessons to Global Memory"]
+    F --> MEM
+```
+
+| Role | Model | Purpose |
+|---|---|---|
+| 🔭 **Scanner** | Gemini 2.5 Flash | Reads full codebase → text-only analysis (zero compaction risk) |
+| ⚡ **Executor** | Kimi K2 (Groq) | Receives plan → produces surgical search/replace edits |
+| 🛡️ **Reviewer** | Gemini 2.5 Flash | Validates edits, corrects mistakes, audits PR review history |
+
+---
+
+## 🧠 Cross-Repo Global Memory
+
+Unlike standard AI bots, Joe-Gemini has **persistent memory**:
+- Tracks successes, failures, and "lessons learned" across all repositories.
+- Insights from Repo A directly improve work on Repo B.
+- The Reviewer audits real PR states (merged/closed/commented) and updates memory automatically.
+
+---
+
+## 🩺 Surgical Precision
+
+The Executor uses a **Search/Replace block system** (max 10 lines per block). This guarantees:
+- **100% preservation** of your original code structure.
+- **Zero hallucination** of unrelated code.
+- **Validated PRs** — every edit is reviewed by the Reviewer before creation.
+
+---
+
+## 🏗️ Analysis Depth
+
+The Scanner performs a rigorous multi-layered analysis:
+1. **Security**: Injections, hardcoded secrets, missing validation
+2. **Logic**: Edge cases, null checks, error handling
+3. **DX**: Missing READMEs, build guides, setup docs
+4. **Performance**: Redundant calls, memory leaks
+5. **Consistency**: Naming, patterns, style
+6. **Creative**: Proactive "expert touches"
 
 ---
 
 ## ⚙️ Setup & Deployment
 
-Joe-Gemini is designed for effortless deployment as a **GitHub App** on **Vercel**.
+### Environment Variables
+| Variable | Purpose |
+|---|---|
+| `GEMINI_API_KEY` | Scanner (Gemini A) |
+| `GEMINI2_API_KEY` | Reviewer (Gemini B) |
+| `GROK_API_KEY` | Executor (Kimi K2 via Groq) |
+| `APP_ID` / `PRIVATE_KEY` | GitHub App authentication |
+| `CRON_SECRET` | Hourly trigger authorization |
 
-### 1. GitHub App Configuration
-- **Webhook URL**: `https://your-vercel-app.vercel.app/webhook`
-- **Permissions**: Needs `Contents: Write`, `Metadata: Read`, `Pull Requests: Write`, `Actions: Write`.
-
-### 2. Deployment
-- **Environment Variables**:
-    - `GEMINI_API_KEY`: Your dedicated Google AI Studio key.
-    - `GITHUB_TOKEN`: For Actions-based hourly triggers.
-    - `APP_ID` / `PRIVATE_KEY`: Standard GitHub App auth.
-    - `CRON_SECRET`: Ensures only your Action triggers the hourly bot.
-
-### 3. Hourly Trigger
-The bot is powered by `.github/workflows/cron.yml`, calling your `/cron` endpoint every hour on the hour.
+### Deployment
+1. Deploy as a **GitHub App** on **Vercel**.
+2. Point webhook to `https://your-app.vercel.app/webhook`.
+3. Install on your repositories.
+4. The hourly cron (`.github/workflows/cron.yml`) handles the rest.
 
 ---
 
 ## ℹ️ Author
-Created by **Joseph (@HOLYKEYZ)**. This bot is the culmination of advanced agentic engineering, designed to automate the technical drudgery of maintenance while providing the creative insights of a senior lead.
+Created by **Joseph (@HOLYKEYZ)**. Advanced agentic engineering for autonomous codebase maintenance.
 
-Happy coding! 🚀 (v2.0 - The Intelligence Update)
+Happy coding! 🚀 (v3.0 — Triple-AI)
