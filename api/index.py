@@ -855,7 +855,7 @@ def handle_pr_review_feedback(payload):
             return
         
         gh = get_github_client(installation['id'])
-        bot_repo = gh.get_repo("HOLYKEYZ/joe-gemini")
+        bot_repo = gh.get_repo(os.environ.get('BOT_REPO_NAME', 'HOLYKEYZ/mayo'))
         
         memory_file = bot_repo.get_contents("api/global_memory.md")
         old_memory = memory_file.decoded_content.decode('utf-8')
