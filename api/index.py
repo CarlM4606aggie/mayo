@@ -13,11 +13,13 @@ app = Flask(__name__)
 
 # Config
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+GEMINI2_API_KEY = os.environ.get('GEMINI2_API_KEY')
+GROK_API_KEY = os.environ.get('GROK_API_KEY')
 APP_ID = os.environ.get('APP_ID')
 PRIVATE_KEY = os.environ.get('PRIVATE_KEY', '').replace('\\n', '\n')
 WEBHOOK_SECRET = os.environ.get('WEBHOOK_SECRET')
-# GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 # Helper: Verify Webhook Signature
 def verify_signature(req):
@@ -257,14 +259,158 @@ IMPORTANT: If suggestions involve file changes, respond options:
 ```"""
     return query_gemini(code_prompt, context)
 
+# === TRIPLE-AI FUNCTIONS ===
+
+def query_gemini_scanner(prompt, temperature=0.2):
+    """Scanner AI (Gemini A) — reads codebase, outputs text-only analysis."""
+    headers = {'Content-Type': 'application/json'}
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": temperature, "maxOutputTokens": 8000}
+    }
+    try:
+        r = requests.post(f"{GEMINI_API_URL}?key={GEMINI_API_KEY}", json=payload, headers=headers)
+        r.raise_for_status()
+        return r.json()['candidates'][0]['content']['parts'][0]['text']
+    except Exception as e:
+        print(f"Scanner Error: {e}")
+        return None
+
+def query_groq(prompt, temperature=0.1):
+    """Executor AI (Kimi K2) — produces surgical code edits via Groq."""
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {GROK_API_KEY}'
+    }
+    payload = {
+        "model": "moonshotai/kimi-k2-instruct-0905",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": temperature,
+        "max_tokens": 8000
+    }
+    try:
+        r = requests.post(GROQ_API_URL, json=payload, headers=headers, timeout=120)
+        r.raise_for_status()
+        return r.json()['choices'][0]['message']['content']
+    except Exception as e:
+        print(f"Groq/Kimi Error: {e}")
+        return None
+
+def query_gemini_reviewer(prompt, temperature=0.1):
+    """Reviewer AI (Gemini B) — validates edits, returns verdict JSON."""
+    headers = {'Content-Type': 'application/json'}
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": temperature, "maxOutputTokens": 8000}
+    }
+    try:
+        api_key = GEMINI2_API_KEY or GEMINI_API_KEY
+        r = requests.post(f"{GEMINI_API_URL}?key={api_key}", json=payload, headers=headers)
+        r.raise_for_status()
+        return r.json()['candidates'][0]['content']['parts'][0]['text']
+    except Exception as e:
+        print(f"Reviewer Error: {e}")
+        return None
+
+def audit_pending_reviews(gh):
+    """Reviewer checks PENDING REVIEW entries in memory and updates with actual PR status."""
+    try:
+        bot_repo = gh.get_repo("HOLYKEYZ/joe-gemini")
+        memory_file = bot_repo.get_contents("api/global_memory.md")
+        memory = memory_file.decoded_content.decode('utf-8')
+        
+        if 'PENDING REVIEW' not in memory:
+            print("DEBUG: No pending reviews to audit")
+            return
+        
+        import re as re_mod
+        pending_entries = re_mod.findall(r'\(Ref: (https://github\.com/[^\)]+/pull/\d+)\) - \*Status: PENDING REVIEW\*', memory)
+        
+        updated_memory = memory
+        for pr_url in pending_entries:
+            try:
+                parts = pr_url.replace('https://github.com/', '').split('/pull/')
+                repo_name = parts[0]
+                pr_number = int(parts[1])
+                
+                repo = gh.get_repo(repo_name)
+                pr = repo.get_pull(pr_number)
+                
+                if pr.merged:
+                    status = "MERGED - Joseph approved!"
+                elif pr.state == 'closed':
+                    status = "REJECTED - Joseph closed this"
+                elif pr.state == 'open':
+                    continue  # Still open, skip
+                else:
+                    continue
+                
+                # Check for Joseph's comments
+                comments = list(pr.get_issue_comments())
+                joseph_comment = ""
+                for c in comments:
+                    if c.user.login != 'joe-gemini-bot[bot]':
+                        joseph_comment = f" Comment: '{c.body[:80]}'"
+                        break
+                
+                updated_memory = updated_memory.replace(
+                    f"(Ref: {pr_url}) - *Status: PENDING REVIEW*",
+                    f"(Ref: {pr_url}) - *Status: {status}{joseph_comment}*"
+                )
+                print(f"DEBUG: Updated review status for {pr_url}: {status}")
+            except Exception as e:
+                print(f"DEBUG: Failed to audit PR {pr_url}: {e}")
+        
+        if updated_memory != memory:
+            bot_repo.update_file(
+                "api/global_memory.md",
+                "feat(memory): audit pending reviews",
+                updated_memory,
+                memory_file.sha
+            )
+            print("DEBUG: Memory updated with review audits")
+    except Exception as e:
+        print(f"DEBUG: Failed to audit pending reviews: {e}")
+
+def update_ai_communication_log(gh, ts, scanner_summary, executor_proposal, reviewer_verdict):
+    """Append a cycle entry to ai_communication.md and truncate to last 5 cycles."""
+    try:
+        bot_repo = gh.get_repo("HOLYKEYZ/joe-gemini")
+        comm_file = bot_repo.get_contents("api/ai_communication.md")
+        old_log = comm_file.decoded_content.decode('utf-8')
+        
+        entry = (
+            f"\n## Cycle {ts}\n"
+            f"**Scanner**: {scanner_summary[:300]}\n\n"
+            f"**Executor**: {executor_proposal[:200]}\n\n"
+            f"**Reviewer**: {reviewer_verdict[:200]}\n\n---\n"
+        )
+        
+        new_log = old_log + entry
+        
+        # Truncate to last 5 cycles
+        cycles = new_log.split('## Cycle ')
+        if len(cycles) > 6:  # header + 5 cycles
+            new_log = cycles[0] + '## Cycle '.join(cycles[-5:])
+        
+        bot_repo.update_file(
+            "api/ai_communication.md",
+            f"feat(comms): log cycle {ts}",
+            new_log,
+            comm_file.sha
+        )
+        print("DEBUG: AI communication log updated")
+    except Exception as e:
+        print(f"DEBUG: Failed to update communication log: {e}")
+
 @app.route('/', methods=['GET'])
 def home():
     return "Joe-Gemini Vercel Bot is Active! 🚀", 200
 
 @app.route('/api/cron', methods=['GET'])
 def cron_job():
-    """Hourly autonomous improvement job."""
-    print("DEBUG: Cron triggered")
+    """Hourly autonomous improvement job — Triple-AI Pipeline."""
+    print("DEBUG: Cron triggered — Triple-AI Pipeline")
     # Security: Verify Authorization header
     if request.headers.get('Authorization') != f"Bearer {os.environ.get('CRON_SECRET')}":
         print("DEBUG: Auth failed")
@@ -283,7 +429,11 @@ def cron_job():
         token = integration.get_access_token(installation.id).token
         gh = Github(token)
         
-        # Get all repos via REST API (App tokens can't use get_user().get_repos())
+        # === PHASE 0: REVIEWER AUDITS PENDING REVIEWS ===
+        print("DEBUG: Phase 0 — Auditing pending reviews")
+        audit_pending_reviews(gh)
+        
+        # Get all repos via REST API
         headers = {
             'Authorization': f'token {token}',
             'Accept': 'application/vnd.github.v3+json'
@@ -296,7 +446,7 @@ def cron_job():
         if not repo_names:
             return jsonify({'status': 'No repos found'}), 200
         
-        # Pick a random repo (skip forks/archived using REST data)
+        # Pick a random repo (skip forks/archived)
         import random
         repo_list = [r for r in repos_data.get('repositories', []) if not r.get('fork') and not r.get('archived')]
         
@@ -308,31 +458,27 @@ def cron_job():
         target_repo = gh.get_repo(chosen['full_name'])
         print(f"DEBUG: Targeting repo: {target_repo.full_name}")
 
-        # Fetch Global Memory from joe-gemini repo
+        # Fetch Global Memory
         try:
             bot_repo = gh.get_repo("HOLYKEYZ/joe-gemini")
-            memory_file = bot_repo.get_contents("api/global_memory.md")
-            global_memory = memory_file.decoded_content.decode('utf-8')
+            memory_file_obj = bot_repo.get_contents("api/global_memory.md")
+            global_memory = memory_file_obj.decoded_content.decode('utf-8')
             print(f"DEBUG: Global memory fetched (len: {len(global_memory)})")
         except Exception as e:
             print(f"DEBUG: Failed to fetch global memory: {e}")
             global_memory = "No global memory found. Start with fresh excellence."
 
-        # Analysis Phase: Pick a random source file directly (skip Gemini file picker)
+        # Gather codebase context
         structure = get_repo_structure(target_repo, max_depth=2)
-        print(f"DEBUG: Repo structure fetched (len: {len(structure)})")
-        
-        # Always try to get README for global context
         readme_content = read_file_content(target_repo, "README.md") or "(No README found)"
         
-        # List root files + common directories
+        # List source files
         source_files = []
         try:
             contents = target_repo.get_contents("")
             for item in contents:
                 if item.type == 'file' and any(item.name.endswith(ext) for ext in ['.py', '.js', '.ts', '.go', '.c', '.cpp', '.h', '.md', '.json']):
                     source_files.append(item.path)
-            # Also check common dirs
             for dirname in ['src', 'api', 'lib', 'app', 'pages']:
                 try:
                     dir_contents = target_repo.get_contents(dirname)
@@ -341,17 +487,13 @@ def cron_job():
                             source_files.append(item.path)
                 except:
                     pass
-            print(f"DEBUG: Found {len(source_files)} source files")
         except Exception as e:
             print(f"DEBUG: Error listing files: {e}")
-            source_files = []
         
         if not source_files:
-            # Fallback to README if it exists
             if readme_content != "(No README found)":
                 source_files = ["README.md"]
             else:
-                print("DEBUG: No source files or README found")
                 return jsonify({'status': 'No source files found'}), 200
         
         target_path = random.choice(source_files)
@@ -361,96 +503,207 @@ def cron_job():
             print(f"DEBUG: Could not read target file: {target_path}")
             return jsonify({'status': 'Could not identify target file'}), 200
 
-        # Generate High-Quality Improvement using external prompt
         ts = int(time.time())
+
+        # === PHASE 1: SCANNER (Gemini A) ===
+        print(f"DEBUG: Phase 1 — Scanner analyzing {target_path}")
         try:
-            prompt_path = os.path.join(os.path.dirname(__file__), 'improvement_prompt.txt')
-            with open(prompt_path, 'r') as f:
-                prompt_template = f.read()
+            scanner_path = os.path.join(os.path.dirname(__file__), 'scanner_prompt.txt')
+            with open(scanner_path, 'r') as f:
+                scanner_template = f.read()
             
-            improvement_prompt = prompt_template.replace('{{REPO_NAME}}', target_repo.full_name)\
-                                              .replace('{{FILE_PATH}}', target_path)\
-                                              .replace('{{REPO_STRUCTURE}}', structure)\
-                                              .replace('{{README_CONTENT}}', readme_content)\
-                                              .replace('{{FILE_CONTENT}}', file_content)\
-                                              .replace('{{GLOBAL_MEMORY}}', global_memory)\
-                                              .replace('{{TIMESTAMP}}', str(ts))
+            scanner_prompt = scanner_template.replace('{{REPO_NAME}}', target_repo.full_name)\
+                                             .replace('{{FILE_PATH}}', target_path)\
+                                             .replace('{{REPO_STRUCTURE}}', structure)\
+                                             .replace('{{README_CONTENT}}', readme_content)\
+                                             .replace('{{FILE_CONTENT}}', file_content)\
+                                             .replace('{{GLOBAL_MEMORY}}', global_memory)
         except Exception as e:
-            print(f"DEBUG: Failed to load external prompt: {e}. Falling back to internal.")
-            improvement_prompt = (
-                f"Repository: {target_repo.full_name}\n"
-                f"File Path: {target_path}\n"
-                f"Content:\n{file_content}\n\n"
-                "TASK: Propose a high-value technical improvement using surgical search/replace JSON."
-            )
-
-        raw_response = query_gemini(improvement_prompt, temperature=0.1)
-        print(f"DEBUG: Gemini raw response length: {len(raw_response) if raw_response else 0}")
-        improvement_data = extract_json_from_response(raw_response)
+            print(f"DEBUG: Failed to load scanner prompt: {e}")
+            scanner_prompt = f"Analyze {target_repo.full_name}/{target_path} and recommend one improvement. Text only, no code."
         
-        if improvement_data and 'edits' in improvement_data:
-            edits = improvement_data['edits']
-            new_file_content = apply_surgical_edits(file_content, edits)
-            
-            if new_file_content == file_content:
-                print("DEBUG: No changes applied after surgical edits.")
-                return jsonify({'status': 'No changes applied'}), 200
+        scanner_plan = query_gemini_scanner(scanner_prompt)
+        if not scanner_plan:
+            print("DEBUG: Scanner returned nothing")
+            return jsonify({'status': 'Scanner failed'}), 200
+        
+        print(f"DEBUG: Scanner plan length: {len(scanner_plan)}")
 
-            branch = improvement_data.get('branch_name', f'bot/tech-fix-{ts}')
-            title = improvement_data.get('title', 'Automated technical improvement')
-            body = improvement_data.get('body', 'Automated technical changes by Joe-Gemini.')
-            
-            file_changes = {target_path: new_file_content}
-            print(f"DEBUG: Creating branch {branch} with surgical edits for {target_path}")
-            success = commit_changes_via_api(target_repo, branch, file_changes, title)
-            
-            if success:
-                owner_login = target_repo.owner.login
-                pr = target_repo.create_pull(
-                    title=title,
-                    body=f"Hey @{owner_login}! Joseph, I've found an improvement for you.\n\n{body}\n\nGenerated autonomously by Joe-Gemini 🤖",
-                    head=branch,
-                    base=target_repo.default_branch
-                )
-                
-                # Assign owner and request review
-                try:
-                    pr.add_to_assignees(owner_login)
-                    pr.create_review_request(reviewers=[owner_login])
-                except Exception as e:
-                    print(f"DEBUG: Failed to assign/request review: {e}")
+        # === PHASE 2 & 3: EXECUTOR + REVIEWER (with retry) ===
+        max_attempts = 2
+        reviewer_feedback = ""
+        final_edits = None
+        final_title = ""
+        final_body = ""
+        final_branch = ""
+        reviewer_verdict_text = ""
 
-                print(f"DEBUG: PR created: {pr.html_url}")
+        for attempt in range(1, max_attempts + 1):
+            print(f"DEBUG: Phase 2 — Executor attempt {attempt}")
+            
+            # Load executor prompt
+            try:
+                executor_path = os.path.join(os.path.dirname(__file__), 'executor_prompt.txt')
+                with open(executor_path, 'r') as f:
+                    executor_template = f.read()
                 
-                # Update Global Memory with the new lesson
+                executor_prompt = executor_template.replace('{{REPO_NAME}}', target_repo.full_name)\
+                                                   .replace('{{FILE_PATH}}', target_path)\
+                                                   .replace('{{SCANNER_PLAN}}', scanner_plan)\
+                                                   .replace('{{FILE_CONTENT}}', file_content)\
+                                                   .replace('{{GLOBAL_MEMORY}}', global_memory)\
+                                                   .replace('{{TIMESTAMP}}', str(ts))\
+                                                   .replace('{{REVIEWER_FEEDBACK}}', reviewer_feedback)
+            except Exception as e:
+                print(f"DEBUG: Failed to load executor prompt: {e}")
+                break
+            
+            # Kimi K2 executes via Groq
+            executor_response = query_groq(executor_prompt)
+            if not executor_response:
+                print("DEBUG: Executor returned nothing")
+                break
+            
+            print(f"DEBUG: Executor response length: {len(executor_response)}")
+            improvement_data = extract_json_from_response(executor_response)
+            
+            if not improvement_data or 'edits' not in improvement_data:
+                print("DEBUG: No valid improvement JSON from Executor")
+                break
+
+            # === PHASE 3: REVIEWER (Gemini B) ===
+            print(f"DEBUG: Phase 3 — Reviewer validating attempt {attempt}")
+            try:
+                reviewer_path = os.path.join(os.path.dirname(__file__), 'reviewer_prompt.txt')
+                with open(reviewer_path, 'r') as f:
+                    reviewer_template = f.read()
+                
+                reviewer_prompt = reviewer_template.replace('{{REPO_NAME}}', target_repo.full_name)\
+                                                   .replace('{{FILE_PATH}}', target_path)\
+                                                   .replace('{{FILE_CONTENT}}', file_content)\
+                                                   .replace('{{PROPOSED_EDITS}}', json.dumps(improvement_data.get('edits', [])))\
+                                                   .replace('{{SCANNER_PLAN}}', scanner_plan)\
+                                                   .replace('{{GLOBAL_MEMORY}}', global_memory)
+            except Exception as e:
+                print(f"DEBUG: Failed to load reviewer prompt: {e}")
+                final_edits = improvement_data.get('edits', [])
+                final_title = improvement_data.get('title', 'Automated improvement')
+                final_body = improvement_data.get('body', '')
+                final_branch = improvement_data.get('branch_name', f'bot/fix-{ts}')
+                break
+            
+            reviewer_response = query_gemini_reviewer(reviewer_prompt)
+            if not reviewer_response:
+                print("DEBUG: Reviewer returned nothing, using Executor's edits as-is")
+                final_edits = improvement_data.get('edits', [])
+                final_title = improvement_data.get('title', 'Automated improvement')
+                final_body = improvement_data.get('body', '')
+                final_branch = improvement_data.get('branch_name', f'bot/fix-{ts}')
+                reviewer_verdict_text = "Reviewer unavailable — used Executor's edits directly"
+                break
+            
+            reviewer_data = extract_json_from_response(reviewer_response)
+            
+            if not reviewer_data:
+                print("DEBUG: Could not parse Reviewer JSON, using Executor's edits")
+                final_edits = improvement_data.get('edits', [])
+                final_title = improvement_data.get('title', 'Automated improvement')
+                final_body = improvement_data.get('body', '')
+                final_branch = improvement_data.get('branch_name', f'bot/fix-{ts}')
+                reviewer_verdict_text = "Reviewer response unparseable"
+                break
+            
+            verdict = reviewer_data.get('verdict', 'REJECT').upper()
+            reviewer_verdict_text = f"{verdict}: {reviewer_data.get('reason', 'No reason given')}"
+            print(f"DEBUG: Reviewer verdict: {verdict}")
+            
+            if verdict == 'APPROVE':
+                final_edits = improvement_data.get('edits', [])
+                final_title = improvement_data.get('title', 'Automated improvement')
+                final_body = improvement_data.get('body', '')
+                final_branch = improvement_data.get('branch_name', f'bot/fix-{ts}')
+                break
+            elif verdict == 'CORRECT':
+                final_edits = reviewer_data.get('corrected_edits', improvement_data.get('edits', []))
+                final_title = improvement_data.get('title', 'Automated improvement')
+                final_body = improvement_data.get('body', '')
+                final_branch = improvement_data.get('branch_name', f'bot/fix-{ts}')
+                break
+            elif verdict == 'REJECT':
+                reviewer_feedback = reviewer_data.get('feedback_for_executor', 'Your edits were rejected. Try smaller, safer changes.')
+                # Save rejection to memory
+                memory_note = reviewer_data.get('memory_note', f'Rejected edit on {target_repo.name}')
                 try:
                     bot_repo = gh.get_repo("HOLYKEYZ/joe-gemini")
-                    old_memory_file = bot_repo.get_contents("api/global_memory.md")
-                    old_memory = old_memory_file.decoded_content.decode('utf-8')
-                    
-                    lesson = (
-                        f"\n- **Repo: {target_repo.name}**: {title}. "
-                        f"(Ref: {pr.html_url}) - *Status: PENDING REVIEW*"
-                    )
-                    
-                    new_memory = old_memory + lesson
-                    bot_repo.update_file(
-                        "api/global_memory.md",
-                        f"feat(memory): record lesson from {target_repo.name}",
-                        new_memory,
-                        old_memory_file.sha
-                    )
-                    print("DEBUG: Global memory updated successfully.")
+                    mem_file = bot_repo.get_contents("api/global_memory.md")
+                    mem_content = mem_file.decoded_content.decode('utf-8')
+                    mem_content += f"\n- **REJECTED by Reviewer**: {memory_note}"
+                    bot_repo.update_file("api/global_memory.md", f"feat(memory): reviewer rejected edit on {target_repo.name}", mem_content, mem_file.sha)
                 except Exception as e:
-                    print(f"DEBUG: Failed to update global memory: {e}")
+                    print(f"DEBUG: Failed to save rejection to memory: {e}")
+                
+                if attempt == max_attempts:
+                    print("DEBUG: Max attempts reached, skipping PR")
+                    # Log the failed cycle
+                    update_ai_communication_log(gh, ts, scanner_plan or "", executor_response or "", f"REJECTED x{max_attempts}: {reviewer_feedback}")
+                    return jsonify({'status': 'Rejected after max attempts'}), 200
+                continue
 
-                return jsonify({'status': 'PR Created', 'url': pr.html_url}), 200
-            else:
-                print("DEBUG: Commit failed")
-                return jsonify({'error': 'Commit failed'}), 500
+        if not final_edits:
+            print("DEBUG: No valid edits after pipeline")
+            return jsonify({'status': 'No improvement generated'}), 200
+
+        # Apply the approved/corrected edits
+        new_file_content = apply_surgical_edits(file_content, final_edits)
         
-        print("DEBUG: No improvement data generated")
-        return jsonify({'status': 'No improvement generated'}), 200
+        if new_file_content == file_content:
+            print("DEBUG: No changes applied after surgical edits")
+            return jsonify({'status': 'No changes applied'}), 200
+
+        # Create PR
+        file_changes = {target_path: new_file_content}
+        print(f"DEBUG: Creating branch {final_branch} with validated edits for {target_path}")
+        success = commit_changes_via_api(target_repo, final_branch, file_changes, final_title)
+        
+        if success:
+            owner_login = target_repo.owner.login
+            pr = target_repo.create_pull(
+                title=f"[VALIDATED] {final_title}",
+                body=f"Hey @{owner_login}! Joseph, I've found an improvement for you.\n\n{final_body}\n\n---\n*Validated by Triple-AI: Scanner (Gemini) → Executor (Kimi K2) → Reviewer (Gemini)*\n\nGenerated autonomously by Joe-Gemini 🤖",
+                head=final_branch,
+                base=target_repo.default_branch
+            )
+            
+            try:
+                pr.add_to_assignees(owner_login)
+                pr.create_review_request(reviewers=[owner_login])
+            except Exception as e:
+                print(f"DEBUG: Failed to assign/request review: {e}")
+
+            print(f"DEBUG: PR created: {pr.html_url}")
+            
+            # Save to memory
+            try:
+                bot_repo = gh.get_repo("HOLYKEYZ/joe-gemini")
+                old_memory_file = bot_repo.get_contents("api/global_memory.md")
+                old_memory = old_memory_file.decoded_content.decode('utf-8')
+                lesson = f"\n- **Repo: {target_repo.name}**: {final_title}. (Ref: {pr.html_url}) - *Status: PENDING REVIEW*"
+                bot_repo.update_file(
+                    "api/global_memory.md",
+                    f"feat(memory): record lesson from {target_repo.name}",
+                    old_memory + lesson,
+                    old_memory_file.sha
+                )
+            except Exception as e:
+                print(f"DEBUG: Failed to update memory: {e}")
+            
+            # Log the successful cycle
+            update_ai_communication_log(gh, ts, scanner_plan or "", executor_response or "", reviewer_verdict_text)
+
+            return jsonify({'status': 'PR Created', 'url': pr.html_url}), 200
+        else:
+            print("DEBUG: Commit failed")
+            return jsonify({'error': 'Commit failed'}), 500
         
     except Exception as e:
         print(f"Cron error: {e}")
