@@ -269,7 +269,7 @@ def query_gemini_scanner(prompt, temperature=0.2):
         "generationConfig": {"temperature": temperature, "maxOutputTokens": 8000}
     }
     try:
-        r = requests.post(f"{GEMINI_API_URL}?key={GEMINI_API_KEY}", json=payload, headers=headers)
+        r = requests.post(f"{GEMINI_API_URL}?key={GEMINI_API_KEY}", json=payload, headers=headers, timeout=25)
         r.raise_for_status()
         return r.json()['candidates'][0]['content']['parts'][0]['text']
     except Exception as e:
@@ -289,7 +289,7 @@ def query_groq(prompt, temperature=0.1):
         "max_tokens": 8000
     }
     try:
-        r = requests.post(GROQ_API_URL, json=payload, headers=headers, timeout=120)
+        r = requests.post(GROQ_API_URL, json=payload, headers=headers, timeout=25)
         r.raise_for_status()
         return r.json()['choices'][0]['message']['content']
     except Exception as e:
@@ -305,7 +305,7 @@ def query_gemini_reviewer(prompt, temperature=0.1):
     }
     try:
         api_key = GEMINI2_API_KEY or GEMINI_API_KEY
-        r = requests.post(f"{GEMINI_API_URL}?key={api_key}", json=payload, headers=headers)
+        r = requests.post(f"{GEMINI_API_URL}?key={api_key}", json=payload, headers=headers, timeout=25)
         r.raise_for_status()
         return r.json()['candidates'][0]['content']['parts'][0]['text']
     except Exception as e:
@@ -637,7 +637,7 @@ def cron_job():
                                                    .replace('{{FILE_CONTENT}}', file_contents)\
                                                    .replace('{{GLOBAL_MEMORY}}', global_memory)\
                                                    .replace('{{TIMESTAMP}}', str(ts))\
-                                                   .replace('{{FEEDBACK}}', reviewer_feedback)
+                                                   .replace('{{REVIEWER_FEEDBACK}}', reviewer_feedback)
             except Exception as e:
                 print(f"DEBUG: Failed to load executor prompt: {e}")
                 break
