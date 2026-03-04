@@ -18,7 +18,7 @@ This file tracks the bot's successful improvements, technical patterns learned, 
 - **Placeholders**: Never use `...` or `// code remains the same` in replace blocks.
 - **Triviality**: Do not change whitespace or single typos as a standalone PR.
 - **Large Search Blocks**: Keep search blocks under 10 lines. Smaller, targeted edits are safer.
-- **Own Repo Caution**: When editing joe-gemini itself, be EXTRA careful. One bad edit can brick the entire bot.
+- **Own Repo Caution**: When editing mayo itself, be EXTRA careful. One bad edit can brick the entire bot.
 - **Repo: micro-edit**: [LOGIC] Complete editorPrompt return statement. (Ref: https://github.com/HOLYKEYZ/micro-edit/pull/1) - *Status: REJECTED - Joseph closed this*
 - **Repo: Jo-ayanda-real-estate**: [LOGIC] Complete inquiries array definition. (Ref: https://github.com/HOLYKEYZ/Jo-ayanda-real-estate/pull/1) - *Status: REJECTED - Joseph closed this Comment: '### <span aria-hidden="true">✅</span> Deploy Preview for *nextphaserealestate* r'*
 - **Repo: micro-edit**: [LOGIC] Complete editorPrompt functionality and robustness. (Ref: https://github.com/HOLYKEYZ/micro-edit/pull/2) - *Status: REJECTED - Joseph closed this Comment: 'joe-gemini, this is flop'*
