@@ -30,3 +30,4 @@ u wanna delete '*
 - **Repo: ecom-stor**: [DX] Add inline documentation to postcss.config.js plugins. (Ref: https://github.com/HOLYKEYZ/ecom-stor/pull/1) - *Status: MERGED - Joseph approved! Comment: '[vc]: #rnr+551YjaA07lQABHGDprQFSGuQg1w6hrbr4705j20=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **Repo: Jo-ayanda-real-estate**: [LOGIC] Complete and expand sample inquiries data. (Ref: https://github.com/HOLYKEYZ/Jo-ayanda-real-estate/pull/2) - *Status: REJECTED - Joseph closed this Comment: '### <span aria-hidden="true">✅</span> Deploy Preview for *nextphaserealestate* r'*
 - **Repo: HOLYKEYZ**: [LOGIC] Fix truncated URL for GitHub top languages statistics image. (Ref: https://github.com/HOLYKEYZ/HOLYKEYZ/pull/1) - *Status: PENDING REVIEW*
+- **Repo: Joseph-Portfolio**: [DOCS] Enhance README for Better Developer Experience. (Ref: https://github.com/HOLYKEYZ/Joseph-Portfolio/pull/1) - *Status: PENDING REVIEW*
