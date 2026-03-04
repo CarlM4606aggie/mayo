@@ -393,9 +393,9 @@ def update_ai_communication_log(gh, ts, scanner_summary, executor_proposal, revi
         
         entry = (
             f"\n## Cycle {ts}\n"
-            f"**Scanner**: {scanner_summary[:1500]}\n\n"
-            f"**Executor**: {executor_proposal[:1500]}\n\n"
-            f"**Reviewer**: {reviewer_verdict[:1500]}\n\n---\n"
+            f"**Scanner**: {scanner_summary}\n\n"
+            f"**Executor**: {executor_proposal}\n\n"
+            f"**Reviewer**: {reviewer_verdict}\n\n---\n"
         )
         
         new_log = old_log + entry
