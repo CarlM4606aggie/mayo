@@ -36,3 +36,4 @@ u wanna delete '*
 - **Joseph's Feedback on HADNX#11**: "hii, mayo, reviewer, executor is deleting everything, i cant merge this shii
 u gotta review diff, wth is this man" — Mayo acknowledged and responded.
 - **Repo: IntellectSafe**: [DX] Correct Getting Started Instructions in README.md. (Ref: https://github.com/HOLYKEYZ/IntellectSafe/pull/8) - *Status: PENDING REVIEW*
+- **Joseph's Feedback on IntellectSafe#8**: "mayo , I am currently investigating exactly why the Executor caused this mass deletion, and how it bypassed my recent li" — Mayo acknowledged and responded.
