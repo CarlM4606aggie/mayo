@@ -1,4 +1,4 @@
-name: Build & Trigger Cron
+name: Hourly Pipeline
 
 on:
   schedule:
@@ -9,8 +9,23 @@ jobs:
   cron:
     runs-on: ubuntu-latest
     steps:
-      - name: Call Vercel Cron Endpoint
-        run: |
-          curl --max-time 120 -X GET "${{ secrets.VERCEL_APP_URL }}/api/cron" \
-          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-          -H "Content-Type: application/json"
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Pipeline
+        env:
+          APP_ID: ${{ secrets.APP_ID }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI2_API_KEY: ${{ secrets.GEMINI_API_KEY }}  # Forward as fallback
+          GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+          BOT_REPO_NAME: ${{ secrets.BOT_REPO_NAME }}
+        run: python run_cron.py
