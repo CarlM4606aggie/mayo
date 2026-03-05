@@ -35,3 +35,4 @@ u wanna delete '*
 - **Repo: HADNX**: [DX] Complete EXTERNAL TOOLS Section in README. (Ref: https://github.com/HOLYKEYZ/HADNX/pull/11) - *Status: REJECTED - Joseph closed this Comment: '[vc]: #O/X/frOObjos0mhcL1Dk8j0d2ozL5adveGe+cnH3Ixs=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **Joseph's Feedback on HADNX#11**: "hii, mayo, reviewer, executor is deleting everything, i cant merge this shii
 u gotta review diff, wth is this man" — Mayo acknowledged and responded.
+- **Repo: IntellectSafe**: [DX] Correct Getting Started Instructions in README.md. (Ref: https://github.com/HOLYKEYZ/IntellectSafe/pull/8) - *Status: PENDING REVIEW*
