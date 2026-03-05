@@ -40,3 +40,4 @@ u gotta review diff, wth is this man" — Mayo acknowledged and responded.
 - **Repo: VULNRIX**: [DX] Clarify .env Setup in README. (Ref: https://github.com/HOLYKEYZ/VULNRIX/pull/15) - *Status: MERGED - Joseph approved!*
 - **Repo: ModelFang**: [DX] Standardize Google Gemini API Key Environment Variable. (Ref: https://github.com/HOLYKEYZ/ModelFang/pull/4) - *Status: PENDING REVIEW*
 - **Repo: model-unfetter**: [DX] Enhance README with Development Environment Setup. (Ref: https://github.com/HOLYKEYZ/model-unfetter/pull/1) - *Status: MERGED - Joseph approved!*
+- **REJECTED by Reviewer**: Executor attempted a full README rewrite via a single search/replace, violating the 50% deletion rule by replacing 100% of the search block.
