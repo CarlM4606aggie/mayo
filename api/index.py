@@ -334,13 +334,20 @@ def query_gemini_scanner(prompt, temperature=0.2):
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": temperature, "maxOutputTokens": 8000}
     }
-    try:
-        r = requests.post(f"{GEMINI_API_URL}?key={GEMINI_API_KEY}", json=payload, headers=headers, timeout=120)
-        r.raise_for_status()
-        return r.json()['candidates'][0]['content']['parts'][0]['text']
-    except Exception as e:
-        print(f"Scanner Error: {e}")
-        return None
+    for attempt in range(3):
+        try:
+            r = requests.post(f"{GEMINI_API_URL}?key={GEMINI_API_KEY}", json=payload, headers=headers, timeout=120)
+            r.raise_for_status()
+            return r.json()['candidates'][0]['content']['parts'][0]['text']
+        except Exception as e:
+            print(f"Scanner Error (attempt {attempt+1}/3): {e}")
+            if attempt < 2 and ('429' in str(e) or '500' in str(e) or '503' in str(e)):
+                wait = [10, 30, 60][attempt]
+                print(f"DEBUG: Rate limited. Waiting {wait}s before retry...")
+                time.sleep(wait)
+            else:
+                return None
+    return None
 
 def query_groq(prompt, temperature=0.1):
     """Executor AI (Llama 3.3 70B) — produces surgical code edits via Groq."""
@@ -354,13 +361,20 @@ def query_groq(prompt, temperature=0.1):
         "temperature": temperature,
         "max_tokens": 4096
     }
-    try:
-        r = requests.post(GROQ_API_URL, json=payload, headers=headers, timeout=120)
-        r.raise_for_status()
-        return r.json()['choices'][0]['message']['content']
-    except Exception as e:
-        print(f"Groq/Llama Error: {e}")
-        return None
+    for attempt in range(3):
+        try:
+            r = requests.post(GROQ_API_URL, json=payload, headers=headers, timeout=120)
+            r.raise_for_status()
+            return r.json()['choices'][0]['message']['content']
+        except Exception as e:
+            print(f"Groq/Llama Error (attempt {attempt+1}/3): {e}")
+            if attempt < 2 and ('429' in str(e) or '413' in str(e) or '500' in str(e) or '503' in str(e)):
+                wait = [10, 30, 60][attempt]
+                print(f"DEBUG: Rate limited. Waiting {wait}s before retry...")
+                time.sleep(wait)
+            else:
+                return None
+    return None
 
 def query_gemini_reviewer(prompt, temperature=0.1):
     """Reviewer AI (Gemini B) — validates edits, returns verdict JSON."""
@@ -369,14 +383,21 @@ def query_gemini_reviewer(prompt, temperature=0.1):
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": temperature, "maxOutputTokens": 8000}
     }
-    try:
-        api_key = GEMINI2_API_KEY or GEMINI_API_KEY
-        r = requests.post(f"{GEMINI_API_URL}?key={api_key}", json=payload, headers=headers, timeout=120)
-        r.raise_for_status()
-        return r.json()['candidates'][0]['content']['parts'][0]['text']
-    except Exception as e:
-        print(f"Reviewer Error: {e}")
-        return None
+    for attempt in range(3):
+        try:
+            api_key = GEMINI2_API_KEY or GEMINI_API_KEY
+            r = requests.post(f"{GEMINI_API_URL}?key={api_key}", json=payload, headers=headers, timeout=120)
+            r.raise_for_status()
+            return r.json()['candidates'][0]['content']['parts'][0]['text']
+        except Exception as e:
+            print(f"Reviewer Error (attempt {attempt+1}/3): {e}")
+            if attempt < 2 and ('429' in str(e) or '500' in str(e) or '503' in str(e)):
+                wait = [10, 30, 60][attempt]
+                print(f"DEBUG: Rate limited. Waiting {wait}s before retry...")
+                time.sleep(wait)
+            else:
+                return None
+    return None
 
 def audit_pending_reviews(gh):
     """Reviewer checks PENDING REVIEW entries in memory and updates with actual PR status."""
