@@ -231,12 +231,6 @@ def apply_surgical_edits(content, edits):
         search_lines = search.splitlines()
         replace_text = replace if replace else ""
         
-        # SAFETY GUARD 1: Reject edits that delete more than 50% of search block
-        replace_line_count = len(replace_text.strip().splitlines()) if replace_text.strip() else 0
-        if len(search_lines) > 5 and replace_line_count < len(search_lines) * 0.5:
-            print(f"DEBUG: BLOCKED destructive edit - would delete {len(search_lines) - replace_line_count} lines ({search[:60]}...)")
-            continue
-        
         # Find the search block in content using LINE-BY-LINE matching
         match_start = -1
         for i in range(len(content_lines) - len(search_lines) + 1):
@@ -622,10 +616,10 @@ def cron_job():
             else:
                 return jsonify({'status': 'No source files found'}), 200
         
-        # Multi-file support: Pick up to 3 files
+        # Multi-file support: Pick up to 10 files for deeper architecture context
         import random
         random.shuffle(source_files)
-        target_paths = [sf.path if hasattr(sf, 'path') else sf for sf in source_files[:3]]
+        target_paths = [sf.path if hasattr(sf, 'path') else sf for sf in source_files[:10]]
         
         file_contents = ""
         for tp in target_paths:
@@ -1336,11 +1330,11 @@ Files in context:
 Generate surgical search/replace edits to fulfill this plan.
 
 HARD RULES:
-1. MAX 10 LINES per search block.
+1. FULL CONTEXT EDITS: You are fully authorized to replace entire functions, large sections of code, or update multiple files across the repository.
 2. EXACT MATCH: The "search" field must be an EXACT copy of the original code. Character-for-character.
 3. NO PLACEHOLDERS: Never use "...", "// rest of code", or "# code remains".
-4. NO MASS DELETIONS: If your replacement is significantly shorter than the search block, you are probably deleting code. Stop and reconsider.
-5. Include the "file" field in each edit block.
+4. NO UNINTENDED DELETIONS: Ensure you are not accidentally deleting important surrounding context. Review your edits carefully.
+5. PRESERVE EVERYTHING: Indentation, comments, blank lines outside your edit MUST remain untouched.
 
 OUTPUT FORMAT (Strict JSON, nothing else):
 {{

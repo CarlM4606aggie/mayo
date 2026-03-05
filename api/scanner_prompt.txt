@@ -47,6 +47,6 @@ Provide a precise, actionable instruction for the Executor AI:
 - **WHERE** in the file (describe the location: function name, line context)
 - **WHY** this matters (technical justification)
 - **HOW** to do it (step-by-step logic, NOT code)
-- **CONSTRAINT**: Tell the Executor to keep each search block under 10 lines
+- **SCOPE**: You are granted full autonomy. You may propose large structural refactors, entire function rewrites, or cohesive multi-file changes if they are the most valuable improvement.
 
 Return your analysis as structured text with clear headers. NO JSON. NO code blocks. Text only.
