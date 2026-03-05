@@ -78,7 +78,7 @@ def run_cron():
                 global_memory = "No global memory found. Start with fresh excellence."
 
         # === REPO SELECTION: Exclusions, Cooldown, Priority ===
-        EXCLUDED_REPOS = ['Square-farms', 'Jo-ayanda-real-estate', 'Backend-images-app', 'ecom-stor']
+        EXCLUDED_REPOS = ['Square-farms', 'Jo-ayanda-real-estate', 'Backend-images-app', 'ecom-stor', 'private-storage']
         
         candidates = [r for r in repos_data.get('repositories', []) 
                       if not r.get('fork') and not r.get('archived') 
