@@ -1356,3 +1356,69 @@ This improvement significantly enhances the Developer Experience (DX). The `VULN
 **Reviewer**: REJECTED x2: Your proposed edits for `README.md` did not produce any changes in the diff preview, indicating a mismatch between your `search` blocks and the original file content. Please ensure your `search` blocks are *exact* matches, including all whitespace (spaces, tabs, blank lines) and line endings, to the original content. Review the original file content very carefully for any subtle differences. Once the search blocks correctly identify the target text, the proposed changes (reordering `chmod` and creating a new 'CLI Environment Variables' section) are aligned with the plan and valuable.
 
 ---
+
+## Cycle 1772918679
+**Scanner**: IntellectSafe is a production-grade AI Safety & Security Platform designed to protect AI systems and users from various threats like misuse, deception, and manipulation. It implements a 5-layer defense architecture, an LLM Council for multi-model validation, a universal proxy, deepfake detection, and agent control mechanisms.
+
+The `README.md` file serves as the primary introduction to the IntellectSafe project, detailing its features, system architecture, key management, local development setup, API reference, CLI usage, and testing procedures. It is crucial for onboarding new users and developers. The `DEPLOYMENT.md` file provides specific instructions for deploying the backend to Render and the frontend to Vercel, including environment variable configurations for both cloud and local environments.
+
+The codebase utilizes Python (FastAPI, SQLAlchemy, Alembic) for the backend and Node.js (Vite, React, Tailwind CSS) for the frontend. It follows a modular architecture with a strong emphasis on AI safety principles and provides clear documentation for API usage and deployment.
+
+### Deep Analysis
+
+1.  **DX (Developer Experience) - README.md Installation Instructions**:
+    *   The `git clone <repo-url>` command uses a generic placeholder instead of the actual repository URL.
+    *   The subsequent `cd AI-safety` command refers to an incorrect directory name; the repository is named `IntellectSafe`. This will cause an error for anyone following the instructions.
+    *   The virtual environment activation command `.\venv\Scripts\activate` is only provided for Windows, lacking the equivalent command for Linux/macOS users.
+2.  **DX (Developer Experience) - README.md Frontend Access Port**: The "Access Points" section lists the Frontend at `http://localhost:3002`, but the `DEPLOYMENT.md` file's local environment variables suggest `http://localhost:5173` (via `CORS_ORIGINS=http://localhost:5173`). This inconsistency can confuse developers trying to access the local frontend.
+3.  **DX (Developer Experience) - README.md Deepfake Scan Endpoint Example**: The `curl` command example for scanning deepfakes is incomplete. It only provides the `-d` payload, missing the `curl -X POST`, the full API endpoint URL, and the `Content-Type` header, making the example unusable as written.
+4.  **Consistency/DX - DEPLOYMENT.md Local Environment Variables**: The `OPENROUTER_API_KEY` is listed as a required environment variable for Render deployment but is missing from the local `.env` example in `DEPLOYMENT.md`. This inconsistency could lead to issues if users attempt to use OpenRouter locally without realizing they need to configure this key.
+5.  **Consistency/DX - README.md LLM Council Model Naming**: There's a minor inconsistency in model naming/versioning. The "LLM Council (Fab Five)" mentions "Gemini 2" while the diagram shows "Gemini 2.5". Similarly, the diagram shows "Llama 3.3" while the "Universal Proxy" table mentions "llama-4-maverick", "llama-4-scout". While minor, this could cause slight confusion.
+
+### Pick ONE Improvement
+
+The most valuable improvement at this stage is to correct the fundamental "Getting Started" instructions in `README.md`. An incorrect `git clone` and `cd` command is a direct blocker for any new user attempting to set up the project, and missing platform-specific virtual environment activation instructions hinder setup for non-Windows users. This addresses the very first hurdle a developer faces.
+
+### Executor's Plan
+
+**WHAT**: Update the `git clone` command to use the correct repository URL, correct the subsequent `cd` command to match the actual repository name, and add the virtual environment activation command for Linux/macOS users.
+
+**WHERE**: In the `README.md` file, within the "Installation" subsection under "🚀 Getting Started". Specifically, locate the lines related to `git clone <repo-url>`, `cd AI-safety`, and `.\venv\Scripts\activate  # Windows`.
+
+**WHY**: The current `git clone` instruction uses a generic placeholder `<repo-url>` and the `cd` command refers to an incorrect directory name (`AI-safety` instead of `IntellectSafe`). This prevents users from successfully cloning the repository and navigating to its directory. Additionally, the virtual environment activation command is only provided for Windows, leaving Linux/macOS users without clear instructions. Correcting these issues will significantly improve the initial developer experience, making the project easier to set up for all users.
+
+**HOW**:
+1.  Locate the line `git clone <repo-url>`. Replace `<repo-url>` with `https://github.com/HOLYKEYZ/IntellectSafe.git`.
+2.  Locate the line `cd AI-safety`. Replace `AI-safety` with `IntellectSafe`.
+3.  Locate the line `.\venv\Scripts\activate  # Windows`. Insert a new line directly below it with `source venv/bin/activate  # Linux/macOS`.
+
+**SCOPE**: This change is localized to a small, critical section of the `README.md` file, addressing fundamental setup instructions. It involves precise text corrections and a small addition, ensuring minimal risk and high impact on developer onboarding.
+
+**Executor**: ```json
+{
+  "title": "[DX] Correct Getting Started Instructions in README.md",
+  "body": "### Problem / Gap\nThe current `git clone` instruction in the README.md file uses a generic placeholder `<repo-url>` instead of the actual repository URL. Additionally, the `cd` command refers to an incorrect directory name (`AI-safety` instead of `IntellectSafe`). The virtual environment activation command is only provided for Windows, lacking the equivalent command for Linux/macOS users.\n\n### Solution & Insight\nTo address these issues, we will update the `git clone` command with the correct repository URL, correct the `cd` command to match the actual repository name, and add the virtual environment activation command for Linux/macOS users. This ensures that users can successfully clone the repository, navigate to its directory, and activate the virtual environment regardless of their operating system.\n\n### Impact\nCorrecting these instructions will significantly improve the initial developer experience, making it easier for users to set up and start working with the IntellectSafe project.",
+  "branch_name": "bot/upgrade-1772918679",
+  "edits": [
+    {
+      "file": "README.md",
+      "search": "git clone <repo-url>",
+      "replace": "git clone https://github.com/HOLYKEYZ/IntellectSafe.git"
+    },
+    {
+      "file": "README.md",
+      "search": "cd AI-safety",
+      "replace": "cd IntellectSafe"
+    },
+    {
+      "file": "README.md",
+      "search": ".\\venv\\Scripts\\activate  # Windows",
+      "replace": ".\\venv\\Scripts\\activate  # Windows\nsource venv/bin/activate  # Linux/macOS"
+    }
+  ]
+}
+```
+
+**Reviewer**: APPROVE: The Executor's proposed edits accurately address the identified issues in the `README.md` file. They correctly update the `git clone` URL, fix the `cd` command to the correct repository name, and add the virtual environment activation command for Linux/macOS users. All edits are small, precise, and directly align with the Scanner's plan, significantly improving the 'Getting Started' developer experience without any destructive changes or search block mismatches.
+
+---
