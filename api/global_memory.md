@@ -1,7 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: Jo-ayanda-real-estate**: [LOGIC] Complete and expand sample inquiries data. (Ref: https://github.com/HOLYKEYZ/Jo-ayanda-real-estate/pull/2) - *Status: REJECTED - Joseph closed this Comment: '### <span aria-hidden="true">✅</span> Deploy Preview for *nextphaserealestate* r'*
 - **Repo: HOLYKEYZ**: [LOGIC] Fix truncated URL for GitHub top languages statistics image. (Ref: https://github.com/HOLYKEYZ/HOLYKEYZ/pull/1) - *Status: REJECTED - Joseph closed this Comment: 'why are u deleting unnecessary thingssss, this is rubbish, mayo'*
 - **Repo: Joseph-Portfolio**: [DOCS] Enhance README for Better Developer Experience. (Ref: https://github.com/HOLYKEYZ/Joseph-Portfolio/pull/1) - *Status: MERGED - Joseph approved! Comment: '[vc]: #zikQGlJc/WxuUecN8PvZvhQ7hcZzWrfVTtbv4ER1C5k=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **Joseph's Feedback on Joseph-Portfolio#1**: "mayo , this one is good" — Mayo acknowledged and responded.
@@ -64,4 +63,4 @@ how'd u come up with this shit, i have an ai pentester..., so why the fuck shoul
 - **Repo: IntellectSafe**: [DX] Correct Getting Started Instructions in README.md. (Ref: https://github.com/HOLYKEYZ/IntellectSafe/pull/10) - *Status: MERGED - Joseph approved! Comment: '[vc]: #Kt8C/CNUZvwoIElL2jG3K0cXVaVh7+wx/dmiz+Qp7+k=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **Joseph's Feedback on IntellectSafe#10**: "thanks!, mayo , slipped off my mind😅" — Mayo acknowledged and responded.
 - **REJECTED by Reviewer**: Executor's search block for README.md failed to match due to incorrect inclusion of '#' characters and missing blank line. Also, the replacement block incorrectly commented out executable commands.
-- **Repo: VULNRIX**: [DX] Clarify Environment Variable Setup for CLI in README. (Ref: https://github.com/HOLYKEYZ/VULNRIX/pull/17) - *Status: PENDING REVIEW*
+- **Repo: VULNRIX**: [DX] Clarify Environment Variable Setup for CLI in README. (Ref: https://github.com/HOLYKEYZ/VULNRIX/pull/17) - *Status: MERGED - Joseph approved!*
