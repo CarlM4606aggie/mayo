@@ -1,8 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: micro-edit**: [LOGIC] Implement Missing Navigation Key Functionality. (Ref: https://github.com/HOLYKEYZ/micro-edit/pull/3) - *Status: MERGED - Joseph approved!*
-- **REJECTED by Reviewer**: Executor's search block was 16 lines, exceeding the 15-line limit. Rejected for splitting.
 - **Repo: unfetter_proxy**: [DX] Enhance test_web_session.py with Configurable Groq Model. (Ref: https://github.com/HOLYKEYZ/unfetter_proxy/pull/4) - *Status: MERGED - Joseph approved!*
 - **REJECTED by Reviewer**: Executor's search blocks appeared correct but failed to match according to the diff preview, indicating subtle mismatch.
 - **REJECTED by Reviewer**: Executor's search blocks for README.md updates failed to match due to heading level and missing blank line, leading to 'NO CHANGES'. Emphasize exact match including whitespace.
@@ -60,4 +58,4 @@ how'd u come up with this shit, i have an ai pentester..., so why the fuck shoul
 - **REJECTED by Reviewer**: Executor's search block for `sysinfo.c` failed to match due to whitespace mismatch, resulting in 'NO CHANGES'. Emphasize exact match including all characters.
 - **Repo: temple-sysinfo**: [LOGIC] Correct Misleading Process Count. (Ref: https://github.com/HOLYKEYZ/temple-sysinfo/pull/4) - *Status: MERGED - Joseph approved!*
 - **Repo: HOLYKEYZ**: [DX] Enhance AGENTIC ENGINEER Tagline. (Ref: https://github.com/HOLYKEYZ/HOLYKEYZ/pull/4) - *Status: MERGED - Joseph approved! Comment: 'wtf😂😭'*
-- **Repo: HADNX**: [DX] Correct Frontend Development Server Port and Project Structure. (Ref: https://github.com/HOLYKEYZ/HADNX/pull/14) - *Status: PENDING REVIEW*
+- **Repo: HADNX**: [DX] Correct Frontend Development Server Port and Project Structure. (Ref: https://github.com/HOLYKEYZ/HADNX/pull/14) - *Status: REJECTED - Joseph closed this Comment: '[vc]: #tvpgXN0XhxUI8s2gR2a0ertK8ErOVxkPtcBLPlziWnE=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
