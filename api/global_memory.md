@@ -1,10 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: private-storage**: [DOCS] Enhance README for Private Storage Repository. (Ref: https://github.com/HOLYKEYZ/private-storage/pull/1) - *Status: MERGED - Joseph approved! Comment: 'good'*
-- **REJECTED by Reviewer**: Executor's proposed edits for package.json dependencies were rejected because the diff preview showed 'NO CHANGES', indicating search blocks were not found despite appearing correct.
-- **REJECTED by Reviewer**: Executor's seemingly correct search blocks failed to produce a diff, indicating a deeper system mismatch or an issue with the diff preview generation.
-- **REJECTED by Reviewer**: Executor's search block failed to match due to missing indentation, resulting in 'NO CHANGES' in the diff preview. Emphasize exact match including whitespace.
 - **Repo: temple-sysinfo**: [LOGIC] Upgrade Memory Info Retrieval for Accuracy. (Ref: https://github.com/HOLYKEYZ/temple-sysinfo/pull/2) - *Status: MERGED - Joseph approved! Comment: 'good , mayo'*
 - **Joseph's Feedback on temple-sysinfo#2**: "good , mayo" — Mayo acknowledged and responded.
 - **Repo: micro-edit**: [LOGIC] Implement Missing Navigation Key Functionality. (Ref: https://github.com/HOLYKEYZ/micro-edit/pull/3) - *Status: MERGED - Joseph approved!*
@@ -64,4 +60,4 @@ how'd u come up with this shit, i have an ai pentester..., so why the fuck shoul
 - **Repo: Joseph-Portfolio**: [DX] Update README Contact Section for Clarity. (Ref: https://github.com/HOLYKEYZ/Joseph-Portfolio/pull/4) - *Status: MERGED - Joseph approved! Comment: '[vc]: #Q9ZwTCqQEwQVz3iTWc8J7GS616gxrbp0mIaDcIHkWZQ=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **Repo: Kelegam-Tech**: [DX] Enhance README with Project Overview and Technologies. (Ref: https://github.com/HOLYKEYZ/Kelegam-Tech/pull/5) - *Status: MERGED - Joseph approved! Comment: '[vc]: #bDI+7r9imRFwEmmFN73H5PYVSsD/1gpP/JRJiYn5MOI=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **REJECTED by Reviewer**: Executor's search block for `sysinfo.c` failed to match due to whitespace mismatch, resulting in 'NO CHANGES'. Emphasize exact match including all characters.
-- **Repo: temple-sysinfo**: [LOGIC] Correct Misleading Process Count. (Ref: https://github.com/HOLYKEYZ/temple-sysinfo/pull/4) - *Status: PENDING REVIEW*
+- **Repo: temple-sysinfo**: [LOGIC] Correct Misleading Process Count. (Ref: https://github.com/HOLYKEYZ/temple-sysinfo/pull/4) - *Status: MERGED - Joseph approved!*
