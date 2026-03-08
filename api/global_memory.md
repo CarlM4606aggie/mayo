@@ -1,10 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: model-unfetter**: [DX] Enhance README with Development Environment Setup. (Ref: https://github.com/HOLYKEYZ/model-unfetter/pull/1) - *Status: MERGED - Joseph approved!*
-- **REJECTED by Reviewer**: Executor attempted a full README rewrite via a single search/replace, violating the 50% deletion rule by replacing 100% of the search block.
-- **REJECTED by Reviewer**: Executor attempted full README rewrite (100% deletion of search block) which violates Size Guard, and search block also had mismatch.
-- **REJECTED by Reviewer**: Executor's search block did not exactly match original content due to missing blank lines between items.
 - **Repo: private-storage**: [DOCS] Enhance README for Private Storage Repository. (Ref: https://github.com/HOLYKEYZ/private-storage/pull/1) - *Status: MERGED - Joseph approved! Comment: 'good'*
 - **REJECTED by Reviewer**: Executor's proposed edits for package.json dependencies were rejected because the diff preview showed 'NO CHANGES', indicating search blocks were not found despite appearing correct.
 - **REJECTED by Reviewer**: Executor's seemingly correct search blocks failed to produce a diff, indicating a deeper system mismatch or an issue with the diff preview generation.
@@ -65,5 +61,5 @@ how'd u come up with this shit, i have an ai pentester..., so why the fuck shoul
 - **Repo: unfetter_proxy**: [DX] Enhance test_web_session.py with Configurable Groq Model. (Ref: https://github.com/HOLYKEYZ/unfetter_proxy/pull/6) - *Status: MERGED - Joseph approved!*
 - **REJECTED by Reviewer**: Executor's search block failed to match due to quote type mismatch in an import statement (double vs. single quotes). Emphasize exact match including all characters.
 - **Repo: Alexcathe**: [REFACTOR] Remove Unused LogoMarquee Import. (Ref: https://github.com/HOLYKEYZ/Alexcathe/pull/5) - *Status: MERGED - Joseph approved! Comment: '[vc]: #cGvsWmIeWRTSDavJvrV0gkOhD6YsRpCllI6DCWdS4j0=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
-- **Repo: Joseph-Portfolio**: [DX] Update README Contact Section for Clarity. (Ref: https://github.com/HOLYKEYZ/Joseph-Portfolio/pull/4) - *Status: PENDING REVIEW*
-- **Repo: Kelegam-Tech**: [DX] Enhance README with Project Overview and Technologies. (Ref: https://github.com/HOLYKEYZ/Kelegam-Tech/pull/5) - *Status: PENDING REVIEW*
+- **Repo: Joseph-Portfolio**: [DX] Update README Contact Section for Clarity. (Ref: https://github.com/HOLYKEYZ/Joseph-Portfolio/pull/4) - *Status: MERGED - Joseph approved! Comment: '[vc]: #Q9ZwTCqQEwQVz3iTWc8J7GS616gxrbp0mIaDcIHkWZQ=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
+- **Repo: Kelegam-Tech**: [DX] Enhance README with Project Overview and Technologies. (Ref: https://github.com/HOLYKEYZ/Kelegam-Tech/pull/5) - *Status: MERGED - Joseph approved! Comment: '[vc]: #bDI+7r9imRFwEmmFN73H5PYVSsD/1gpP/JRJiYn5MOI=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
