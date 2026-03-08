@@ -1627,3 +1627,85 @@ This improvement is entirely contained within the `test_web_session.py` file. It
 2. For the second edit in `test_web_session.py`, the replacement string for the `print` statement is incomplete. It cuts off the usage message at `[m`. The intended usage message should be `(Usage: python test_web_session.py [model] [prompt])`. Please correct the replacement string to include the full, accurate usage instruction.
 
 ---
+
+## Cycle 1772965717
+**Scanner**: ## Codebase Understanding
+
+This repository, `temple-sysinfo`, provides a Windows system information utility written in C. It gathers and displays various system details like CPU, memory, disk, and running processes, and also includes a HolyC syntax demonstration as a tribute to TempleOS.
+
+The `README.md` file serves as the primary documentation for the project, detailing its purpose, features, build instructions, and project structure. The `sysinfo.c` file is the core C source code that implements all the system information retrieval and display logic for Windows.
+
+The codebase uses standard C programming practices for Windows API calls, structured output formatting with ASCII art headers, and a clear modular design where each type of system information is handled by a dedicated function.
+
+## Deep Analysis
+
+### sysinfo.c
+
+*   **Security**:
+    *   Buffer sizes for `GetComputerNameA`, `GetUserNameA`, `GetWindowsDirectoryA`, `GetSystemDirectoryA` are fixed at 256 characters. While generally sufficient for these specific system calls, a theoretical buffer overflow could occur if a system name or path exceeds this length, though the Windows API functions themselves often handle truncation. The current implementation does not check the return value for required buffer size, which could lead to truncation without warning. For this utility's purpose, truncation is acceptable.
+    *   The `print_env_vars` function uses `strncpy` and `strcat` for truncation. The `strncpy` copies up to 25 characters, then a null terminator is manually added at `truncated[25]`, followed by `strcat` appending "...". The `truncated` buffer is 30 characters long. This logic correctly ensures null termination and prevents overflow within the `truncated` buffer, resulting in a maximum 28-character string plus null terminator. This is safe.
+*   **Logic**:
+    *   In `print_disk_info`, the calculation for `percent` includes a check `(total_gb > 0)` to prevent division by zero, which is good.
+    *   In `print_process_list`, the function takes two separate snapshots of running processes: one to print the first 10, and a second one solely to count the total number of processes. This is inefficient.
+    *   Also in `print_process_list`, the line `printf(" | ... and %d more processes |\n", total - 10);` is unconditionally printed. If there are 10 or fewer processes, this will result in a misleading message (e.g., "... and 0 more processes" or "... and -5 more processes"). This is a logic error and an edge case not properly handled.
+    *   In `print_display_info`, the `colors` variable is calculated as `bits * planes`. While technically correct, `BITSPIXEL` usually directly provides the effective color depth, and `PLANES` is typically 1 on modern systems, making the multiplication redundant. Using `bits` directly would be simpler and equally accurate for common scenarios.
+*   **Performance**:
+    *   The double snapshot in `print_process_list` for counting processes is a performance inefficiency.
+*   **DX (Developer Experience)**:
+    *   The code is well-commented and uses clear function names.
+    *   The output formatting is consistent and easy to read.
+    *   Error handling for API calls (e.g., `CreateToolhelp32Snapshot`, `GetDC`) is present, providing informative messages when data cannot be retrieved.
+*   **Consistency**:
+    *   Consistent use of `print_header` and `print_footer` for output sections.
+    *   Consistent variable naming and formatting.
+*   **Dead Code**: No obvious dead code.
+
+### README.md
+
+*   **DX (Developer Experience)**:
+    *   The README is comprehensive, well-structured, and easy to follow.
+    *   The "Build & Run" section provides clear instructions for both TCC and MinGW GCC. However, the build commands for both compilers are identical. This redundancy could be streamlined.
+    *   The features table is a great addition, enhancing readability.
+*   **Consistency**:
+    *   Consistent use of Markdown formatting.
+    *   Project structure diagram is accurate.
+
+## Pick ONE Improvement
+
+The most valuable improvement is to address the **logic error and inefficiency in the `print_process_list` function** within `sysinfo.c`. The current implementation takes two snapshots of processes and incorrectly displays the "and X more processes" message even when there are fewer than 10 processes, leading to confusing output. Fixing this will improve both the accuracy of the displayed information and the performance of the function.
+
+## Executor's Plan
+
+**WHAT**: Refactor the `print_process_list` function to count the total number of processes in a single pass and correctly display the "and X more processes" message only when there are indeed more than 10 processes.
+
+**WHERE**: Inside the `print_process_list` function in the `sysinfo.c` file.
+
+**WHY**: The current implementation is inefficient because it iterates through all running processes twice (once to print the first 10, and a second time to count the total). More critically, it has a logic bug: if the total number of processes is 10 or less, the message "and %d more processes" will display a non-positive number (e.g., "and 0 more processes" or "and -5 more processes"), which is misleading and incorrect. This improvement will make the output accurate and the function more efficient.
+
+**HOW**:
+1.  Initialize a new integer variable, for example, `total_processes_count`, to zero at the beginning of the `print_process_list` function.
+2.  Modify the existing `do-while` loop that iterates through processes. Inside this loop, increment `total_processes_count` for every process found, regardless of whether it's one of the first 10 being printed.
+3.  Keep the existing `count` variable and its associated `if (count < 10)` check to ensure only the first 10 processes are printed to the console.
+4.  Remove the entire block of code that creates a second `CreateToolhelp32Snapshot` and iterates through processes again solely to determine the `total` count. This second snapshot and loop are no longer needed.
+5.  After the main `do-while` loop finishes, add a conditional check. If `total_processes_count` is greater than 10, then print the line `printf(" | ... and %d more processes |\n", total_processes_count - 10);`. Otherwise, if `total_processes_count` is 10 or less, do not print this line.
+
+**Executor**: ```json
+{
+  "title": "[LOGIC] Fix Process List Logic and Efficiency",
+  "body": "### Problem / Gap\nThe current implementation of `print_process_list` in `sysinfo.c` has a logic error and inefficiency. It takes two snapshots of running processes: one to print the first 10 processes and another to count the total number of processes. This results in misleading output when there are fewer than 10 processes, displaying '... and X more processes' with an incorrect or negative number.\n\n### Solution & Insight\nTo fix this, we will modify the `print_process_list` function to count the total number of processes in a single pass. We introduce a new variable `total_processes_count` to keep track of the total count and only print the '... and X more processes' message when there are indeed more than 10 processes.\n\n### Impact\nThis change improves the accuracy of the displayed information and the efficiency of the function by reducing the number of system calls to retrieve process information.",
+  "branch_name": "bot/fix-process-list-logic",
+  "edits": [
+    {
+      "file": "sysinfo.c",
+      "search": "void print_process_list(void) {\n    print_header(\"RUNNING PROCESSES (First 10)\");\n    \n    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);\n    if (snapshot == INVALID_HANDLE_VALUE) {\n        printf(\"  |  Unable to get process list           |\");\n        print_footer();\n        return;\n    }\n    \n    PROCESSENTRY32 pe;\n    pe.dwSize = sizeof(PROCESSENTRY32);\n    \n    int count = 0;\n    if (Process32First(snapshot, &pe)) {\n        do {\n            if (count < 10) {\n                char name[30];\n                strncpy(name, pe.szExeFile, 28);\n                name[28] = '\\0';\n                printf(\"  |  [%5lu] %-30s|\", pe.th32ProcessID, name);\n                count++;\n            }\n        } while (Process32Next(snapshot, &pe) && count < 10);\n    }\n    \n    CloseHandle(snapshot);\n    \n    /* Count total */\n    int total = 0;\n    snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);\n    if (Process32First(snapshot, &pe)) {\n        do { total++; } while (Process32Next(snapshot, &pe));\n    }\n    CloseHandle(snapshot);\n    \n    printf(\"  |  ... and %d more processes              |\", total - 10);\n    print_footer();\n}",
+      "replace": "void print_process_list(void) {\n    print_header(\"RUNNING PROCESSES (First 10)\");\n    \n    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);\n    if (snapshot == INVALID_HANDLE_VALUE) {\n        printf(\"  |  Unable to get process list           |\");\n        print_footer();\n        return;\n    }\n    \n    PROCESSENTRY32 pe;\n    pe.dwSize = sizeof(PROCESSENTRY32);\n    \n    int count = 0;\n    int total_processes_count = 0;\n    if (Process32First(snapshot, &pe)) {\n        do {\n            total_processes_count++;\n            if (count < 10) {\n                char name[30];\n                strncpy(name, pe.szExeFile, 28);\n                name[28] = '\\0';\n                printf(\"  |  [%5lu] %-30s|\", pe.th32ProcessID, name);\n                count++;\n            }\n        } while (Process32Next(snapshot, &pe) && count < 10);\n    }\n    \n    CloseHandle(snapshot);\n    \n    if (total_processes_count > 10) {\n        printf(\"  |  ... and %d more processes              |\", total_processes_count - 10);\n    }\n    print_footer();\n}"
+    }
+  ]
+}
+```
+
+**Reviewer**: REJECTED x2: 1. **Split the edit:** The search block is 39 lines long. Please split this into multiple smaller, logical edits, ensuring each search block is no longer than 15 lines. 
+2. **Exact Match Correction:** The current search block does not exactly match the original content. Specifically, the `printf` statements on lines 2, 16, and 36 of your search block are missing the `\n` newline character at the end of their format strings. This is critical for an exact match. 
+3. **Replacement Correction:** The replacement block also contains the same error (missing `\n` characters in the corresponding `printf` statements). Ensure that the `\n` characters are present in both your search and replace blocks where they exist in the original code to maintain correct output formatting.
+
+---
