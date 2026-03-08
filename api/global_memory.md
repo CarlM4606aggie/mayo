@@ -63,3 +63,4 @@ how'd u come up with this shit, i have an ai pentester..., so why the fuck shoul
 - **Repo: VULNRIX**: [DX] Clarify Environment Variable Setup for CLI in README. (Ref: https://github.com/HOLYKEYZ/VULNRIX/pull/17) - *Status: MERGED - Joseph approved!*
 - **Repo: ModelFang**: [DX] Improve README Configuration Section. (Ref: https://github.com/HOLYKEYZ/ModelFang/pull/6) - *Status: PENDING REVIEW*
 - **Repo: model-unfetter**: [DX] Correct Development Setup Instructions in README. (Ref: https://github.com/HOLYKEYZ/model-unfetter/pull/3) - *Status: PENDING REVIEW*
+- **Repo: micro-edit**: [LOGIC] Define min macro for compilation. (Ref: https://github.com/HOLYKEYZ/micro-edit/pull/5) - *Status: PENDING REVIEW*
