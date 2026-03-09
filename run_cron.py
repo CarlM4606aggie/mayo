@@ -171,6 +171,20 @@ def run_cron():
         except Exception as e:
             print(f"DEBUG: Phase 0.5 error: {e}")
         
+        # Get all repos via REST API
+        headers = {
+            'Authorization': f'token {token}',
+            'Accept': 'application/vnd.github.v3+json'
+        }
+        repos_response = requests.get('https://api.github.com/installation/repositories', headers=headers)
+        repos_data = repos_response.json()
+        repo_names = [r['full_name'] for r in repos_data.get('repositories', [])]
+        print(f"DEBUG: Found {len(repo_names)} repos: {repo_names}")
+        
+        if not repo_names:
+            print("No repos found")
+            return
+            
         # === TIMING HELPER ===
         def should_run_timed_phase(memory_text, phase_key, interval_hours):
             """Check if enough time has passed since last run of this phase."""
@@ -437,20 +451,6 @@ Write a helpful, concise reply. Be friendly and technical. If it's a question, a
                 print(f"DEBUG: Phase D error: {e}")
         else:
             print("DEBUG: Phase D — Skipping discussions (not yet 6h)")
-        
-        # Get all repos via REST API
-        headers = {
-            'Authorization': f'token {token}',
-            'Accept': 'application/vnd.github.v3+json'
-        }
-        repos_response = requests.get('https://api.github.com/installation/repositories', headers=headers)
-        repos_data = repos_response.json()
-        repo_names = [r['full_name'] for r in repos_data.get('repositories', [])]
-        print(f"DEBUG: Found {len(repo_names)} repos: {repo_names}")
-        
-        if not repo_names:
-            print("No repos found")
-            return
         
         # Fetch Global Memory first for priority/cooldown analysis
         bot_repo_name = os.environ.get('BOT_REPO_NAME', 'HOLYKEYZ/mayo')
