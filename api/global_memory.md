@@ -1,8 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: Alexcathe**: [DX] Update README.md for accurate gradient description. (Ref: https://github.com/HOLYKEYZ/Alexcathe/pull/3) - *Status: MERGED - Joseph approved! Comment: '[vc]: #O/DILtdHUpxvgJQQEtAOpptlAAUZOddoVfKcAgNr1iY=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
-- **REJECTED by Reviewer**: Executor's search block for README.md image replacement failed to match, resulting in 'NO CHANGES' in diff preview. Emphasize exact match.
 - **Repo: HOLYKEYZ**: [DX] Standardize Supabase Badge in Tech Arsenal. (Ref: https://github.com/HOLYKEYZ/HOLYKEYZ/pull/2) - *Status: MERGED - Joseph approved!*
 - **REJECTED by Reviewer**: Executor attempted full README rewrite via single search/replace, violating 50% deletion rule by replacing 100% of the search block.
 - **Repo: Joseph-Portfolio**: [DOCS] Enhance README for Better Developer Experience. (Ref: https://github.com/HOLYKEYZ/Joseph-Portfolio/pull/2) - *Status: MERGED - Joseph approved! Comment: '[vc]: #VTxJOladaTyXg7JllR4Pi5AFs0549TSelhXeZBRshBc=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
