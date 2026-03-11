@@ -1058,10 +1058,13 @@ Instructions:
             
             # Re-read the exact file contents for the Executor (with clear delimiters)
             exact_files_context = ""
-            files_for_executor = new_files_read if new_files_read else files_already_read[:5]
+            files_for_executor = new_files_read if new_files_read else files_already_read[:3] # Limit to 3 files
             for fp in files_for_executor:
                 fc = read_file_content(repo, fp)
                 if fc:
+                    # Truncate to avoid 413 Payload Too Large on Groq
+                    if len(fc) > 4000:
+                        fc = fc[:4000] + "\n...[TRUNCATED FOR LENGTH]..."
                     exact_files_context += f"\n--- START OF FILE: {fp} ---\n{fc}\n--- END OF FILE: {fp} ---\n"
             
             executor_prompt = f"""You are Mayo, the Executor AI (Surgical Code Engineer).
