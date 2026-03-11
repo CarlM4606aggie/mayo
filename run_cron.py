@@ -55,6 +55,13 @@ def run_cron():
                     issue_repo = gh.get_repo(repo_name)
                     issue = issue_repo.get_issue(int(issue_num))
                     
+                    if issue.state == 'closed':
+                        print(f"DEBUG: Issue {issue_url} is closed. Marking as resolved in memory.")
+                        mem_content = mem_content.replace(f"(Ref: {issue_url}) - *Status: AWAITING JOSEPH'S INPUT*", f"(Ref: {issue_url}) - *Status: RESOLVED (Closed)*")
+                        bot_repo.update_file("api/global_memory.md", f"chore(memory): mark closed issue as resolved", mem_content, mem_file.sha)
+                        mem_file = bot_repo.get_contents("api/global_memory.md") # refresh sha
+                        continue
+                    
                     # check if the repo owner (or i) replied with instructions/approval
                     joseph_approved = False
                     joseph_reply = ""
