@@ -327,8 +327,32 @@ def apply_surgical_edits(content, edits):
                         print(f"DEBUG: Markdown-normalized match at line {i+1} (code fence / heading tolerant)")
                         break
         
+        # Pass 4: Single-line partial substring match
+        # If the LLM just gave us a snippet like "os.getenv('API_KEY')" without indentation
+        if match_start == -1 and len(search_lines) == 1:
+            search_str = search_lines[0].strip()
+            if len(search_str) > 5: # Don't replace tiny things like "()"
+                # Find all lines containing this substring
+                matches = []
+                for i, line in enumerate(content_lines):
+                    if search_str in line:
+                        matches.append(i)
+                
+                # Only apply if we found exactly ONE unambiguous match
+                if len(matches) == 1:
+                    match_start = matches[0]
+                    # We need to hack the replacement to only replace the substring within the line
+                    original_line = content_lines[match_start]
+                    new_line = original_line.replace(search_str, replace_text.strip())
+                    
+                    # Instead of rewriting the main loop logic, we just manually apply it here
+                    # and continue to the next edit
+                    content_lines[match_start] = new_line
+                    print(f"DEBUG: Substring match applied for single line at {match_start+1}")
+                    continue
+        
         if match_start == -1:
-            print(f"DEBUG: Search block not found (line-match): {search[:50]}...")
+            print(f"DEBUG: Search block not found: {search[:50]}...")
             continue
         
         match_end = match_start + len(search_lines)
@@ -438,11 +462,15 @@ def query_gemini_newcrons(prompt, temperature=0.2):
                 return None
     return None
 
-def query_groq(prompt, temperature=0.1):
+GROK_EXECUTOR_API_KEY = os.environ.get('GROK_EXECUTOR_API_KEY')
+
+def query_groq(prompt, api_key=None, temperature=0.1):
     """Executor AI (Llama 3.3 70B) — produces surgical code edits via Groq."""
+    if api_key is None:
+        api_key = GROK_API_KEY
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': f'Bearer {GROK_API_KEY}'
+        'Authorization': f'Bearer {api_key}'
     }
     payload = {
         "model": "llama-3.3-70b-versatile",
@@ -450,18 +478,47 @@ def query_groq(prompt, temperature=0.1):
         "temperature": temperature,
         "max_tokens": 4096
     }
-    for attempt in range(3):
+    for attempt in range(2):
         try:
-            current_key = GROK_FALLBACK_API_KEY if attempt > 0 and GROK_FALLBACK_API_KEY else GROK_API_KEY
-            headers['Authorization'] = f'Bearer {current_key}'
             r = requests.post(GROQ_API_URL, json=payload, headers=headers, timeout=120)
             r.raise_for_status()
             return r.json()['choices'][0]['message']['content']
         except Exception as e:
-            print(f"Groq/Llama Error (attempt {attempt+1}/3): {e}")
-            if attempt < 2 and ('429' in str(e) or '413' in str(e) or '500' in str(e) or '503' in str(e)):
-                wait = [10, 30, 60][attempt]
+            print(f"Groq/Llama Error (key {api_key[:10]}... attempt {attempt+1}/2): {e}")
+            if attempt < 1 and ('429' in str(e) or '413' in str(e) or '500' in str(e) or '503' in str(e)):
+                wait = 15
                 print(f"DEBUG: Rate limited. Waiting {wait}s before retry...")
+                time.sleep(wait)
+            else:
+                return None
+    return None
+
+def query_grok_xai(prompt, temperature=0.1):
+    """Ultimate Fallback Executor AI (Grok 2 via x.ai)."""
+    if not GROK_EXECUTOR_API_KEY:
+        print("DEBUG: GROK_EXECUTOR_API_KEY not set, skipping xAI fallback.")
+        return None
+        
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {GROK_EXECUTOR_API_KEY}'
+    }
+    payload = {
+        "model": "grok-2-latest",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": temperature,
+        "max_tokens": 4096
+    }
+    for attempt in range(2):
+        try:
+            r = requests.post("https://api.x.ai/v1/chat/completions", json=payload, headers=headers, timeout=120)
+            r.raise_for_status()
+            return r.json()['choices'][0]['message']['content']
+        except Exception as e:
+            print(f"xAI/Grok Error (attempt {attempt+1}/2): {e}")
+            if attempt < 1 and ('429' in str(e) or '500' in str(e) or '503' in str(e)):
+                wait = 15
+                print(f"DEBUG: Rate limited on xAI. Waiting {wait}s before retry...")
                 time.sleep(wait)
             else:
                 return None
@@ -1063,8 +1120,8 @@ Instructions:
                 fc = read_file_content(repo, fp)
                 if fc:
                     # Truncate to avoid 413 Payload Too Large on Groq
-                    if len(fc) > 4000:
-                        fc = fc[:4000] + "\n...[TRUNCATED FOR LENGTH]..."
+                    if len(fc) > 7000:
+                        fc = fc[:7000] + "\n...[TRUNCATED FOR LENGTH]..."
                     exact_files_context += f"\n--- START OF FILE: {fp} ---\n{fc}\n--- END OF FILE: {fp} ---\n"
             
             executor_prompt = f"""You are Mayo, the Executor AI (Surgical Code Engineer).

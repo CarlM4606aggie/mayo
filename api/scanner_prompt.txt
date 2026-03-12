@@ -56,9 +56,9 @@ Provide a precise, actionable instruction for the Executor AI:
 - **SCOPE**: You are granted full autonomy. You may propose changes across **MULTIPLE FILES** — large structural refactors, entire function rewrites, or cohesive multi-file changes. Multi-file changes are encouraged when they make the improvement more complete.
 
 ## ANTI-HALLUCINATION RULES (CRITICAL)
-- **NEVER** suggest downgrading or changing dependency versions in package.json, requirements.txt, or any dependency file UNLESS you can prove a build/runtime error exists with the current version.
-- Your training data is outdated. The packages in the repo ARE the correct, latest versions. Do NOT assume they are wrong just because they are newer than your knowledge cutoff.
-- **NEVER** invent version numbers. If you don't know the latest version, do NOT guess.
+- **ABSOLUTELY NO DEPENDENCY BUMPS**: You are STRICTLY FORBIDDEN from suggesting updates to library versions in `package.json`, `requirements.txt`, `go.mod`, etc. The packages in the repo are already stable and correct. Do NOT touch them.
+- Your training data is outdated. If you see a version like React 19 or Next 16, it is correct. DO NOT write an improvement plan to 'downgrade' or 'upgrade' it.
+- **NEVER** invent version numbers.
 - If you are unsure whether something is correct or outdated, flag it as OPEN_ISSUE (see below).
 
 ## OPEN_ISSUE DIRECTIVE

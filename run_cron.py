@@ -602,9 +602,9 @@ Write a helpful, concise reply. Be friendly and technical. If it's a question, a
         for tp in target_paths:
             content = read_file_content(target_repo, tp)
             if content:
-                # Truncate each file to 4000 chars to avoid 413 Payload Too Large on Groq
-                if len(content) > 4000:
-                    content = content[:4000] + "\n...[TRUNCATED FOR LENGTH]..."
+                # Truncate each file to 7000 chars for the Executor
+                if len(content) > 7000:
+                    content = content[:7000] + "\n...[TRUNCATED FOR LENGTH]..."
                 file_contents += f"\n--- {tp} ---\n{content}\n"
         
         if not file_contents:
@@ -704,20 +704,41 @@ Write a helpful, concise reply. Be friendly and technical. If it's a question, a
                 print(f"DEBUG: Failed to load executor prompt: {e}")
                 break
             
-            # Llama 3.3 70B executes via Groq
-            executor_response = query_groq(executor_prompt)
-            if not executor_response:
-                print("DEBUG: Executor returned nothing")
-                break
+            # --- THE DUAL EXECUTOR & FALLBACK ARCHITECTURE (Meta Llama 3.3 + xAI Grok) ---
+            print("DEBUG: Executing Dual Groq Llama 3.3 + Fallbacks...")
+            executor1_resp = query_groq(executor_prompt, api_key=os.environ.get('GROK_API_KEY'))
+            executor2_resp = query_groq(executor_prompt, api_key=os.environ.get('GROK_2ND_EXECUTOR_API_KEY'))
             
-            print(f"DEBUG: Executor response length: {len(executor_response)}")
-            improvement_data = extract_json_from_response(executor_response)
+            data1 = extract_json_from_response(executor1_resp) if executor1_resp else None
+            data2 = extract_json_from_response(executor2_resp) if executor2_resp else None
+            
+            improvement_data = None
+            
+            # Combine successful edits from EXECUTOR 1 and EXECUTOR 2
+            if (data1 and 'edits' in data1) or (data2 and 'edits' in data2):
+                improvement_data = data1 if data1 else data2
+                if data1 and data2 and 'edits' in data1 and 'edits' in data2:
+                    print("DEBUG: Both Executors succeeded! Combining their surgical edits...")
+                    improvement_data['edits'].extend(data2['edits'])
+            else:
+                print("DEBUG: Both Primary Executors failed or returned invalid JSON. Checking fallbacks...")
+                # Fallback 1: The Groq Fallback Key
+                fb1_resp = query_groq(executor_prompt, api_key=os.environ.get('GROK_FALLBACK_API_KEY'))
+                improvement_data = extract_json_from_response(fb1_resp) if fb1_resp else None
+                
+                if not improvement_data or 'edits' not in improvement_data:
+                    # Fallback 2: The Authentic xAI Grok Key
+                    print("DEBUG: Groq Fallback failed. Engaging Ultimate xAI Grok Fallback...")
+                    from api.index import query_grok_xai
+                    fb2_resp = query_grok_xai(executor_prompt)
+                    if fb2_resp:
+                        improvement_data = extract_json_from_response(fb2_resp)
             
             if not improvement_data or 'edits' not in improvement_data:
-                print("DEBUG: No valid improvement JSON from Executor. Raw response head/tail:")
-                print(f"HEAD: {executor_response[:500]}")
-                print(f"TAIL: {executor_response[-500:]}")
+                print("DEBUG: ALL Executors and Fallbacks failed. No valid JSON produced.")
                 break
+                
+            print(f"DEBUG: Successfully acquired {len(improvement_data.get('edits', []))} total edits.")
 
             # === PHASE 3: REVIEWER (Gemini B) — validates ACTUAL DIFF ===
             print(f"DEBUG: Phase 3 — Reviewer validating attempt {attempt}")
