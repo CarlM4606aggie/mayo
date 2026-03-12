@@ -445,9 +445,9 @@ def query_gemini_scanner(prompt, temperature=0.2):
             return r.json()['candidates'][0]['content']['parts'][0]['text']
         except Exception as e:
             print(f"Scanner Error (attempt {attempt+1}/3): {e}")
-            if attempt < 2 and ('429' in str(e) or '500' in str(e) or '503' in str(e)):
+            if attempt < 2:
                 wait = [10, 30, 60][attempt]
-                print(f"DEBUG: Rate limited. Waiting {wait}s before retry...")
+                print(f"DEBUG: Scanner failed. Waiting {wait}s before retry with fallback key...")
                 time.sleep(wait)
             else:
                 return None
@@ -471,7 +471,8 @@ def query_gemini_newcrons(prompt, temperature=0.2):
             return r.json()['candidates'][0]['content']['parts'][0]['text']
         except Exception as e:
             print(f"NewCrons Gemini Error (attempt {attempt+1}/2): {e}")
-            if attempt < 1 and ('429' in str(e) or '500' in str(e) or '503' in str(e)):
+            if attempt < 1:
+                print(f"DEBUG: NewCrons failed. Waiting 15s before retry with fallback key...")
                 time.sleep(15)
             else:
                 return None
@@ -500,10 +501,9 @@ def query_groq(prompt, api_key=None, temperature=0.1):
             return r.json()['choices'][0]['message']['content']
         except Exception as e:
             print(f"Groq/Llama Error (key {api_key[:10]}... attempt {attempt+1}/2): {e}")
-            if attempt < 1 and ('429' in str(e) or '413' in str(e) or '500' in str(e) or '503' in str(e)):
-                wait = 15
-                print(f"DEBUG: Rate limited. Waiting {wait}s before retry...")
-                time.sleep(wait)
+            if attempt < 1:
+                print(f"DEBUG: Groq failed. Waiting 15s before retry...")
+                time.sleep(15)
             else:
                 return None
     return None
@@ -531,10 +531,9 @@ def query_grok_xai(prompt, temperature=0.1):
             return r.json()['choices'][0]['message']['content']
         except Exception as e:
             print(f"xAI/Grok Error (attempt {attempt+1}/2): {e}")
-            if attempt < 1 and ('429' in str(e) or '500' in str(e) or '503' in str(e)):
-                wait = 15
-                print(f"DEBUG: Rate limited on xAI. Waiting {wait}s before retry...")
-                time.sleep(wait)
+            if attempt < 1:
+                print(f"DEBUG: xAI failed. Waiting 15s before retry...")
+                time.sleep(15)
             else:
                 return None
     return None
