@@ -77,3 +77,6 @@ u're working on a fix, mayo?" — Mayo acknowledged and responded.
 - **REJECTED by Reviewer**: Executor's search blocks for `micro-edit` failed to match due to missing leading whitespace, and missed a key part of the Scanner's plan (strcat replacement).
 - **Repo: ModelFang**: Opened issue — [FEAT] Enhance API to Expose Available Datasets and Attacker Models. (Ref: https://github.com/HOLYKEYZ/ModelFang/issues/7) - *Status: AWAITING JOSEPH'S INPUT*
 - **Joseph's Feedback on ModelFang#7**: "to attackers or waddaya think?, mayo" — Mayo acknowledged and responded.
+- **Joseph's Feedback on ModelFang#7**: "> to attackers or waddaya think?, mayo
+
+do the best thing!" — Mayo acknowledged and responded.
