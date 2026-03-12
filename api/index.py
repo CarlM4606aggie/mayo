@@ -351,6 +351,21 @@ def apply_surgical_edits(content, edits):
                     print(f"DEBUG: Substring match applied for single line at {match_start+1}")
                     continue
         
+        # Pass 5: Multi-line anchor match — find the first search line in the file,
+        # then replace from that anchor for the length of the search block.
+        # This handles cases where the LLM's middle lines differ slightly.
+        if match_start == -1 and len(search_lines) >= 2:
+            first_line = search_lines[0].strip()
+            if len(first_line) > 5:
+                anchors = []
+                for i, line in enumerate(content_lines):
+                    if line.strip() == first_line:
+                        anchors.append(i)
+                
+                if len(anchors) == 1:
+                    match_start = anchors[0]
+                    print(f"DEBUG: Anchor match (first-line) at line {match_start+1} for {len(search_lines)}-line block")
+        
         if match_start == -1:
             print(f"DEBUG: Search block not found: {search[:50]}...")
             continue
@@ -541,9 +556,9 @@ def query_gemini_reviewer(prompt, temperature=0.1):
             return r.json()['candidates'][0]['content']['parts'][0]['text']
         except Exception as e:
             print(f"Reviewer Error (attempt {attempt+1}/3): {e}")
-            if attempt < 2 and ('429' in str(e) or '500' in str(e) or '503' in str(e)):
+            if attempt < 2:
                 wait = [10, 30, 60][attempt]
-                print(f"DEBUG: Rate limited. Waiting {wait}s before retry...")
+                print(f"DEBUG: Reviewer failed. Waiting {wait}s before retry with fallback key...")
                 time.sleep(wait)
             else:
                 return None
