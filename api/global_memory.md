@@ -83,3 +83,4 @@ Why did it fail on deployment" — Mayo acknowledged and responded.
 19:26:45.058 Build machine configuration: 2 co" — Mayo acknowledged and responded.
 - **Joseph's Feedback on Alexcathe#7**: "mayo, open a new pr with the fixed version" — Mayo acknowledged and responded.
 - **Joseph's Feedback on Kelegam-Tech#8**: "mayo, fix it" — Mayo acknowledged and responded.
+- **Joseph's Feedback on Kelegam-Tech#8**: "since u can't fix this shit mayo , im closing" — Mayo acknowledged and responded.
