@@ -1,11 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: HADNX**: [DX] Simplify CLI Installation Instructions. (Ref: https://github.com/HOLYKEYZ/HADNX/pull/13) - *Status: MERGED - Joseph approved! Comment: '[vc]: #KQjmfwarYUAlUqZuQQTB3FFyuaLB3uhP5euFUPIedro=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
-- **REJECTED by Reviewer**: Executor's search block for README.md installation instructions failed to match due to missing blank lines and exceeded the 15-line limit.
-- **REJECTED by Reviewer**: Executor's search block for README.md update exceeded 15-line limit and failed to match due to missing blank lines and use of `...` wildcard, resulting in 'NO CHANGES'. Also missed a part of the Scanner's plan.
-- **REJECTED by Reviewer**: Executor's search blocks for README.md failed to match, resulting in 'NO CHANGES' in diff preview, despite appearing correct. Emphasize exact match including all whitespace and line endings.
-- **REJECTED by Reviewer**: Executor's search block for `IntellectSafe` README installation instructions was too long (18+ lines) and had exact match issues (extra spaces, incorrect markdown structure), leading to 'NO CHANGES'.
 - **Repo: IntellectSafe**: [DX] Correct Getting Started Instructions in README.md. (Ref: https://github.com/HOLYKEYZ/IntellectSafe/pull/10) - *Status: MERGED - Joseph approved! Comment: '[vc]: #Kt8C/CNUZvwoIElL2jG3K0cXVaVh7+wx/dmiz+Qp7+k=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **Joseph's Feedback on IntellectSafe#10**: "thanks!, mayo , slipped off my mind😅" — Mayo acknowledged and responded.
 - **REJECTED by Reviewer**: Executor's search block for README.md failed to match due to incorrect inclusion of '#' characters and missing blank line. Also, the replacement block incorrectly commented out executable commands.
