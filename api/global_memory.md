@@ -96,3 +96,6 @@ Why did it fail on deployment" — Mayo acknowledged and responded.
 
 mayo , fix it!" — Mayo acknowledged and responded.
 - **Joseph's Feedback on ModelFang#7**: "this issue, u opened it and still asking me what it is, pls fix it" — Mayo acknowledged and responded.
+- **Joseph's Feedback on IntellectSafe#13**: "this issue, u opened it and still asking me what it is, pls fix it
+
+" — Mayo acknowledged and responded.
