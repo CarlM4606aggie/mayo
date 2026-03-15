@@ -1419,7 +1419,14 @@ OUTPUT FORMAT (Strict JSON, nothing else):
             else:
                  issue.create_comment("⚠️ Executor failed to generate valid JSON edits.")
     except Exception as e:
+        import traceback
+        err_msg = traceback.format_exc()
         print(f"Error processing comment: {e}")
+        try:
+            # Attempt to notify the user of the internal crash instead of failing silently
+            issue.create_comment(f"⚠️ **Mayo Internal Webhook Error:**\nThe bot crashed while trying to process your comment.\n\n```python\n{err_msg}\n```")
+        except:
+            pass
 
 if __name__ == '__main__':
     app.run(port=3000)
