@@ -1,7 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: VULNRIX**: [DX] Clarify Environment Variable Setup for CLI in README. (Ref: https://github.com/HOLYKEYZ/VULNRIX/pull/17) - *Status: MERGED - Joseph approved!*
 - **Repo: ModelFang**: [DX] Improve README Configuration Section. (Ref: https://github.com/HOLYKEYZ/ModelFang/pull/6) - *Status: MERGED - Joseph approved! Comment: '[vc]: #BESEIDeorTUQHPwL8xg0ag2xzlZ5PPMYRv9W8nrmy1g=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **Repo: model-unfetter**: [DX] Correct Development Setup Instructions in README. (Ref: https://github.com/HOLYKEYZ/model-unfetter/pull/3) - *Status: MERGED - Joseph approved!*
 - **Repo: micro-edit**: [LOGIC] Define min macro for compilation. (Ref: https://github.com/HOLYKEYZ/micro-edit/pull/5) - *Status: MERGED - Joseph approved!*
