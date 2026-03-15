@@ -641,9 +641,10 @@ def query_gemini_reviewer(prompt, temperature=0.1):
             return r.json()['candidates'][0]['content']['parts'][0]['text']
         except Exception as e:
             err_body = str(getattr(getattr(e, 'response', None), 'text', ''))
-            print(f"Reviewer Error (attempt {attempt+1}/3, key {'primary' if attempt != 1 else 'fallback'}): {e} | {err_body}")
+            print(f"Reviewer Error (attempt {attempt+1}/3): {e} | {err_body}")
             if attempt < 2:
-                wait = [10, 30, 60][attempt]
+                # Reduced wait for serverless/interactive context
+                wait = [1, 5, 10][attempt]
                 print(f"DEBUG: Reviewer failed. Waiting {wait}s before retry...")
                 time.sleep(wait)
             else:
@@ -1091,60 +1092,57 @@ Rules:
             pass
 
 def handle_issue_comment(payload):
+    # 0. Robust Early Initialization
     installation = payload.get('installation')
-    if not installation: return
-
-    gh = get_github_client(installation['id'])
-    repo_info = payload['repository']
-    repo = gh.get_repo(repo_info['full_name'])
-    comment = payload['comment']
-    issue_number = payload['issue']['number']
-    
-    bot_login = get_bot_login()
-    
-    # CRITICAL: Do not reply to self!
-    if comment.get('user', {}).get('login') == bot_login:
-        return
-
-    body = comment.get('body', '').lower()
-    
-    # CRITICAL SECURITY: Ignore own comments (Double Check)
-    # 1. Login check
-    if comment.get('user', {}).get('login') == bot_login:
-        return
-    # 2. Type check (Ignore ALL bots, including gemini-code-assist)
-    if comment.get('user', {}).get('type') == 'Bot':
-        return
-    # 3. Content check (Our bot ALWAYS adds [MEMORY] blocks)
-    if '<!-- [memory]' in body or '<!-- [memory]' in comment.get('body', ''):
-        return
-
-    # Check mentions & replies
-    mentioned = False
-    if "mayo" in body.lower() or "joe-gemini" in body.lower():
-        # Only set mentioned=True if it's NOT the bot talking to itself
-        mentioned = True
-    else:
-        try:
-            issue = repo.get_issue(number=issue_number)
-            comments = list(issue.get_comments())
-            if len(comments) > 1:
-                last_comment = comments[-1]
-                prev_comment = comments[-2]
-                
-                # If this comment replies to a bot comment
-                if str(last_comment.id) == str(comment.get('id')):
-                    if prev_comment.user.login == bot_login:
-                         mentioned = True
-        except: pass
-    
-    if not mentioned: return
-
+    issue_obj = None
     try:
-        issue = repo.get_issue(number=issue_number)
-        # Immediate feedback to confirm webhook receipt
-        issue.create_comment("🧠 **Mayo is thinking...**")
+        if not installation:
+            print("ERROR: No installation in payload")
+            return
+
+        gh = get_github_client(installation['id'])
+        repo_info = payload['repository']
+        repo = gh.get_repo(repo_info['full_name'])
+        comment = payload['comment']
+        issue_number = payload['issue']['number']
+        issue_obj = repo.get_issue(number=issue_number)
         
+        bot_login = get_bot_login()
+        
+        # Immediate feedback to confirm webhook receipt
+        issue_obj.create_comment("🧠 **Mayo is thinking...**")
+        
+        # CRITICAL: Do not reply to self!
+        if comment.get('user', {}).get('login') == bot_login:
+            return
+
+        body = comment.get('body', '').lower()
+        
+        # CRITICAL SECURITY: Ignore own comments (Double Check)
+        if comment.get('user', {}).get('login') == bot_login:
+            return
+        if comment.get('user', {}).get('type') == 'Bot':
+            return
+        if '<!-- [memory]' in body or '<!-- [memory]' in comment.get('body', ''):
+            return
+
+        # Check mentions & replies
+        mentioned = False
+        if "mayo" in body.lower() or "joe-gemini" in body.lower():
+            mentioned = True
+        else:
+            try:
+                comments = list(issue_obj.get_comments())
+                if len(comments) > 1:
+                    last_comment = comments[-1]
+                    prev_comment = comments[-2]
+                    if str(last_comment.id) == str(comment.get('id')):
+                        if prev_comment.user.login == bot_login:
+                             mentioned = True
+            except: pass
+        
+        if not mentioned: return
+
         # 1. Fetch Memory with [MEMORY] blocks
         memory = fetch_memory(repo, issue_number, bot_login)
         files_already_read = memory.get('files_read', [])
@@ -1153,9 +1151,9 @@ def handle_issue_comment(payload):
         repo_structure = get_repo_structure(repo)
         
         # 3. PR Context if applicable
-        issue_context = f"Issue Title: {issue.title}\nIssue Body:\n{issue.body}\n"
+        issue_context = f"Issue Title: {issue_obj.title}\nIssue Body:\n{issue_obj.body}\n"
         pr_context = ""
-        if issue.pull_request:
+        if issue_obj.pull_request:
             try:
                 pr = repo.get_pull(issue_number)
                 diff_content = requests.get(pr.diff_url).text[:20000]
@@ -1165,7 +1163,7 @@ def handle_issue_comment(payload):
         # Get preceding comments for context
         comment_history = ""
         try:
-            all_comments = list(issue.get_comments())
+            all_comments = list(issue_obj.get_comments())
             # Get up to 5 preceding comments, excluding the current one
             filtered_comments = [c for c in all_comments if str(c.id) != str(comment.get('id'))]
             recent_comments = [c for c_idx, c in enumerate(filtered_comments) if c_idx >= len(filtered_comments) - 5]
@@ -1198,7 +1196,7 @@ Files already read (from memory):
             files_to_read = [f for f_idx, f in enumerate(ftr_filtered) if f_idx < 5]
             
             if files_to_read:
-                issue.create_comment(f"👀 Checking: `{', '.join(files_to_read)}`...")
+                issue_obj.create_comment(f"👀 Checking: `{', '.join(files_to_read)}`...")
                 
                 file_contents = ""
                 for file_path in files_to_read:
@@ -1225,7 +1223,7 @@ Instructions:
 """
         plan = query_gemini_reviewer(reviewer_prompt)
         if not plan:
-            issue.create_comment("⚠️ **Reviewer (Mayo) Error:** I failed to generate a technical plan after multiple attempts. Please re-trigger me or check my API health.")
+            issue_obj.create_comment("⚠️ **Reviewer (Mayo) Error:** I failed to generate a technical plan after multiple attempts. Please re-trigger me or check my API health.")
             return
         
         all_files_for_mem = []
@@ -1236,7 +1234,7 @@ Instructions:
             
         memory_block = format_memory_block({"files_read": all_files_for_mem})
         
-        issue.create_comment(f"🛡️ **Reviewer (Mayo):**\n{plan}{memory_block}")
+        issue_obj.create_comment(f"🛡️ **Reviewer (Mayo):**\n{plan}{memory_block}")
         
         # Save Joseph's feedback to memory
         try:
@@ -1255,7 +1253,7 @@ Instructions:
         
         # 6. Execute Code Changes (Executor)
         if "[REQUIRES_EXECUTION]" in plan:
-            issue.create_comment("⚡ *Executor (Llama 3.3 70B) is now writing the code changes...*")
+            issue_obj.create_comment("⚡ *Executor (Llama 3.3 70B) is now writing the code changes...*")
             
             # Re-read the exact file contents for the Executor (with clear delimiters)
             exact_files_context_list = []
@@ -1389,7 +1387,7 @@ OUTPUT FORMAT (Strict JSON, nothing else):
                 
                 if file_changes:
                     # Decide branch
-                    if issue.pull_request:
+                    if issue_obj.pull_request:
                         try:
                             pr = repo.get_pull(issue_number)
                             branch = pr.head.ref
@@ -1405,30 +1403,37 @@ OUTPUT FORMAT (Strict JSON, nothing else):
                         if failed_edits:
                             safe_preview = [f"- {fe}" for i, fe in enumerate(failed_edits) if i < 5]
                             msg += f"\n\n⚠️ Some edits failed to match:\n" + "\n".join(safe_preview)
-                        issue.create_comment(msg)
+                        issue_obj.create_comment(msg)
                         
-                        if not issue.pull_request:
+                        if not issue_obj.pull_request:
                             try:
                                 repo.create_pull(title=commit_title, body=f"Automated fix.\n{final_payload.get('body', '')}", head=branch, base=repo.default_branch)
-                                issue.create_comment(f"🚀 Created new PR for `{branch}`")
+                                issue_obj.create_comment(f"🚀 Created new PR for `{branch}`")
                             except Exception as e:
                                 print(f"PR Creation error: {e}")
                     else:
-                        issue.create_comment(f"⚠️ Executor generated edits, but the commit failed. Check logs.\n\n```\n{commit_err}\n```")
+                        issue_obj.create_comment(f"⚠️ Executor generated edits, but the commit failed. Check logs.\n\n```\n{commit_err}\n```")
                 else:
                     safe_preview = [f"- {fe}" for i, fe in enumerate(failed_edits) if i < 5]
                     
                     debug_info = "\n".join(safe_preview) if failed_edits else "No debug info available"
-                    issue.create_comment(f"⚠️ Executor generated edits, but none matched the file contents.\n\n**Failed search blocks:**\n{debug_info}\n\n*Retrying on next trigger.*")
+                    issue_obj.create_comment(f"⚠️ Executor generated edits, but none matched the file contents.\n\n**Failed search blocks:**\n{debug_info}\n\n*Retrying on next trigger.*")
             else:
-                 issue.create_comment("⚠️ Executor failed to generate valid JSON edits.")
+                 issue_obj.create_comment("⚠️ Executor failed to generate valid JSON edits.")
     except Exception as e:
         import traceback
         err_msg = traceback.format_exc()
         print(f"Error processing comment: {e}")
         try:
-            # Attempt to notify the user of the internal crash instead of failing silently
-            issue.create_comment(f"⚠️ **Mayo Internal Webhook Error:**\nThe bot crashed while trying to process your comment.\n\n```python\n{err_msg}\n```")
+            # Fallback reporting: If issue_obj is set, use it. 
+            # If not, try to recreate the client to report the crash.
+            if issue_obj:
+                issue_obj.create_comment(f"⚠️ **Mayo Internal Webhook Error:**\n\n```python\n{err_msg}\n```")
+            elif installation:
+                temp_gh = get_github_client(installation['id'])
+                temp_repo = temp_gh.get_repo(payload['repository']['full_name'])
+                temp_issue = temp_repo.get_issue(payload['issue']['number'])
+                temp_issue.create_comment(f"⚠️ **Mayo Initialization Crash:**\n\n```python\n{err_msg}\n```")
         except:
             pass
 
