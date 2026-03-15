@@ -1,12 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: micro-edit**: [LOGIC] Define min macro for compilation. (Ref: https://github.com/HOLYKEYZ/micro-edit/pull/5) - *Status: MERGED - Joseph approved!*
-- **REJECTED by Reviewer**: Executor's search block for `test_web_session.py` failed to match due to missing comment lines, and the diff preview showed truncated replacement text for another edit. Emphasize exact match and verify full replacement.
-- **REJECTED by Reviewer**: Executor's search block mismatch led to partial match and functional error; also, replacement string was incomplete. Emphasize exact match and complete, correct replacement.
-- **REJECTED by Reviewer**: Executor's search block for `sysinfo.c` was too long (40 lines) and failed to match, resulting in 'NO CHANGES'.
-- **REJECTED by Reviewer**: Executor's search block for `sysinfo.c` was too long (39 lines) and had exact match issues (missing `\n` in `printf` statements), leading to 'NO CHANGES'.
-- **REJECTED by Reviewer**: Executor's search block for test_web_session.py produced an incorrect diff preview with unintended deletions; also submitted a no-op edit.
 - **Repo: unfetter_proxy**: [DX] Enhance test_web_session.py with Configurable Groq Model. (Ref: https://github.com/HOLYKEYZ/unfetter_proxy/pull/6) - *Status: MERGED - Joseph approved!*
 - **REJECTED by Reviewer**: Executor's search block failed to match due to quote type mismatch in an import statement (double vs. single quotes). Emphasize exact match including all characters.
 - **Repo: Alexcathe**: [REFACTOR] Remove Unused LogoMarquee Import. (Ref: https://github.com/HOLYKEYZ/Alexcathe/pull/5) - *Status: MERGED - Joseph approved! Comment: '[vc]: #cGvsWmIeWRTSDavJvrV0gkOhD6YsRpCllI6DCWdS4j0=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
@@ -111,4 +105,4 @@ mayo , fix it!" — Mayo acknowledged and responded.
 - **REJECTED by Reviewer**: Executor deleted a function but failed to update its call sites, leading to an incomplete and breaking change. Emphasize full plan execution.
 - **Repo: model-unfetter**: [DX] Redirect ProgressBar Output to sys.stderr. (Ref: https://github.com/HOLYKEYZ/model-unfetter/pull/5) - *Status: MERGED - Joseph approved! Comment: '@gemini-code-assist , good?'*
 - **Repo: unfetter_proxy**: [REFACTOR] Consolidate Imports in tests/test_proxy.py. (Ref: https://github.com/HOLYKEYZ/unfetter_proxy/pull/8) - *Status: MERGED - Joseph approved! Comment: '@gemini-code-assist , good?'*
-- **Repo: Kelegam-Tech**: [DX] Update TypeScript Compiler Target to ES2020. (Ref: https://github.com/HOLYKEYZ/Kelegam-Tech/pull/9) - *Status: PENDING REVIEW*
+- **Repo: Kelegam-Tech**: [DX] Update TypeScript Compiler Target to ES2020. (Ref: https://github.com/HOLYKEYZ/Kelegam-Tech/pull/9) - *Status: MERGED - Joseph approved! Comment: '[vc]: #HxqdlNSmWSEHf60SJGB9r2LDrFVbaq3obHxPcRbwvgA=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
