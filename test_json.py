@@ -44,4 +44,3 @@ if blocks:
             print("Failed completely")
 else:
     print("No blocks found")
-    print("No blocks found")
