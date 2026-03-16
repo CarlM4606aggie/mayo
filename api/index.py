@@ -669,7 +669,7 @@ def audit_pending_reviews(gh):
     """Reviewer checks PENDING REVIEW entries in memory and updates with actual PR status."""
     try:
         bot_repo = gh.get_repo(os.environ.get('BOT_REPO_NAME', 'HOLYKEYZ/mayo'))
-        memory_file = bot_repo.get_contents("api/global_memory.md")
+        memory_file = bot_repo.get_contents("data/global_memory.md")
         memory = memory_file.decoded_content.decode('utf-8')
         
         if 'PENDING REVIEW' not in memory:
@@ -919,7 +919,7 @@ def handle_pr_review_feedback(payload):
         gh = get_github_client(installation['id'])
         bot_repo = gh.get_repo(os.environ.get('BOT_REPO_NAME', 'HOLYKEYZ/mayo'))
         
-        memory_file = bot_repo.get_contents("api/global_memory.md")
+        memory_file = bot_repo.get_contents("data/global_memory.md")
         old_memory = memory_file.decoded_content.decode('utf-8')
         
         # Update the PENDING REVIEW status for this PR
@@ -930,7 +930,7 @@ def handle_pr_review_feedback(payload):
             )
             if new_memory != old_memory:
                 bot_repo.update_file(
-                    "api/global_memory.md",
+                    "data/global_memory.md",
                     f"feat(memory): record review outcome ({review_state})",
                     new_memory,
                     memory_file.sha
@@ -1309,11 +1309,11 @@ Instructions:
         # Save Joseph's feedback to memory
         try:
             bot_repo = gh.get_repo(os.environ.get('BOT_REPO_NAME', 'HOLYKEYZ/mayo'))
-            mem_file = bot_repo.get_contents("api/global_memory.md")
+            mem_file = bot_repo.get_contents("data/global_memory.md")
             old_mem = mem_file.decoded_content.decode('utf-8')
             feedback_note = f"\n- **Joseph's Feedback on {repo.name}#{issue_number}**: \"{comment['body'][:120]}\" — Mayo acknowledged and responded."
             bot_repo.update_file(
-                "api/global_memory.md",
+                "data/global_memory.md",
                 f"feat(memory): save Joseph's feedback on {repo.name}#{issue_number}",
                 old_mem + feedback_note,
                 mem_file.sha

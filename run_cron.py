@@ -189,13 +189,13 @@ def run_cron():
                                     issue.edit(state='closed')
                                     
                                     # Update memory
-                                    mem_file = bot_repo.get_contents("api/global_memory.md")
+                                    mem_file = bot_repo.get_contents("data/global_memory.md")
                                     mem = mem_file.decoded_content.decode('utf-8')
                                     mem = mem.replace(
                                         f"(Ref: {issue_url}) - *Status: AWAITING JOSEPH'S INPUT*",
                                         f"(Ref: {issue_url}) - *Status: EXECUTED → {pr.html_url}*"
                                     )
-                                    bot_repo.update_file("api/global_memory.md", f"feat(memory): executed approved issue on {repo_name}", mem, mem_file.sha)
+                                    bot_repo.update_file("data/global_memory.md", f"feat(memory): executed approved issue on {repo_name}", mem, mem_file.sha)
                 except Exception as e:
                     print(f"DEBUG: Error processing approved issue {issue_url}: {e}")
         except Exception as e:
@@ -361,7 +361,7 @@ Output ONLY JSON: {{"reasonableness_score": 70, "action": "fix|close|skip", "rea
         if should_run_timed_phase(current_memory, 'LAST_PROACTIVE_ISSUE', 24):
             print("DEBUG: Phase I — Proactive issue scan (24h cycle)")
             try:
-                EXCLUDED_REPOS = ['Square-farms', 'Jo-ayanda-real-estate', 'Backend-images-app', 'ecom-stor', 'private-storage']
+                EXCLUDED_REPOS = ['Square-farms', 'Jo-ayanda-real-estate', 'Backend-images-app', 'ecom-stor', 'private-storage', 'HOLYKEYZ']
                 issue_candidates = [r for r in repos_data.get('repositories', [])
                                     if not r.get('fork') and not r.get('archived')
                                     and r.get('name') not in EXCLUDED_REPOS
@@ -523,7 +523,7 @@ Write a helpful, concise reply. Be friendly and technical. If it's a question, a
                 global_memory = "No global memory found. Start with fresh excellence."
 
         # === REPO SELECTION: Exclusions, Cooldown, Priority ===
-        EXCLUDED_REPOS = ['Square-farms', 'Jo-ayanda-real-estate', 'Backend-images-app', 'ecom-stor', 'private-storage']
+        EXCLUDED_REPOS = ['Square-farms', 'Jo-ayanda-real-estate', 'Backend-images-app', 'ecom-stor', 'private-storage', 'HOLYKEYZ']
         
         candidates = [r for r in repos_data.get('repositories', []) 
                       if not r.get('fork') and not r.get('archived') 
@@ -862,10 +862,10 @@ Write a helpful, concise reply. Be friendly and technical. If it's a question, a
                 memory_note = reviewer_data.get('memory_note', f'Rejected edit on {target_repo.name}')
                 try:
                     bot_repo = gh.get_repo(os.environ.get('BOT_REPO_NAME', 'HOLYKEYZ/mayo'))
-                    mem_file = bot_repo.get_contents("api/global_memory.md")
+                    mem_file = bot_repo.get_contents("data/global_memory.md")
                     mem_content = mem_file.decoded_content.decode('utf-8')
                     mem_content += f"\n- **REJECTED by Reviewer**: {memory_note}"
-                    bot_repo.update_file("api/global_memory.md", f"feat(memory): reviewer rejected edit on {target_repo.name}", mem_content, mem_file.sha)
+                    bot_repo.update_file("data/global_memory.md", f"feat(memory): reviewer rejected edit on {target_repo.name}", mem_content, mem_file.sha)
                 except Exception as e:
                     print(f"DEBUG: Failed to save rejection to memory: {e}")
                 
@@ -928,11 +928,11 @@ Write a helpful, concise reply. Be friendly and technical. If it's a question, a
             # Save to memory
             try:
                 bot_repo = gh.get_repo(os.environ.get('BOT_REPO_NAME', 'HOLYKEYZ/mayo'))
-                old_memory_file = bot_repo.get_contents("api/global_memory.md")
+                old_memory_file = bot_repo.get_contents("data/global_memory.md")
                 old_memory = old_memory_file.decoded_content.decode('utf-8')
                 lesson = f"\n- **Repo: {target_repo.name}**: {final_title}. (Ref: {pr.html_url}) - *Status: PENDING REVIEW*"
                 bot_repo.update_file(
-                    "api/global_memory.md",
+                    "data/global_memory.md",
                     f"feat(memory): record lesson from {target_repo.name}",
                     old_memory + lesson,
                     old_memory_file.sha
@@ -941,7 +941,7 @@ Write a helpful, concise reply. Be friendly and technical. If it's a question, a
                 print(f"DEBUG: Failed to update memory: {e}")
             
             # Log the successful cycle
-            update_ai_communication_log(gh, ts, scanner_plan or "", executor_response or "", reviewer_verdict_text)
+            update_ai_communication_log(gh, ts, scanner_plan or "", json.dumps(improvement_data) if improvement_data else "", reviewer_verdict_text)
 
             print("SUCCESS")
         else:
