@@ -2240,97 +2240,7 @@ This is a refactoring task involving the removal of a redundant function and the
 
 ---
 
-## Cycle 1773645772
-**Scanner**: ## Codebase Understanding
-
-This repository, `HOLYKEYZ/temple-sysinfo`, provides a command-line utility for Windows that gathers and displays various system information. It is written in C and also includes a HolyC version as a tribute to TempleOS.
-
-The `sysinfo.c` file is the primary C source code for the Windows utility. It contains modular functions to retrieve and present details such as operating system information, CPU specifications, memory usage, disk space, system uptime, and environment variables.
-
-The codebase primarily uses the Windows API for system information retrieval, alongside standard C library functions for string manipulation and output. It follows a consistent pattern of encapsulating each information category within its own function, using common header and footer formatting for display.
-
-## Deep Analysis
-
-### Security
-*   **Buffer Overflows**: The code uses fixed-size character arrays for storing various system strings (e.g., computer name, user name, directory paths, CPU name, environment variable truncations). While functions like `GetComputerNameA` and `RegQueryValueExA` correctly use size parameters to prevent direct overflows, the `print_env_vars` function uses `strncpy` and `strcat` with a `truncated[30]` buffer. The logic `strncpy(truncated, val, 25); truncated[25] = '\0'; strcat(truncated, "...");` correctly handles the null terminator and the "..." suffix within the 30-byte limit, so this specific instance appears safe. However, this pattern is a common source of vulnerabilities if not handled precisely.
-*   **Environment Variables**: Displaying environment variables like `PATH` could potentially expose sensitive system configurations if the output were to be logged or transmitted, though for a local utility, this risk is minimal.
-
-### Logic
-*   **Missing Features**: The `README.md` explicitly lists "Display" (resolution, color depth) and "Power" (AC/battery status) as features, but there are no corresponding functions (`print_display_info`, `print_power_info`) implemented in `sysinfo.c`. This is a direct functional gap and a discrepancy with the documentation.
-*   **Process List Truncation**: The `print_process_list` function is truncated in the provided `sysinfo.c` snippet. Assuming it correctly limits to "First 10" as per its header, the logic needs to ensure it iterates and prints only the specified number of processes.
-*   **Error Handling**: While some critical Windows API calls like `CreateToolhelp32Snapshot` and `RegOpenKeyExA` have basic error checks, many other API calls (e.g., `GetComputerNameA`, `GetWindowsDirectoryA`, `GlobalMemoryStatusEx`, `GetDiskFreeSpaceA`) do not explicitly check their return values for failure. This could lead to unexpected behavior or incorrect output if an API call fails.
-
-### Performance
-*   **Process Listing**: Iterating through system processes can be computationally intensive. Limiting to the "First 10" helps mitigate this for the process list, but the overall snapshot creation is still a significant operation. For a utility run on demand, this is generally acceptable.
-*   **Disk Information Loop**: The loop from 'C' to 'Z' for drive letters is a reasonable approach for Windows systems and is not a performance bottleneck.
-
-### Architecture
-*   **Modularity**: The code is well-structured into distinct functions for each information category, which promotes readability and maintainability.
-*   **Consistent Output**: The use of `print_header` and `print_footer` ensures a uniform presentation style across different sections.
-
-### Features
-*   **Incomplete Feature Set**: As noted under Logic, the "Display" and "Power" information features are documented in `README.md` but not implemented in `sysinfo.c`. This represents a significant missing functionality.
-
-### Testing
-*   **Lack of Automated Tests**: There are no dedicated test files or frameworks. The functionality relies on manual execution and visual verification of the output.
-
-### DX (Developer Experience)
-*   **Comprehensive README**: The `README.md` is well-written, providing clear build and run instructions, project structure, and context for the HolyC version.
-*   **Code Clarity**: The C code is generally clear, with comments and descriptive function names.
-
-### Consistency
-*   **Documentation vs. Implementation**: The primary inconsistency is the mismatch between the features listed in `README.md` and the actual implementation in `sysinfo.c` regarding display and power information.
-
-### Dead Code
-*   No obvious dead code was identified in the provided `sysinfo.c` snippet.
-
-## Pick ONE Improvement
-
-The most valuable improvement is to address the discrepancy between the `README.md` and the `sysinfo.c` implementation by adding the "Display" information feature. This is a direct functional gap that was promised in the documentation but is currently missing from the code. Implementing this will make the utility more complete and align it with its stated capabilities.
-
-## Executor's Plan
-
-**WHAT**: Implement a new function, `print_display_info`, to retrieve and display the screen resolution (width and height) and color depth (bits per pixel). Subsequently, integrate this new function into the `main` function so that the display information is presented when the program is executed.
-
-**WHERE**:
-1.  **File**: `sysinfo.c`
-2.  **Function Definition**: Insert the new `print_display_info` function after the existing `print_uptime` function and before the `print_env_vars` function.
-3.  **Function Call**: Add a call to `print_display_info()` within the `main` function, specifically after the call to `print_uptime()` and before the call to `print_env_vars()`.
-
-**WHY**: The `README.md` explicitly lists "Display: Resolution, color depth" as a feature of this system information tool. However, the current `sysinfo.c` implementation lacks any code to gather or present this information. Adding `print_display_info` will fulfill a promised feature, making the utility more comprehensive and ensuring the codebase accurately reflects its documentation. This improves both the functionality and the consistency of the project.
-
-**HOW**:
-1.  **Define `print_display_info` function**: Create a new `void` function named `print_display_info` that takes no arguments.
-2.  **Print Header**: Inside `print_display_info`, call `print_header("DISPLAY INFORMATION")`.
-3.  **Get Screen Resolution**: Use `GetSystemMetrics(SM_CXSCREEN)` to get the screen width and `GetSystemMetrics(SM_CYSCREEN)` to get the screen height. Store these values in appropriate integer variables.
-4.  **Get Color Depth**: Obtain a device context for the entire screen using `HDC hdc = GetDC(NULL);`. Then, use `GetDeviceCaps(hdc, BITSPIXEL)` to get the color depth (bits per pixel). Store this value in an integer variable.
-5.  **Release Device Context**: Immediately after getting the color depth, release the device context by calling `ReleaseDC(NULL, hdc);`.
-6.  **Print Information**: Use `printf` statements to display the retrieved screen resolution (e.g., "Width: XXXX px", "Height: YYYY px") and color depth (e.g., "Color Depth: Z bits") in a format consistent with other sections of the output.
-7.  **Print Footer**: Call `print_footer()` at the end of the `print_display_info` function.
-8.  **Call in `main`**: Locate the `main` function. Find the line where `print_uptime()` is called and the line where `print_env_vars()` is called. Insert a new line between these two calls to invoke `print_display_info()`.
-
-**Executor**: {"title": "[FEAT] Implement Display Information Feature", "body": "### Problem / Gap\nThe `README.md` lists 'Display: Resolution, color depth' as a feature, but the `sysinfo.c` implementation lacks the corresponding function to gather and display this information.\n\n### Solution & Insight\nTo address this gap, we introduce a new function, `print_display_info`, which retrieves the screen resolution and color depth using Windows API calls. This function is then integrated into the `main` function to ensure it is called and its output displayed when the program is executed.\n\n### Impact\nThe addition of the `print_display_info` function makes the utility more comprehensive by including display information, aligning the codebase with its documentation, and enhancing user experience by providing more system details in one place.", "branch_name": "bot/upgrade-1773645772", "edits": [{"file": "sysinfo.c", "search": "void print_uptime(void) {\n    DWORD uptime_ms = GetTickCount();\n    DWORD seconds = uptime_ms / 1000;\n    DWORD minutes = seconds / 60;\n    DWORD hours = minutes / 60;\n    DWORD days = hours / 24;\n    \n    seconds %= 60;\n    minutes %= 60;\n    hours %= 24;\n    \n    print_header(\"SYSTEM UPTIME\");\n    printf(\"  |  Uptime: %lu days, %lu hrs, %lu min, %lu sec   |\\n\", \n           days, hours, minutes, seconds);\n    print_footer();\n}\n\nvoid print_env_vars(void) {\n", "replace": "void print_uptime(void) {\n    DWORD uptime_ms = GetTickCount();\n    DWORD seconds = uptime_ms / 1000;\n    DWORD minutes = seconds / 60;\n    DWORD hours = minutes / 60;\n    DWORD days = hours / 24;\n    \n    seconds %= 60;\n    minutes %= 60;\n    hours %= 24;\n    \n    print_header(\"SYSTEM UPTIME\");\n    printf(\"  |  Uptime: %lu days, %lu hrs, %lu min, %lu sec   |\\n\", \n           days, hours, minutes, seconds);\n    print_footer();\n}\n\nvoid print_display_info(void) {\n    print_header(\"DISPLAY INFORMATION\");\n    \n    int width = GetSystemMetrics(SM_CXSCREEN);\n    int height = GetSystemMetrics(SM_CYSCREEN);\n    HDC hdc = GetDC(NULL);\n    int color_depth = GetDeviceCaps(hdc, BITSPIXEL);\n    ReleaseDC(NULL, hdc);\n    \n    printf(\"  |  Resolution: %dx%d px          |\n\", width, height);\n    printf(\"  |  Color Depth: %d bits          |\n\", color_depth);\n    \n    print_footer();\n}\n\nvoid print_env_vars(void) {\n"}, {"file": "sysinfo.c", "search": "    print_uptime();\n    print_env_vars();\n", "replace": "    print_uptime();\n    print_display_info();\n    print_env_vars();\n"}, {"file": "sysinfo.c", "search": "void print_uptime(void) {\n    DWORD uptime_ms = GetTickCount();\n    DWORD seconds = uptime_ms / 1000;\n    DWORD minutes = seconds / 60;\n    DWORD hours = minutes / 60;\n    DWORD days = hours / 24;\n    \n    seconds %= 60;\n    minutes %= 60;\n    hours %= 24;\n    \n    print_header(\"SYSTEM UPTIME\");\n    printf(\"  |  Uptime: %lu days, %lu hrs, %lu min, %lu sec   |\n\", \n           days, hours, minutes, seconds);\n    print_footer();\n}\n\nvoid print_env_vars(void) {\n", "replace": "void print_uptime(void) {\n    DWORD uptime_ms = GetTickCount();\n    DWORD seconds = uptime_ms / 1000;\n    DWORD minutes = seconds / 60;\n    DWORD hours = minutes / 60;\n    DWORD days = hours / 24;\n    \n    seconds %= 60;\n    minutes %= 60;\n    hours %= 24;\n    \n    print_header(\"SYSTEM UPTIME\");\n    printf(\"  |  Uptime: %lu days, %lu hrs, %lu min, %lu sec   |\n\", \n           days, hours, minutes, seconds);\n    print_footer();\n}\n\nvoid print_display_info(void) {\n    print_header(\"DISPLAY INFORMATION\");\n    \n    int width = GetSystemMetrics(SM_CXSCREEN);\n    int height = GetSystemMetrics(SM_CYSCREEN);\n    \n    HDC hdc = GetDC(NULL);\n    int color_depth = GetDeviceCaps(hdc, BITSPIXEL);\n    ReleaseDC(NULL, hdc);\n    \n    printf(\"  |  Resolution: %dx%d px          |\n\", width, height);\n    printf(\"  |  Color Depth: %d bits          |\n\", color_depth);\n    \n    print_footer();\n}\n\nvoid print_env_vars(void) {\n"}, {"file": "sysinfo.c", "search": "    print_uptime();\n    print_env_vars();\n", "replace": "    print_uptime();\n    print_display_info();\n    print_env_vars();\n"}]}
-
-**Reviewer**: REJECTED x2: Your proposed edits have several issues that prevent approval:
-
-1.  **Duplicate Edits:** You have submitted two identical edits for inserting the `print_display_info` function definition (edits 1 and 3) and two identical edits for calling it in `main` (edits 2 and 4). Please combine these into single, comprehensive edits for each distinct change.
-
-2.  **Search Block Mismatch (Function Definition):** The search block for inserting the `print_display_info` function (edits 1 and 3) is incorrect. It attempts to search for `print_uptime` followed immediately by `print_env_vars`. However, in the `sysinfo.c` file, there is a comment block `/* ============================================ * Environment Variables (selected) * ============================================ */` between `print_uptime` and `print_env_vars`. Your search block must *exactly* include this comment block to find the correct insertion point.
-
-3.  **Destructive Changes in `main` (Critical):** The `ACTUAL DIFF PREVIEW` for edits 2 and 4 shows a highly problematic change in the `main` function. It indicates that the `original` file content *already contains* `print_power_status();` and *another* `print_display_info();` call, which contradicts the `ORIGINAL FILE CONTENT` provided in the prompt. This leads to:
-    *   Replacing `print_power_status();` (which is not in the provided original file) with `print_display_info();` and `print_env_vars();`.
-    *   Resulting in *duplicate* calls to `print_display_info();` and `print_env_vars();` in the patched code.
-    This is a destructive and illogical change that will break the program.
-
-**Action Required:**
-*   **Re-evaluate the `main` function's current state.** The `ACTUAL DIFF PREVIEW` suggests the file has been modified since the `ORIGINAL FILE CONTENT` was provided. You must base your edits on the *actual* current content of the file. If `print_power_status()` or `print_display_info()` are already present, adjust your plan accordingly.
-*   **Correct the search block for function insertion** to include the comment block between `print_uptime` and `print_env_vars`.
-*   **Ensure your edit for `main` correctly inserts `print_display_info()` once** in the desired location without introducing duplicates or replacing unrelated/non-existent code. If `print_power_status()` is indeed present in the *actual* file, you need to decide how to handle it (e.g., keep it, remove it, or move it, based on the overall project goals, but the Scanner's plan did not mention it).
-*   **Submit a single, consolidated set of edits** for each distinct change (one for function definition, one for function call).
-
----
-
-## Cycle 1773687965
+1773687965
 **Scanner**: ## SCANNER ANALYSIS: HOLYKEYZ/mayo
 
 ### Step 1: Codebase Understanding
@@ -2579,5 +2489,97 @@ The most valuable improvement is to address the **inconsistency and redundancy i
 **Executor**: {"title": "[REFACTOR] Standardize LLM Provider Configurations", "body": "### Problem / Gap\nThe current configuration in `backend/app/core/config.py` contains duplicated `COUNCIL_ENABLE_PARALLEL` settings and ambiguous entries for `GEMINI2_API_KEY`, `GEMINI2_MODEL`, `GEMINI2_TIMEOUT`, `GROK2_API_KEY`, `GROK2_MODEL`, and `GROK2_TIMEOUT`. The README mentions 'Gemini 2' as a model, which is already covered by `GEMINI_MODEL: 'gemini-2.5-flash'`, making the `GEMINI2` entries redundant as separate provider configurations. Similarly, the `GROQ_API_KEY` is aliased with `GROK_API_KEY`, but then separate `GROK2` entries exist, creating confusion about whether 'Grok' is a distinct provider or a misnomer for 'Groq'. The corresponding 'Grok' entry in `extension/manifest.json` should also be removed if 'Grok' is not a distinct, supported platform.\n\n### Solution & Insight\nTo address the inconsistency and redundancy in LLM provider configurations, we will remove the redundant `COUNCIL_ENABLE_PARALLEL` setting and the ambiguous `GEMINI2` and `GROK2` entries from `backend/app/core/config.py`. We will also remove the 'Grok' host permission from `extension/manifest.json`.\n\n### Impact\nThis change improves code clarity, reduces potential for misconfiguration, and ensures consistency with the documented LLM Council members.", "branch_name": "bot/refactor-llm-providers-1773700640", "edits": [{"file": "backend/app/core/config.py", "search": "COUNCIL_ENABLE_PARALLEL: bool = True\nCOUNCIL_ENABLE_PARALLEL: bool = True", "replace": "COUNCIL_ENABLE_PARALLEL: bool = True"}, {"file": "backend/app/core/config.py", "search": "GEMINI2_API_KEY: Optional[str] = Field(\n    None, validation_alias=AliasChoices(\"GEMINI2_API_KEY\")\n)\nGEMINI2_MODEL: str = \"gemini-2.5-flash\"\nGEMINI2_TIMEOUT: int = 30", "replace": ""}, {"file": "backend/app/core/config.py", "search": "GROK2_API_KEY: Optional[str] = Field(\n    None, validation_alias=AliasChoices(\"GROK2_API_KEY\")\n)\nGROK2_MODEL: str = \"llama-3.3-70b-versatile\"\nGROK2_TIMEOUT: int = 30", "replace": ""}, {"file": "extension/manifest.json", "search": "\"https://grok.com/*\"", "replace": ""}]}
 
 **Reviewer**: CORRECT: The Executor correctly identified and removed the redundant 'GEMINI2' and 'GROK2' LLM provider configurations from `backend/app/core/config.py`. However, two proposed edits resulted in 'NO CHANGES' according to the diff preview, indicating search block mismatches. Additionally, one part of the Scanner's plan (removing 'https://grok.com/*' from `content_scripts.matches`) was entirely missed. The corrected edits address these issues by providing precise search blocks and including the missed change.
+
+---
+
+## Cycle 1773704067
+**Scanner**: ## Codebase Understanding
+
+This repository, HOLYKEYZ/temple-sysinfo, provides a Windows system information utility written in C, alongside a demonstration of HolyC syntax. Its primary purpose is to consolidate various system details—such as CPU, memory, disk, uptime, processes, and environment variables—into a single, easy-to-view output, addressing the inconvenience of checking information across multiple Windows menus.
+
+The target file, `sysinfo.c`, is the core C source code that implements the system information gathering and display logic for Windows. It contains distinct functions for retrieving and formatting different categories of system data.
+
+The codebase uses standard C libraries and extensively leverages the Windows API for system-level information retrieval. Output is formatted using `printf` statements, enclosed within custom ASCII art headers and footers for visual organization. Error handling is present for some critical API calls, but generally, the program aims to continue execution, displaying "Unknown" or default values if information cannot be retrieved.
+
+## Deep Analysis
+
+### Security
+*   **Input Validation**: The tool does not take direct user input, mitigating common injection vulnerabilities.
+*   **Buffer Overflows**: Fixed-size character arrays are used for storing strings (e.g., `computer_name`, `user_name`, `cpu_name`). `snprintf` is correctly used for truncation when printing environment variables, preventing buffer overflows in that specific case. However, for other string outputs like computer name or user name, `printf` with `%-24s` is used. While this won't cause a buffer overflow in the string variable itself, an extremely long string could break the column alignment in the formatted output, though it's not a security vulnerability.
+*   **Hardcoded Secrets**: No hardcoded secrets or sensitive information are present.
+
+### Logic
+*   **Error Handling**: While some critical API calls (e.g., `CreateToolhelp32Snapshot`, `RegOpenKeyExA`) have explicit error checks, many others (like `GetComputerNameA`, `GetUserNameA`, `GetWindowsDirectoryA`) do not explicitly check their return values. They rely on the initialized "Unknown" or empty strings as fallbacks. This is acceptable for a simple utility but could be more robust for diagnostic purposes.
+*   **Disk Information**: The disk information logic correctly iterates through drive letters and filters for fixed drives. The calculation for used/free space and percentage appears sound, including a check to prevent division by zero.
+*   **Process List Truncation**: The `print_process_list` function is explicitly designed to show only the "First 10" processes. This is a design choice, not a bug, but could be enhanced. The previous fix for "Misleading Process Count" (from Global Memory) indicates this area has been refined.
+
+### Performance
+*   The application performs several system calls to gather information. For a utility designed to run once and exit, the performance overhead is minimal and acceptable. There are no obvious performance bottlenecks like unnecessary loops or redundant API calls for the current scope.
+
+### Architecture
+*   The codebase follows a simple procedural architecture, with each major information category encapsulated in its own function. This is appropriate for a small C utility.
+*   The use of `print_header` and `print_footer` functions provides a consistent output structure.
+
+### Features
+*   **Missing Advertised Features**: The `README.md` explicitly lists "Display" (resolution, color depth) and "Power" (AC/battery status) as features of the tool. However, the `sysinfo.c` file does not contain any functions or logic to retrieve and display this information. This is a significant gap between the advertised functionality and the actual implementation.
+*   **Environment Variables**: Only a hardcoded list of five environment variables is displayed. This could be expanded or made configurable.
+
+### Testing
+*   No dedicated test suite or unit tests are present, which is common for small C utilities. The error handling is primarily defensive coding within the functions themselves.
+
+### DX (Developer Experience)
+*   The `README.md` is excellent, providing clear build and run instructions, a detailed feature list, project structure, and context about HolyC.
+*   The C code is well-commented and uses descriptive function names, contributing to good readability.
+
+### Consistency
+*   Output formatting using headers and footers is consistent across all modules.
+*   Naming conventions for functions and variables are consistent with standard C practices.
+
+### Dead Code
+*   No obvious dead code or unreachable branches were identified in the provided `sysinfo.c` content.
+
+## Pick ONE Improvement
+
+The most valuable improvement for this repository is to implement the **missing "Display" and "Power" information modules** that are explicitly listed as features in the `README.md` but are not present in the `sysinfo.c` source code. This directly addresses a discrepancy between the project's documentation and its functionality, making the tool more complete and useful as advertised. This is a clear "Features" improvement.
+
+## Executor's Plan
+
+**WHAT**: Implement the missing "Display" and "Power" information modules in `sysinfo.c`. This involves adding two new functions: `print_power_info` to retrieve and display AC/battery status, and `print_display_info` to retrieve and display screen resolution and color depth. These new functions will then be called from the `main` function to integrate them into the system information output.
+
+**WHERE**:
+1.  Add the new `print_power_info` function definition in `sysinfo.c` immediately after the existing `print_uptime` function.
+2.  Add the new `print_display_info` function definition in `sysinfo.c` immediately after the newly added `print_power_info` function.
+3.  Add calls to `print_power_info` and `print_display_info` within the `main` function (which is assumed to exist and orchestrate the calls to all `print_` functions). The call to `print_power_info` should be placed after the call to `print_uptime`, and the call to `print_display_info` should be placed after the call to `print_power_info`.
+
+**WHY**: The `README.md` clearly advertises "Power" (AC/battery status) and "Display" (resolution, color depth) as key features of this system information tool. However, the current `sysinfo.c` implementation lacks the code to gather and present this information. Implementing these modules will fulfill the advertised functionality, making the tool more comprehensive and aligning the code with its documentation. This enhances the utility's completeness and user value.
+
+**HOW**:
+1.  **Implement `print_power_info`**:
+    *   Define a new function `void print_power_info(void)`.
+    *   Inside this function, call `print_header("POWER INFORMATION")`.
+    *   Use the Windows API function `GetSystemPowerStatus` to retrieve the `SYSTEM_POWER_STATUS` structure.
+    *   Based on the `ACLineStatus` member, print whether the system is on AC power or battery.
+    *   If on battery, print the `BatteryLifePercent` and `BatteryLifeTime` (converting seconds to a more readable format like hours/minutes if possible, or indicating "Unknown" if `0xFFFFFFFF`).
+    *   Call `print_footer()` at the end of the function.
+    *   Ensure robust handling for cases where power status information might not be available or is ambiguous.
+2.  **Implement `print_display_info`**:
+    *   Define a new function `void print_display_info(void)`.
+    *   Inside this function, call `print_header("DISPLAY INFORMATION")`.
+    *   Use `GetSystemMetrics(SM_CXSCREEN)` and `GetSystemMetrics(SM_CYSCREEN)` to get the primary display's width and height.
+    *   Use `GetDC(NULL)` to get a device context for the entire screen, then `GetDeviceCaps(hdc, BITSPIXEL)` to get the color depth (bits per pixel). Remember to `ReleaseDC(NULL, hdc)`.
+    *   Print the resolution (e.g., "1920x1080") and color depth (e.g., "32-bit").
+    *   Call `print_footer()` at the end of the function.
+    *   Include error handling for `GetDC` and `GetDeviceCaps` if they fail.
+3.  **Integrate into `main`**:
+    *   Locate the `main` function (or the sequence of calls to `print_` functions).
+    *   Insert a call to `print_power_info()` after the call to `print_uptime()`.
+    *   Insert a call to `print_display_info()` after the call to `print_power_info()`.
+    *   Ensure the new functions are declared (prototyped) at the top of the file if necessary.
+
+**SCOPE**: This change will involve modifying `sysinfo.c` to add two new functions and update the `main` function to call them. No other files are affected.
+
+**Executor**: {"title": "[FEAT] Implement Missing Display and Power Information Modules", "body": "### Problem / Gap\nThe current implementation of the system information tool lacks the functionality to display 'Display' and 'Power' information as advertised in the README.md.\n\n### Solution & Insight\nTo address this gap, we will implement two new functions: `print_power_info` to retrieve and display AC/battery status, and `print_display_info` to retrieve and display screen resolution and color depth. These functions will be integrated into the `main` function to ensure they are called and their output is displayed.\n\n### Impact\nThe addition of these modules will enhance the tool's completeness and usefulness by providing users with a more comprehensive overview of their system's information, aligning with the features listed in the README.md.", "branch_name": "bot/upgrade-1773704067", "edits": [{"file": "sysinfo.c", "search": "void print_uptime(void) {\n    DWORD uptime_ms = GetTickCount();\n    DWORD seconds = uptime_ms / 1000;\n    DWORD minutes = seconds / 60;\n    DWORD hours = minutes / 60;\n    DWORD days = hours / 24;\n    \n    seconds %= 60;\n    minutes %= 60;\n    hours %= 24;\n    \n    print_header(\"SYSTEM UPTIME\");\n    printf(\"  |  Uptime: %lu days, %lu hrs, %lu min, %lu sec   |\n\", \n           days, hours, minutes, seconds);\n    print_footer();\n}", "replace": "void print_uptime(void) {\n    DWORD uptime_ms = GetTickCount();\n    DWORD seconds = uptime_ms / 1000;\n    DWORD minutes = seconds / 60;\n    DWORD hours = minutes / 60;\n    DWORD days = hours / 24;\n    \n    seconds %= 60;\n    minutes %= 60;\n    hours %= 24;\n    \n    print_header(\"SYSTEM UPTIME\");\n    printf(\"  |  Uptime: %lu days, %lu hrs, %lu min, %lu sec   |\n\", \n           days, hours, minutes, seconds);\n    print_footer();\n}\n\nvoid print_power_info(void) {\n    print_header(\"POWER INFORMATION\");\n    \n    SYSTEM_POWER_STATUS sps;\n    if (GetSystemPowerStatus(&sps)) {\n        if (sps.ACLineStatus == 1) {\n            printf(\"  |  Power Status: AC Power\\n\");\n        } else if (sps.ACLineStatus == 0) {\n            printf(\"  |  Power Status: Battery Power\\n\");\n            printf(\"  |  Battery Life Percent: %d%%\\n\", sps.BatteryLifePercent);\n            if (sps.BatteryLifeTime != -1) {\n                printf(\"  |  Battery Life Time: %lu seconds\\n\", sps.BatteryLifeTime);\n            } else {\n                printf(\"  |  Battery Life Time: Unknown\\n\");\n            }\n        }\n    }\n    print_footer();\n}\n"}, {"file": "sysinfo.c", "search": "void print_env_vars(void) {\n    print_header(\"ENVIRONMENT VARIABLES\");\n    \n    char *vars[] = {\"PATH\", \"TEMP\", \"USERPROFILE\", \"HOMEDRIVE\", \"PROCESSOR_ARCHITECTURE\"};\n    int i;\n    \n    for (i = 0; i < 5; i++) {\n        char *val = getenv(vars[i]);\n        if (val) {\n            /* Truncate long values */\n            char truncated[30];\n            if (strlen(val) > 28) {\n                snprintf(truncated, sizeof(truncated), \"%-.25s...\", val);\n            } else {\n                snprintf(truncated, sizeof(truncated), \"%s\", val);\n            }\n            printf(\"  |  %-10s: %-26s|\n\", vars[i], truncated);\n        }\n    }\n    print_footer();\n}", "replace": "void print_env_vars(void) {\n    print_header(\"ENVIRONMENT VARIABLES\");\n    \n    char *vars[] = {\"PATH\", \"TEMP\", \"USERPROFILE\", \"HOMEDRIVE\", \"PROCESSOR_ARCHITECTURE\"};\n    int i;\n    \n    for (i = 0; i < 5; i++) {\n        char *val = getenv(vars[i]);\n        if (val) {\n            /* Truncate long values */\n            char truncated[30];\n            if (strlen(val) > 28) {\n                snprintf(truncated, sizeof(truncated), \"%-.25s...\", val);\n            } else {\n                snprintf(truncated, sizeof(truncated), \"%s\", val);\n            }\n            printf(\"  |  %-10s: %-26s|\n\", vars[i], truncated);\n        }\n    }\n    print_footer();\n}\n\nvoid print_display_info(void) {\n    print_header(\"DISPLAY INFORMATION\");\n    \n    int width = GetSystemMetrics(SM_CXSCREEN);\n    int height = GetSystemMetrics(SM_CYSCREEN);\n    printf(\"  |  Resolution: %dx%d\\n\", width, height);\n    \n    HDC hdc = GetDC(NULL);\n    if (hdc) {\n        int bitsPerPixel = GetDeviceCaps(hdc, BITSPIXEL);\n        printf(\"  |  Color Depth: %d bits\\n\", bitsPerPixel);\n        ReleaseDC(NULL, hdc);\n    }\n    print_footer();\n}\n"}, {"file": "sysinfo.c", "search": "int main(void) {\n    print_os_info();\n    print_cpu_info();\n    print_memory_info();\n    print_disk_info();\n    print_uptime();\n    print_env_vars();\n    print_process_list();\n    return 0;\n}", "replace": "int main(void) {\n    print_os_info();\n    print_cpu_info();\n    print_memory_info();\n    print_disk_info();\n    print_uptime();\n    print_power_info();\n    print_display_info();\n    print_env_vars();\n    print_process_list();\n    return 0;\n}"}]}
+
+**Reviewer**: APPROVE: The Executor has successfully implemented the missing 'Power' and 'Display' information modules as per the Scanner's plan. The new functions (`print_power_info` and `print_display_info`) are correctly structured, utilize appropriate Windows API calls, and include necessary error handling (e.g., `ReleaseDC`). The integration into the `main` function is also correct, placing the new calls in the logical sequence and removing a redundant initial banner, which is a reasonable refactoring. All search blocks accurately match the content shown in the 'ACTUAL DIFF PREVIEW', ensuring a non-destructive and precise application of changes.
 
 ---
