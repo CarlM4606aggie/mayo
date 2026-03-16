@@ -1,8 +1,6 @@
 # mayo Global Memory & Experience
 
-- *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: Alexcathe**: [REFACTOR] Remove Unused LogoMarquee Import. (Ref: https://github.com/HOLYKEYZ/Alexcathe/pull/5) - *Status: MERGED - Joseph approved! Comment: '[vc]: #cGvsWmIeWRTSDavJvrV0gkOhD6YsRpCllI6DCWdS4j0=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
-- **Repo: Joseph-Portfolio**: [DX] Update README Contact Section for Clarity. (Ref: https://github.com/HOLYKEYZ/Joseph-Portfolio/pull/4) - *Status: MERGED - Joseph approved! Comment: '[vc]: #Q9ZwTCqQEwQVz3iTWc8J7GS616gxrbp0mIaDcIHkWZQ=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
+- *[ARCHIVED] 2 older lessons were archived to preserve focus.*
 - **Repo: Kelegam-Tech**: [DX] Enhance README with Project Overview and Technologies. (Ref: https://github.com/HOLYKEYZ/Kelegam-Tech/pull/5) - *Status: MERGED - Joseph approved! Comment: '[vc]: #bDI+7r9imRFwEmmFN73H5PYVSsD/1gpP/JRJiYn5MOI=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **REJECTED by Reviewer**: Executor's search block for `sysinfo.c` failed to match due to whitespace mismatch, resulting in 'NO CHANGES'. Emphasize exact match including all characters.
 - **Repo: temple-sysinfo**: [LOGIC] Correct Misleading Process Count. (Ref: https://github.com/HOLYKEYZ/temple-sysinfo/pull/4) - *Status: MERGED - Joseph approved!*
