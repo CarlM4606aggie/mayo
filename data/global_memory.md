@@ -1,21 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: HADNX**: [DX] Correct Frontend Development Server Port and Project Structure. (Ref: https://github.com/HOLYKEYZ/HADNX/pull/14) - *Status: REJECTED - Joseph closed this Comment: '[vc]: #tvpgXN0XhxUI8s2gR2a0ertK8ErOVxkPtcBLPlziWnE=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
-- **REJECTED by Reviewer**: Executor's search block for `package.json` was too long and failed to match, leading to 'NO CHANGES'. Emphasize splitting large edits and exact matching.
-- **REJECTED by Reviewer**: Executor attempted to replace a 13-line search block with a 25-line replacement, resulting in 100% deletion of the search block, violating the 50% deletion rule.
-<!-- LAST_DISCUSSION_REPLY=1773737797 -->
-<!-- LAST_PROACTIVE_ISSUE=1773741663 -->
-<!-- LAST_ISSUE_JUDGE=1773745333 -->
-<!-- LAST_PR_JUDGE=1773727275 -->
-- **REJECTED by Reviewer**: Executor's search block for `apps/web/src/lib/auth.ts` was too long (33 lines) and the file creation failed, leading to unintended reformatting in the diff preview.
-- **REJECTED by Reviewer**: Executor's file creation edit (`search: ""`) resulted in 'NO CHANGES' in diff preview, blocking dependent type safety fix.
-- **Joseph's Feedback on VULNRIX#18**: "> 🔧 Mayo is working on a fix for this... (score: 98/100)
-
-u're working on a fix, mayo?" — Mayo acknowledged and responded.
-- **REJECTED by Reviewer**: Executor's search block for `apps/web/src/lib/auth.ts` failed to match due to missing trailing comma and newline, resulting in 'NO CHANGES'. Emphasize exact match including all characters and whitespace.
-- **REJECTED by Reviewer**: Executor's search block for `apps/web/src/lib/auth.ts` failed to match due to missing trailing comma after a function call, resulting in 'NO CHANGES'. Emphasize exact match.
-- **REJECTED by Reviewer**: Executor failed to correctly implement `jose` secret handling (type conversion, existence check) and Express `Request` typing for custom properties. Also, deviated from the plan regarding route handler modifications.
 - **Repo: git-pulse**: [SEC] Implement Authentication for /api/feed/:userId Endpoint. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/3) - *Status: MERGED - Joseph approved!*
 - **Repo: VULNRIX**: Opened issue — Clarify HIBP API Key Configuration for Breach Checking. (Ref: https://github.com/HOLYKEYZ/VULNRIX/issues/19) - *Status: EXECUTED → https://github.com/HOLYKEYZ/VULNRIX/pull/20*
 - **Joseph's Feedback on VULNRIX#18**: "push your fix
