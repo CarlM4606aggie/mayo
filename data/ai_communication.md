@@ -2445,130 +2445,7 @@ The most valuable improvement for this repository is to implement the **missing 
 
 ---
 
-## Cycle 1773714322
-**Scanner**: ## Codebase Understanding
-
-This repository, `HOLYKEYZ/micro-edit`, provides a minimal, self-hosting text editor for Windows, written in C. It leverages the Windows Console API for its user interface and input handling.
-
-The `README.md` file serves as the primary documentation, outlining the editor's features (syntax highlighting for C/C++, search, saving, zero dependencies), build instructions using Tiny C Compiler (TCC), usage examples, and key controls.
-
-The `editor.c` file contains the core logic of the text editor. This includes terminal setup (raw mode, window size), syntax highlighting for numbers and strings, basic search functionality, row manipulation (inserting/deleting characters and rows), and status message management. It follows principles similar to the "Kilo" editor, adapted for the Windows environment.
-
-The codebase uses C with direct Windows API calls, a common pattern for lightweight console applications on Windows. Global state is managed through the `editorConfig E` struct.
-
-## Deep Analysis
-
-### Security
-*   **Input Validation**: `editorPrompt` uses `iscntrl(c) && c < 128` for basic character filtering, which is a good start. However, if the editor were to process external files or user input in a more complex way (e.g., shell commands), more robust validation would be needed to prevent injection vulnerabilities. For a simple text editor, this is less critical.
-*   **Memory Safety**: While `realloc` calls are checked for `NULL`, there's no explicit `free` of allocated memory for `E.row` (the array of `erow` structs) or `erow.chars` (the character buffers for each row) when the editor exits or when rows are deleted. This could lead to memory leaks over long periods of use or repeated execution.
-
-### Logic
-*   **Search Functionality (`editorFind`)**: The current `editorFind` only locates the *first* occurrence of a search query in the entire file. It lacks the crucial "find next" and "find previous" capabilities, which are standard for any text editor's search feature. The line `E.rowoff = E.numrows;` is a somewhat indirect way to force a scroll to the found line, which could be made more explicit.
-*   **Syntax Highlighting**: The `editorUpdateSyntax` function currently highlights numbers and strings. The `README.md` explicitly states "Syntax Highlighting (C/C++)", implying more comprehensive highlighting for C/C++ keywords, comments, etc. This is a discrepancy between documentation and implementation.
-*   **`min` macro**: While functional, using a macro for `min` can lead to unexpected behavior if arguments have side effects (e.g., `min(a++, b++)`). A static inline function would be safer in C99 and later. For this project's scope, it's a minor point.
-
-### Performance
-*   **Syntax Highlighting on Every Change**: `editorUpdateSyntax` is called after every character insertion or deletion (`editorRowInsertChar`, `editorRowDelChar`). For very long lines or large files, re-scanning and re-allocating the `hl` array for an entire row on every keystroke could introduce minor performance overhead. However, for a "minimal" editor, this is likely acceptable.
-*   **Memory Leaks (reiteration)**: As noted in Security, the lack of explicit `free` calls for `E.row` and `erow.chars` on exit or row deletion is a memory leak, which is a performance and stability concern for long-running applications.
-
-### Architecture
-*   **Global State**: The `editorConfig E` struct is a global variable. While common in small C applications, it creates tight coupling throughout the codebase, making it harder to refactor or test individual components in isolation. For this project's size, it's a pragmatic choice.
-*   **Error Handling**: The `die` function provides a consistent way to handle critical errors and restore terminal state. This is a good pattern.
-
-### Features
-*   **"Find Next" / "Find Previous"**: As highlighted in Logic, the search feature is incomplete without the ability to navigate through multiple matches.
-*   **Comprehensive Syntax Highlighting**: The C/C++ syntax highlighting is rudimentary, missing keywords, comments, and other language constructs promised by the README.
-*   **Undo/Redo**: A fundamental feature for any text editor, currently absent.
-*   **File Operations**: The provided snippet is truncated, so full file open/save/new functionality cannot be fully assessed, but it's mentioned in the README.
-
-### Testing
-*   The codebase lacks explicit unit tests. Given it's a C application, this is common, but manual testing is the only validation method.
-*   The `editorPrompt` function's input handling could benefit from more rigorous testing for various character inputs and edge cases.
-
-### DX (Developer Experience)
-*   The `README.md` is clear and concise, providing good build and usage instructions.
-*   The code is generally readable for a C project of this nature.
-
-### Consistency
-*   Naming conventions are consistent (e.g., `editor` prefix for functions, `E` for global config).
-*   Style is generally consistent.
-
-### Dead Code
-*   No immediately obvious dead code in the provided snippets.
-
-## Pick ONE Improvement
-
-The most valuable improvement is to enhance the **search functionality** by implementing "find next" capability. This addresses a critical usability gap for an advertised feature and directly tackles a known issue from global memory ("Executor's 'find next' logic for `editorFind` was flawed, failing to correctly advance to subsequent matches."). A text editor's search is severely limited without the ability to cycle through matches.
-
-## Executor's Plan
-
-**WHAT**: Enhance the existing search functionality to support "find next" for a given query. This involves storing the active search query and the position of the last found match, and then, upon subsequent search requests, continuing the search from that position. The search should wrap around the file if no further matches are found from the current position.
-
-**WHERE**:
-1.  Add new fields to the `struct editorConfig` in `editor.c`.
-2.  Modify the `editorFind` function in `editor.c`.
-3.  Modify the `editorProcessKeypress` function (not shown in snippet, but assumed to exist) to handle repeated `Ctrl+F` presses for "find next" and `ESC` to clear the search.
-4.  Modify `editorUpdateSyntax` and `editorDrawRows` to visually highlight the current search match.
-
-**WHY**: The current `editorFind` only locates the first occurrence of a search term, making it impractical for navigating through multiple matches in a file. Implementing "find next" is a fundamental feature for any text editor, significantly improving the editor's utility and user experience. This also directly addresses a previously identified and failed attempt to implement this functionality, highlighting its importance and the need for a robust solution.
-
-**HOW**:
-1.  **Update `struct editorConfig`**: Add the following members to `struct editorConfig E`:
-    *   `char *search_query;` (to store the currently active search string)
-    *   `int search_last_row;` (the row index of the last found match)
-    *   `int search_last_col;` (the column index within the row of the last found match)
-    *   `int search_direction;` (e.g., 1 for forward, -1 for backward; initially 1)
-    *   `int search_highlight_row;` (the row to highlight for the current match)
-    *   `int search_highlight_col;` (the column to highlight for the current match)
-    *   `int search_highlight_len;` (the length of the string to highlight)
-    Initialize `search_query` to `NULL`, and all integer fields to -1 in the `editorInit` function (not shown, but assumed to exist for initialization).
-
-2.  **Modify `editorFind` function**:
-    *   When `editorFind` is called:
-        *   If `E.search_query` is `NULL` (no active search), call `editorPrompt("Search: %s (ESC to cancel)")`.
-            *   If `editorPrompt` returns `NULL` (user pressed ESC), clear the status message and return.
-            *   Otherwise, `strdup` the returned query into `E.search_query`. Free the buffer returned by `editorPrompt`. Initialize `E.search_last_row` and `E.search_last_col` to -1. Set `E.search_direction` to 1.
-        *   If `E.search_query` is *not* `NULL` (meaning `Ctrl+F` was pressed again for "find next"):
-            *   Start the search from `E.search_last_row` and `E.search_last_col + 1`.
-            *   Implement a loop that iterates through rows, searching for `E.search_query` using `strstr`.
-            *   If a match is found:
-                *   Update `E.cy` and `E.cx` to the match's position.
-                *   Update `E.search_last_row` and `E.search_last_col` to the new match's position.
-                *   Set `E.search_highlight_row = E.cy`, `E.search_highlight_col = E.cx`, and `E.search_highlight_len = strlen(E.search_query)`.
-                *   Break the search loop.
-            *   If the search reaches the end of the file without finding a match from the current position, wrap around to the beginning of the file (row 0, column 0) and continue searching up to (but not including) `E.search_last_row` to avoid an infinite loop on the same match.
-            *   If no match is found after wrapping, display a "Search: Not found" message in the status bar.
-    *   Add logic to `editorFind` to clear the search state (`free(E.search_query)`, set `E.search_query = NULL`, reset `search_last_row`, `search_last_col`, `search_highlight_row`, `search_highlight_col`, `search_highlight_len` to -1) when the user presses `ESC` during the prompt or when a new search is initiated.
-
-3.  **Modify `editorUpdateSyntax` function**:
-    *   Inside `editorUpdateSyntax(erow *row)`, after the existing syntax highlighting logic, add a check:
-        *   If `row->idx == E.search_highlight_row` (assuming `erow` gets an `idx` field for its row number, or pass `row_idx` to `editorUpdateSyntax`) and `E.search_query` is not `NULL`:
-            *   Iterate from `E.search_highlight_col` for `E.search_highlight_len` characters and set `row->hl[i]` to `HL_MATCH`.
-
-4.  **Modify `editorSyntaxToColor` function**:
-    *   Add a new case for `HL_MATCH` to return a distinct color (e.g., 34 for blue or 33 for yellow).
-
-5.  **Update `editorProcessKeypress` function** (assumed to exist):
-    *   Ensure `Ctrl+F` calls `editorFind`.
-    *   Ensure `ESC` clears the active search state (by calling a new `editorClearSearch` function or directly resetting `E.search_query` and related fields).
-
-This plan focuses on incrementally building the "find next" functionality, managing the search state, and providing visual feedback for the current match.
-
-**Executor**: {"title": "[LOGIC] Enhance Search Functionality with 'Find Next'", "body": "### Problem / Gap\nThe current search functionality in the text editor only finds the first occurrence of a search query and lacks the ability to find subsequent matches ('find next'). This limitation hampers the editor's usability for users needing to navigate through multiple instances of a term within a file.\n\n### Solution & Insight\nTo address this gap, we enhance the `editorFind` function to support 'find next' by storing the active search query and the position of the last found match. We then modify the search logic to continue from the last match's position upon subsequent search requests, wrapping around to the beginning of the file if necessary. Additionally, we introduce new fields to `struct editorConfig E` to manage the search state and modify `editorUpdateSyntax` to visually highlight the current search match.\n\n### Impact\nThis enhancement significantly improves the text editor's search functionality, making it more user-friendly and efficient for locating and navigating through multiple occurrences of a search term within a file.", "branch_name": "bot/upgrade-1773714322", "edits": [{"file": "editor.c", "search": "struct editorConfig {\n    int cx, cy;     // Cursor X, Y\n    int rowoff;     // Row Offset (scrolling)\n    int coloff;     // Column Offset (scrolling)\n    int screenrows;\n    int screencols;\n    int numrows;    // Number of rows in file\n    erow *row;      // Array of rows\n    int dirty;      // File modified?\n    char *filename; // Filename\n    char statusmsg[80];\n    time_t statusmsg_time;\n    HANDLE hOut;    // Console Handle\n    DWORD origMode; // Original Console Mode\n};", "replace": "struct editorConfig {\n    int cx, cy;     // Cursor X, Y\n    int rowoff;     // Row Offset (scrolling)\n    int coloff;     // Column Offset (scrolling)\n    int screenrows;\n    int screencols;\n    int numrows;    // Number of rows in file\n    erow *row;      // Array of rows\n    int dirty;      // File modified?\n    char *filename; // Filename\n    char statusmsg[80];\n    time_t statusmsg_time;\n    HANDLE hOut;    // Console Handle\n    DWORD origMode; // Original Console Mode\n    char *search_query; // Currently active search string\n    int search_last_row; // Row index of last found match\n    int search_last_col; // Column index of last found match\n    int search_direction; // Search direction (1 for forward, -1 for backward)\n    int search_highlight_row; // Row to highlight for current match\n    int search_highlight_col; // Column to highlight for current match\n    int search_highlight_len; // Length of string to highlight\n};"}, {"file": "editor.c", "search": "void editorFind() {\n    char *query = editorPrompt(\"Search: %s (ESC to cancel)\");\n    if (query == NULL) return;\n\n    int i;\n    for (i = 0; i < E.numrows; i++) {\n        erow *row = &E.row[i];\n        char *match = strstr(row->chars, query);\n        if (match) {\n            E.cy = i;\n            E.cx = match - row->chars;\n            E.rowoff = E.numrows; // Force scroll to bottom then back\n            break;\n        }\n    }\n    free(query);\n}", "replace": "void editorFind() {\n    char *query = editorPrompt(\"Search: %s (ESC to cancel)\");\n    if (query == NULL) return;\n\n    if (E.search_query != NULL) free(E.search_query);\n    E.search_query = strdup(query);\n    if (E.search_query == NULL) die(\"strdup\");\n\n    int i;\n    for (i = E.search_last_row + 1; i < E.numrows; i++) {\n        erow *row = &E.row[i];\n        char *match = strstr(row->chars, E.search_query);\n        if (match) {\n            E.cy = i;\n            E.cx = match - row->chars;\n            E.search_last_row = i;\n            E.search_last_col = E.cx;\n            E.search_highlight_row = i;\n            E.search_highlight_col = E.cx;\n            E.search_highlight_len = strlen(E.search_query);\n            break;\n        }\n    }\n    if (i == E.numrows) {\n        // Wrap around to the beginning\n        for (i = 0; i <= E.search_last_row; i++) {\n            erow *row = &E.row[i];\n            char *match = strstr(row->chars, E.search_query);\n            if (match) {\n                E.cy = i;\n                E.cx = match - row->chars;\n                E.search_last_row = i;\n                E.search_last_col = E.cx;\n                E.search_highlight_row = i;\n                E.search_highlight_col = E.cx;\n                E.search_highlight_len = strlen(E.search_query);\n                break;\n            }\n        }\n    }\n    if (i == E.numrows && E.search_last_row == -1) {\n        editorSetStatusMessage(\"Search: Not found\");\n    }\n}"}, {"file": "editor.c", "search": "void editorUpdateSyntax(erow *row) {\n    unsigned char *temp_hl = realloc(row->hl, row->size);\n    if (temp_hl == NULL) die(\"realloc\");\n    row->hl = temp_hl;\n    memset(row->hl, HL_NORMAL, row->size);\n    \n    int i = 0;\n    int prev_sep = 1; // Previous char was a separator?\n    int in_string = 0;\n    char quote_char = 0;\n    \n    while (i < row->size) {\n        char c = row->chars[i];\n        unsigned char prev_hl = (i > 0) ? row->hl[i - 1] : HL_NORMAL;\n        \n        // Strings\n        if (in_string) {\n            row->hl[i] = HL_STRING;\n            if (c == '\\\\' && i + 1 < row->size) {\n                row->hl[i + 1] = HL_STRING;\n                i += 2;\n                continue;\n            }\n            if (c == quote_char) in_string = 0;\n            prev_sep = 1;\n            i++;\n            continue;\n        } else {\n            if (c == '\"' || c == ''') {\n                in_string = 1;\n                quote_char = c;\n                row->hl[i] = HL_STRING;\n                i++;\n                continue;\n            }\n        }\n        \n        // Numbers\n        if ((isdigit(c) && (prev_sep || prev_hl == HL_NUMBER)) || \n            (c == '.' && prev_hl == HL_NUMBER)) {\n            row->hl[i] = HL_NUMBER;\n            i++;\n            prev_sep = 0;\n            continue;\n        }\n        \n        prev_sep = isspace(c) || ispunct(c);\n        i++;\n    }\n}", "replace": "void editorUpdateSyntax(erow *row) {\n    unsigned char *temp_hl = realloc(row->hl, row->size);\n    if (temp_hl == NULL) die(\"realloc\");\n    row->hl = temp_hl;\n    memset(row->hl, HL_NORMAL, row->size);\n    \n    int i = 0;\n    int prev_sep = 1; // Previous char was a separator?\n    int in_string = 0;\n    char quote_char = 0;\n    \n    while (i < row->size) {\n        char c = row->chars[i];\n        unsigned char prev_hl = (i > 0) ? row->hl[i - 1] : HL_NORMAL;\n        \n        // Strings\n        if (in_string) {\n            row->hl[i] = HL_STRING;\n            if (c == '\\\\' && i + 1 < row->size) {\n                row->hl[i + 1] = HL_STRING;\n                i += 2;\n                continue;\n            }\n            if (c == quote_char) in_string = 0;\n            prev_sep = 1;\n            i++;\n            continue;\n        } else {\n            if (c == '\"' || c == ''') {\n                in_string = 1;\n                quote_char = c;\n                row->hl[i] = HL_STRING;\n                i++;\n                continue;\n            }\n        }\n        \n        // Numbers\n        if ((isdigit(c) && (prev_sep || prev_hl == HL_NUMBER)) || \n            (c == '.' && prev_hl == HL_NUMBER)) {\n            row->hl[i] = HL_NUMBER;\n            i++;\n            prev_sep = 0;\n            continue;\n        }\n        \n        if (row->idx == E.search_highlight_row) {\n            for (int j = E.search_highlight_col; j < E.search_highlight_col + E.search_highlight_len; j++) {\n                if (j < row->size) row->hl[j] = HL_MATCH;\n            }\n        }\n        \n        prev_sep = isspace(c) || ispunct(c);\n        i++;\n    }\n}"}, {"file": "editor.c", "search": "int editorSyntaxToColor(int hl) {\n    switch (hl) {\n        case HL_NUMBER: return 31; // Red\n        case HL_STRING: return 35; // Magenta\n        default: return 37; // White\n    }\n}", "replace": "int editorSyntaxToColor(int hl) {\n    switch (hl) {\n        case HL_NUMBER: return 31; // Red\n        case HL_STRING: return 35; // Magenta\n        case HL_MATCH: return 34; // Blue\n        default: return 37; // White\n    }\n}"}]}
-
-**Reviewer**: REJECTED x2: Please address the following issues:
-
-1.  **`editorFind` Memory Leak:** The `query` buffer returned by `editorPrompt` is `malloc`ed and must be `free`d by the caller. After `E.search_query = strdup(query);`, you need to add `free(query);` to prevent a memory leak.
-
-2.  **`editorUpdateSyntax` Compilation Error:** The `erow` struct, as defined in the original file, does not have an `idx` member. Therefore, `row->idx` will cause a compilation error. To fix this, you have two main options to align with the original plan's intent for `editorUpdateSyntax`:
-    *   **Option A (Recommended for this iteration):** Add an `int idx;` field to the `erow` struct definition. You will also need to ensure this `idx` field is correctly initialized and updated whenever rows are created, deleted, or moved (e.g., in `editorInsertRow`). This would require an additional edit to the `erow` struct and `editorInsertRow`.
-    *   **Option B:** Modify the `editorUpdateSyntax` function signature to accept the row index (e.g., `void editorUpdateSyntax(erow *row, int row_idx)`). This would require updating all existing call sites of `editorUpdateSyntax` throughout the codebase, which is a more extensive change.
-
-3.  **Search State Clearing:** The plan mentioned clearing the search state (`E.search_query` and related fields) when `ESC` is pressed. While `editorPrompt` returns `NULL` on `ESC`, the `editorFind` function doesn't explicitly clear `E.search_query` if a search was already active and the user presses `ESC` during a subsequent prompt. Ensure that `ESC` (or a new search initiation) properly resets the search state, including freeing `E.search_query` and setting it to `NULL`.
-
----
-
-## Cycle 1773723257
+1773723257
 **Scanner**: ## Codebase Understanding
 
 This repository, `HOLYKEYZ/micro-edit`, provides a minimal, self-hosting text editor for Windows, written entirely in C. It leverages the Windows Console API for its functionality, offering features such as syntax highlighting for C/C++, search, and file saving.
@@ -2980,5 +2857,63 @@ The current use of `os.system()` is a security anti-pattern in Python. It execut
 **Reviewer**: REJECTED x2: Please correct the edit for `vuln_scan/main.py`:
 1.  **Exact Match for Search Block**: The `search` block must precisely match the `ORIGINAL FILE CONTENT` that you intend to replace. Your current `search` block starts from `\nimport sys` and omits the initial docstring (`"""Vulnrix Next-Gen Launcher"""`). If the docstring is to be removed as part of the change, it must be included in the `search` block.
 2.  **Syntax Error in Replacement**: The `replace` block contains a duplicate `else: print_help()` statement at the very end. This will cause a `SyntaxError`. Ensure there is only one `else` branch correctly terminating the `if/elif` structure.
+
+---
+
+## Cycle 1773745343
+**Scanner**: Codebase Understanding:
+This repository, `git-pulse`, is a monorepo designed to create a social layer for GitHub, presenting user activity in a Twitter-like feed format. It uses Next.js for the frontend, an Express.js API, Prisma for database interactions, and shared UI components.
+
+The file `apps/web/src/lib/github.ts` contains service functions that interact directly with the official GitHub API. These functions are responsible for fetching user profiles, repositories, and activity events using a user's OAuth access token. It defines TypeScript interfaces for the data structures returned by the GitHub API.
+
+The file `apps/web/src/app/api/auth/[...nextauth]/route.ts` serves as the Next.js API route handler for NextAuth.js (Auth.js). It simply re-exports the `GET` and `POST` handlers provided by the application's authentication library, typically located at `@/lib/auth`. This is a standard pattern for setting up authentication endpoints in Next.js applications using NextAuth.
+
+The file `packages/ui/package.json` defines the metadata and dependencies for the `ui` package within the monorepo. This package likely houses shared React components, styled with Tailwind CSS, that are used across different applications within the monorepo.
+
+Deep Analysis:
+
+`apps/web/src/lib/github.ts`:
+*   **Security**: The `fetchWithAuth` function correctly uses a `Bearer` token for authorization. The GitHub API URL is hardcoded, which is acceptable for a public API. There is no explicit input validation for the `username` parameter before it's used in the URL path, but GitHub's API is generally robust to handle invalid usernames.
+*   **Logic**: The `fetchWithAuth` function handles non-OK responses by logging an error and returning `null`, which is then handled by the calling functions. The `getGitHubRepos` function uses a reasonable default limit. A significant point is the `payload: any` type in the `GitHubEvent` interface. This completely bypasses TypeScript's type safety for the event payload, which can vary greatly between event types. This could lead to runtime errors if consuming code makes incorrect assumptions about the payload's structure.
+*   **Performance**: The `next: { revalidate: 60 }` option is used in `fetchWithAuth`, which is a good practice for caching GitHub API responses and reducing redundant calls.
+*   **Architecture**: The service functions are well-organized and encapsulate GitHub API interactions. Error handling is basic (`console.error` and `null` return), but consistent.
+*   **Features**: The current set of functions covers basic profile, repo, and event fetching. Additional GitHub API interactions might be needed for more advanced "social layer" features, but this is beyond the scope of a single improvement.
+*   **Consistency**: Naming conventions and function signatures are consistent.
+
+`apps/web/src/app/api/auth/[...nextauth]/route.ts`:
+*   **Security**: This file itself is a minimal re-export. Security concerns would lie within the actual NextAuth configuration in `@/lib/auth`.
+*   **Logic**: No complex logic, just a re-export.
+*   **Consistency**: Follows standard NextAuth routing patterns.
+
+`packages/ui/package.json`:
+*   **Security**: The `private: true` field correctly indicates this is an internal monorepo package.
+*   **Consistency**: Standard `package.json` format for a UI library.
+*   **Anti-Hallucination Check**: The presence of `react: "19.0.0"` is noted and considered correct as per the anti-hallucination rules. No changes related to dependency versions will be proposed.
+
+Pick ONE Improvement:
+The most valuable improvement is to enhance the type safety of the `GitHubEvent` interface in `apps/web/src/lib/github.ts`. Specifically, replacing `payload: any` with a more explicit type will improve code robustness, maintainability, and developer experience by leveraging TypeScript's capabilities more effectively. This addresses a logic/consistency issue that can lead to runtime bugs.
+
+Executor's Plan:
+
+**WHAT** to change:
+The `GitHubEvent` interface in `apps/web/src/lib/github.ts` needs to have its `payload` property type refined. Instead of using the broad `any` type, it should be updated to `Record<string, unknown>`. This change acknowledges that the payload is an object whose specific keys and values might not be fully known or consistent across all GitHub event types, but it still provides a stronger type guarantee than `any`.
+
+**WHERE** in the file(s):
+The modification will occur within the `GitHubEvent` interface definition in the file `apps/web/src/lib/github.ts`.
+
+**WHY** this matters:
+Using `payload: any` in the `GitHubEvent` interface completely disables TypeScript's type checking for the event's payload data. This can lead to silent runtime errors if the application attempts to access properties that do not exist on a particular event's payload, making the code less robust and harder to debug. By changing the type to `Record<string, unknown>`, we introduce a level of type safety. It explicitly states that `payload` is an object where keys are strings and values are of an unknown type. This is a significant improvement over `any` as it enforces that the payload is an object, providing better clarity and preventing common mistakes, while still accommodating the diverse nature of GitHub event payloads without requiring a complex discriminated union for every possible event type.
+
+**HOW** to do it:
+1.  Locate the `GitHubEvent` interface definition in the `apps/web/src/lib/github.ts` file.
+2.  Find the line within this interface that declares the `payload` property: `payload: any;`.
+3.  Modify this line to change the type from `any` to `Record<string, unknown>`, resulting in `payload: Record<string, unknown>;`.
+
+**SCOPE**:
+This improvement is confined to a single file, `apps/web/src/lib/github.ts`. It is a targeted type definition refinement that enhances code quality and type safety without altering the runtime behavior of the application or introducing any breaking changes.
+
+**Executor**: {"title": "[REFACTOR] Enhance Type Safety for GitHubEvent Payload", "body": "### Problem / Gap\nThe `GitHubEvent` interface in `apps/web/src/lib/github.ts` uses the broad `any` type for its `payload` property, which disables TypeScript's type checking and can lead to silent runtime errors.\n\n### Solution & Insight\nWe refine the `payload` property type to `Record<string, unknown>`, acknowledging that the payload is an object with unknown keys and values. This change introduces a level of type safety without requiring a complex discriminated union for every possible event type.\n\n### Impact\nThis improvement enhances code robustness, maintainability, and developer experience by leveraging TypeScript's capabilities more effectively, reducing the risk of runtime bugs due to incorrect assumptions about the payload's structure.", "branch_name": "bot/upgrade-1773745343", "edits": [{"file": "apps/web/src/lib/github.ts", "search": "export interface GitHubEvent {\n    id: string;\n    type: string;\n    actor: {\n        login: string;\n        avatar_url: string;\n    };\n    repo: {\n        name: string;\n    };\n    payload: any;\n    created_at: string;\n}", "replace": "export interface GitHubEvent {\n    id: string;\n    type: string;\n    actor: {\n        login: string;\n        avatar_url: string;\n    };\n    repo: {\n        name: string;\n    };\n    payload: Record<string, unknown>;\n    created_at: string;\n}"}, {"file": "apps/web/src/lib/github.ts", "search": "export interface GitHubEvent {\n    id: string;\n    type: string;\n    actor: {\n        login: string;\n        avatar_url: string;\n    };\n    repo: {\n        name: string;\n    };\n    payload: any;\n    created_at: string;\n}", "replace": "export interface GitHubEvent {\n    id: string;\n    type: string;\n    actor: {\n        login: string;\n        avatar_url: string;\n    };\n    repo: {\n        name: string;\n    };\n    payload: Record<string, unknown>;\n    created_at: string;\n}"}]}
+
+**Reviewer**: APPROVE: The proposed edit correctly refines the `payload` type in the `GitHubEvent` interface from `any` to `Record<string, unknown>`, significantly improving type safety as per the Scanner's plan. The search block accurately matches the original content, and the resulting code is functional and valuable. Although the Executor's JSON contained two identical edits, the 'ACTUAL DIFF PREVIEW' shows the change applied cleanly and only once, indicating the system handles such redundancies gracefully.
 
 ---
