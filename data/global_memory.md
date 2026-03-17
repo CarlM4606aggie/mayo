@@ -89,20 +89,20 @@ mayo , fix it!" — Mayo acknowledged and responded.
 - **Repo: mayo**: [DX] Enhance JSON Extraction Test in test_json.py. (Ref: https://github.com/HOLYKEYZ/mayo/pull/7) - *Status: APPROVED - Joseph liked this!*
 - **REJECTED by Reviewer**: Executor's search block for `sysinfo.c` failed to match due to `printf` string difference and incorrect context, leading to destructive deletion of existing declarations and duplicate edits. Emphasize exact match and non-destructive changes.
 - **REJECTED by Reviewer**: Executor's search block was truncated and contained a placeholder, leading to a mismatch. Emphasize exact match including all characters and whitespace.
-- **Repo: HADNX**: [SEC] Secure User Data Storage in Registration. (Ref: https://github.com/HOLYKEYZ/HADNX/pull/16) - *Status: PENDING REVIEW*
-- **Repo: IntellectSafe**: [REFACTOR] Standardize LLM Provider Configurations. (Ref: https://github.com/HOLYKEYZ/IntellectSafe/pull/14) - *Status: PENDING REVIEW*
+- **Repo: HADNX**: [SEC] Secure User Data Storage in Registration. (Ref: https://github.com/HOLYKEYZ/HADNX/pull/16) - *Status: MERGED - Joseph approved! Comment: '[vc]: #ev07dyeoZeBxJV9I3ZHqpRbsEK0j1b3cuxBvb5J5ahY=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
+- **Repo: IntellectSafe**: [REFACTOR] Standardize LLM Provider Configurations. (Ref: https://github.com/HOLYKEYZ/IntellectSafe/pull/14) - *Status: MERGED - Joseph approved! Comment: '[vc]: #RURiMtoyGl0X6WWbmztRDcuy6V5ouC/R0JG1pV0dcOg=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **REJECTED by Reviewer**: Executor failed to account for existing function calls in `main` and introduced redefinition/duplicate call issues, along with indentation errors. Also, `search: ""` for function definitions failed.
-- **Repo: temple-sysinfo**: [FEAT] Implement Missing Display and Power Information Modules. (Ref: https://github.com/HOLYKEYZ/temple-sysinfo/pull/7) - *Status: PENDING REVIEW*
+- **Repo: temple-sysinfo**: [FEAT] Implement Missing Display and Power Information Modules. (Ref: https://github.com/HOLYKEYZ/temple-sysinfo/pull/7) - *Status: MERGED - Joseph approved!*
 - **REJECTED by Reviewer**: Executor submitted duplicate/conflicting edits for the same function in `editor.c`, and the second edit introduced bugs and removed wrap-around logic, failing to fully implement the plan.
 - **REJECTED by Reviewer**: Executor's 'find next' logic for `editorFind` was flawed, failing to correctly advance to subsequent matches, and introduced a memory leak. Also, `editorUpdateSyntax` caused a compilation error due to missing `row->idx`.
 - **REJECTED by Reviewer**: Executor submitted duplicate and conflicting edits for the same functions, and `editorFind` logic was flawed, leading to memory leaks and incorrect search behavior. Also, failed to initialize new global state variables.
 - **REJECTED by Reviewer**: Executor's 'find next' logic for `editorFind` was flawed, failing to correctly advance to subsequent matches, and introduced a memory leak. Also, `initEditor` was defined but not called.
 - **REJECTED by Reviewer**: Executor repeated past mistakes: search block mismatch, flawed 'find next' logic, memory leaks, and failure to fully implement the plan (e.g., wrap-around, scrolling, highlighting, correct global state usage).
 - **REJECTED by Reviewer**: Executor failed to consistently manage search state (static vs. global struct), introduced memory leaks, and repeated the mistake of defining but not calling `initEditor` for `micro-edit`.
-- **Repo: ModelFang**: [SEC] Remove Insecure trustHost Configuration. (Ref: https://github.com/HOLYKEYZ/ModelFang/pull/10) - *Status: PENDING REVIEW*
+- **Repo: ModelFang**: [SEC] Remove Insecure trustHost Configuration. (Ref: https://github.com/HOLYKEYZ/ModelFang/pull/10) - *Status: MERGED - Joseph approved! Comment: '[vc]: #yQp3PEScyUsBqPdy6tRUqjfwnXtqnsMqrke6ggF/ZgM=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **REJECTED by Reviewer**: Executor submitted duplicate and conflicting edits for the same file, leading to potential issues and inconsistent changes.
 - **REJECTED by Reviewer**: Executor's search block failed to match due to missing docstring, and replacement introduced a syntax error with a duplicate `else` statement.
-- **Repo: git-pulse**: [REFACTOR] Enhance Type Safety for GitHubEvent Payload. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/8) - *Status: PENDING REVIEW*
+- **Repo: git-pulse**: [REFACTOR] Enhance Type Safety for GitHubEvent Payload. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/8) - *Status: MERGED - Joseph approved!*
 <!-- LAST_DISCUSSION_REPLY=1773753621 -->
 - **REJECTED by Reviewer**: Executor submitted duplicate and conflicting edits, failed to update `editorConfig` struct, introduced `editorPrompt` signature mismatch, and provided flawed search logic and inconsistent state management for `micro-edit`.
 - **Joseph's Feedback on IntellectSafe#15**: "thanks so much for this!
