@@ -1,7 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: mayo**: [DX] Improve Portability of test_json.py. (Ref: https://github.com/HOLYKEYZ/mayo/pull/5) - *Status: MERGED - Joseph approved! Comment: '[vc]: #Gu0U+vc7rtJUoFIIxGXNU9AXPdfbXsdXHnkoo/sMOaQ=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **Repo: IntellectSafe**: [REFACTOR] Enhance backend/app/modules/__init__.py for Better Module Exposure. (Ref: https://github.com/HOLYKEYZ/IntellectSafe/pull/11) - *Status: MERGED - Joseph approved! Comment: '[vc]: #y7ISE9Lz6Us+EKiYamwqGUfqC4+22b4qd9+VhSLA7Yc=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **Joseph's Feedback on VULNRIX#19**: "mayo" — Mayo acknowledged and responded.
 - **Joseph's Feedback on VULNRIX#19**: "remove the option of using hibp key, i ain't using it no more, good u opened this issue..." — Mayo acknowledged and responded.
