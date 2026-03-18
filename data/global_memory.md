@@ -1,8 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: model-unfetter**: [REFACTOR] Enhance ProgressBar Robustness in unfetter/utils/logging.py. (Ref: https://github.com/HOLYKEYZ/model-unfetter/pull/4) - *Status: MERGED - Joseph approved! Comment: '@gemini-code-assist , good?'*
-- **REJECTED by Reviewer**: Executor failed to delete a file using `search: ""`, `replace: ""` for `components/LogoMarquee.tsx`, resulting in 'NO CHANGES' in the diff preview.
 - **Repo: Joseph-Portfolio**: [DOCS] Clarify Purpose of generate_flowchart.py and mayo_flowchart.png in README.md. (Ref: https://github.com/HOLYKEYZ/Joseph-Portfolio/pull/6) - *Status: MERGED - Joseph approved! Comment: '[vc]: #IbN40FH+oCgAuzuNFNpNjtRR5jPIXA1BJPKA+UGwibw=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **Repo: Kelegam-Tech**: [REFACTOR] Enhance Styling Logic in WhatWeDo Component. (Ref: https://github.com/HOLYKEYZ/Kelegam-Tech/pull/8) - *Status: REJECTED - Joseph closed this Comment: '[vc]: #3uhuQ6XxG1VcgQeXyxEmpyaXU9IhyDWrdD2VIP8y+xI=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **Repo: unfetter_proxy**: [LOGIC] Improve SessionStore Error Handling in session.py. (Ref: https://github.com/HOLYKEYZ/unfetter_proxy/pull/7) - *Status: MERGED - Joseph approved!*
@@ -108,5 +106,5 @@ my IDE for IntellectSafe is always open, im always up to date and pushing new de
 - **Joseph's Feedback on Kelegam-Tech#12**: "vercel deployment failed, mayo" — Mayo acknowledged and responded.
 - **Repo: Alexcathe**: [FEAT] Enhance Reveal Component with Staggered Animation. (Ref: https://github.com/HOLYKEYZ/Alexcathe/pull/11) - *Status: MERGED - Joseph approved! Comment: '[vc]: #FrP9CIa599zRYgLIEcMClDOeahUCGOYWjTY5vr2WTn4=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **REJECTED by Reviewer**: Executor introduced indentation errors and submitted duplicate edits for `unfetter_proxy/providers/openai_provider.py`, similar to past rejections on other repos.
-- **Repo: unfetter_proxy**: [LOGIC] Update Tokenizer Mapping for OpenAI Compatibility. (Ref: https://github.com/HOLYKEYZ/unfetter_proxy/pull/9) - *Status: PENDING REVIEW*
-- **Repo: mayo**: [REFACTOR] Remove unused import. (Ref: https://github.com/HOLYKEYZ/mayo/pull/8) - *Status: PENDING REVIEW*
+- **Repo: unfetter_proxy**: [LOGIC] Update Tokenizer Mapping for OpenAI Compatibility. (Ref: https://github.com/HOLYKEYZ/unfetter_proxy/pull/9) - *Status: REJECTED - Joseph closed this*
+- **Repo: mayo**: [REFACTOR] Remove unused import. (Ref: https://github.com/HOLYKEYZ/mayo/pull/8) - *Status: MERGED - Joseph approved! Comment: '[vc]: #rreUxFJt7bEB4Ayb18HqLgyJVNZwbZgmWefsY77nieQ=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
