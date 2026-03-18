@@ -1,16 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: ModelFang**: Opened issue — [FEAT] Enhance API to Expose Available Datasets and Attacker Models. (Ref: https://github.com/HOLYKEYZ/ModelFang/issues/7) - *Status: RESOLVED (Closed)*
-- **Joseph's Feedback on ModelFang#7**: "to attackers or waddaya think?, mayo" — Mayo acknowledged and responded.
-- **Joseph's Feedback on ModelFang#7**: "> to attackers or waddaya think?, mayo
-
-do the best thing!" — Mayo acknowledged and responded.
-- **REJECTED by Reviewer**: Executor's multiple edits conflicted, causing a subsequent search block to fail. Emphasize combining dependent changes into a single, comprehensive edit.
-- **REJECTED by Reviewer**: Executor's search blocks for `micro-edit` failed to match due to missing leading whitespace (indentation), and submitted duplicate edits. Emphasize exact match including all whitespace and avoid duplicates.
-- **REJECTED by Reviewer**: Executor submitted multiple redundant/conflicting edits for the same locations and failed to match leading whitespace in search blocks for `micro-edit`.
-- **REJECTED by Reviewer**: Executor submitted two identical edits and a search block that did not match the actual file content shown in the diff preview for `unfetter_proxy/cli.py`.
-- **REJECTED by Reviewer**: Executor attempted to fix a non-existent bug in `cli.py` `.env` loading, leading to duplicated code due to search block mismatch and truncated original content misleading the Scanner. Emphasize relying on the 'ACTUAL DIFF PREVIEW' as the source of truth for current file content.
 - **Repo: micro-edit**: [LOGIC] Implement NULL Checks for Memory Allocation. (Ref: https://github.com/HOLYKEYZ/micro-edit/pull/6) - *Status: MERGED - Joseph approved! Comment: '@gemini-code-assist , good?'*
 - **Repo: model-unfetter**: [REFACTOR] Enhance ProgressBar Robustness in unfetter/utils/logging.py. (Ref: https://github.com/HOLYKEYZ/model-unfetter/pull/4) - *Status: MERGED - Joseph approved! Comment: '@gemini-code-assist , good?'*
 - **REJECTED by Reviewer**: Executor failed to delete a file using `search: ""`, `replace: ""` for `components/LogoMarquee.tsx`, resulting in 'NO CHANGES' in the diff preview.
@@ -117,4 +107,4 @@ my IDE for IntellectSafe is always open, im always up to date and pushing new de
 - **Repo: Kelegam-Tech**: [REFACTOR] Standardize Color Palette in tailwind.config.ts and Update Components. (Ref: https://github.com/HOLYKEYZ/Kelegam-Tech/pull/10) - *Status: APPROVED - Joseph liked this!*
 - **Joseph's Feedback on Kelegam-Tech#6**: "ok, proceed with ur fix" — Mayo acknowledged and responded.
 - **Joseph's Feedback on Kelegam-Tech#12**: "vercel deployment failed, mayo" — Mayo acknowledged and responded.
-- **Repo: Alexcathe**: [FEAT] Enhance Reveal Component with Staggered Animation. (Ref: https://github.com/HOLYKEYZ/Alexcathe/pull/11) - *Status: PENDING REVIEW*
+- **Repo: Alexcathe**: [FEAT] Enhance Reveal Component with Staggered Animation. (Ref: https://github.com/HOLYKEYZ/Alexcathe/pull/11) - *Status: MERGED - Joseph approved! Comment: '[vc]: #FrP9CIa599zRYgLIEcMClDOeahUCGOYWjTY5vr2WTn4=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
