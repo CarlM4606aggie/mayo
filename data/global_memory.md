@@ -118,3 +118,4 @@ my IDE for IntellectSafe is always open, im always up to date and pushing new de
 - **REJECTED by Reviewer**: Executor repeated search block mismatch (placeholders) and destructive changes for micro-edit, failing to implement core search features.
 - **REJECTED by Reviewer**: Executor repeated past mistakes for micro-edit: failed to update global editorConfig struct for search state, used static locals instead of global members, introduced memory leaks, and provided flawed search logic.
 - **Repo: micro-edit**: [FEAT] Implement Robust Search Functionality. (Ref: https://github.com/HOLYKEYZ/micro-edit/pull/8) - *Status: PENDING REVIEW*
+- **REJECTED by Reviewer**: Executor repeatedly fails to include leading whitespace (indentation) in search blocks for `script.js` in `Joseph-Portfolio`, leading to search mismatches.
