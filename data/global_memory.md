@@ -1,7 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: Kelegam-Tech**: [REFACTOR] Enhance Styling Logic in WhatWeDo Component. (Ref: https://github.com/HOLYKEYZ/Kelegam-Tech/pull/8) - *Status: REJECTED - Joseph closed this Comment: '[vc]: #3uhuQ6XxG1VcgQeXyxEmpyaXU9IhyDWrdD2VIP8y+xI=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **Repo: unfetter_proxy**: [LOGIC] Improve SessionStore Error Handling in session.py. (Ref: https://github.com/HOLYKEYZ/unfetter_proxy/pull/7) - *Status: MERGED - Joseph approved!*
 - **Repo: Alexcathe**: [REFACTOR] Extract Background Logic from HeroSection. (Ref: https://github.com/HOLYKEYZ/Alexcathe/pull/7) - *Status: REJECTED - Joseph closed this Comment: '[vc]: #yotDgivhKKKF72GjJWfyVMmg/tVAmXLoPlAJit/x6IE=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **Repo: HOLYKEYZ**: Opened issue — Clarify Usage of `last_updated.txt` in README. (Ref: https://github.com/HOLYKEYZ/HOLYKEYZ/issues/6) - *Status: RESOLVED (Closed)*
@@ -110,6 +109,6 @@ my IDE for IntellectSafe is always open, im always up to date and pushing new de
 - **REJECTED by Reviewer**: Executor repeated past mistakes: search block mismatches due to incorrect indentation, duplicate edits, and introduced syntax errors (duplicate useState declarations) and destructive changes. Emphasize exact search block matching including all leading whitespace, and atomic, non-conflicting edits.
 - **REJECTED by Reviewer**: Executor failed to apply the first part of a two-part refactoring, leading to broken code due to missing imports. Also, a docstring was removed. Emphasize exact search blocks for insertions and preserving documentation.
 - **REJECTED by Reviewer**: Executor's search blocks failed to match due to incorrect context/indentation, and the resulting diff preview showed destructive, unintended deletions, similar to past rejections. Emphasize exact search block matching and non-destructive reordering.
-- **Repo: model-unfetter**: [REFACTOR] Reorder Model Family Detection Logic in registry.py. (Ref: https://github.com/HOLYKEYZ/model-unfetter/pull/7) - *Status: PENDING REVIEW*
+- **Repo: model-unfetter**: [REFACTOR] Reorder Model Family Detection Logic in registry.py. (Ref: https://github.com/HOLYKEYZ/model-unfetter/pull/7) - *Status: MERGED - Joseph approved!*
 - **REJECTED by Reviewer**: Executor failed to match search blocks due to incorrect assumptions about original code (missing newlines that were present). Also, introduced redundant and conflicting truncation logic for `print_env_vars` instead of integrating or replacing.
-- **Repo: temple-sysinfo**: [LOGIC] Correct print_env_vars Truncation Logic and Remove Redundant Edits. (Ref: https://github.com/HOLYKEYZ/temple-sysinfo/pull/9) - *Status: PENDING REVIEW*
+- **Repo: temple-sysinfo**: [LOGIC] Correct print_env_vars Truncation Logic and Remove Redundant Edits. (Ref: https://github.com/HOLYKEYZ/temple-sysinfo/pull/9) - *Status: MERGED - Joseph approved!*
