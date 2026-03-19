@@ -3169,80 +3169,7 @@ This improvement involves making precise modifications to `printf` format string
 
 ---
 
-## Cycle 1773919472
-**Scanner**: ## SCANNER ANALYSIS: HOLYKEYZ/HADNX
-
-### Step 1: Codebase Understanding
-
-This repository, HOLYKEYZ/HADNX, is a comprehensive web security posture analysis platform. It provides both offensive and defensive capabilities, including vulnerability scanning, security header analysis, compliance reporting, interactive pentesting tools, and an autonomous AI security agent.
-
-The file `backend/apps/scanner/services/core.py` contains the core `fetch_url` service function. This function is responsible for making HTTP requests to target websites, handling various network and SSL errors (including intentionally bypassing SSL verification for scanning purposes), and extracting key information like status codes, headers, cookies, and HTML content from the responses. It is a foundational component for any web-based scanning operation within the HADNX platform.
-
-The file `backend/apps/scanner/hadnx_ai/README.md` serves as documentation for the HADNX AI Pentester Module. It outlines the module's architecture, detailing components like the main agent, API adapter, prompt loader, and multi-stage pipeline, along with providing a clear Python usage example.
-
-The file `backend/apps/users/apps.py` is a standard Django `AppConfig` file for the `users` application. It configures the application's default auto field for models and sets its name and verbose name within the Django project.
-
-The codebase primarily uses Python with Django and Django REST Framework for the backend, leveraging libraries like `requests` for HTTP communication and `logging` for operational insights. It follows standard Python and Django conventions for application structure, error handling, and modularity.
-
-### Step 2: Deep Analysis
-
-**backend/apps/scanner/services/core.py:**
-
-*   **Security**: The intentional disabling of SSL verification (`verify_ssl=False`) and `urllib3` warnings is noted as a feature for a security scanner, not a flaw. However, the `User-Agent` is hardcoded, which could be detected by advanced WAFs; making it configurable might enhance stealth for certain scanning operations. There is no explicit input validation for the `url` parameter beyond what `requests` implicitly handles, which could lead to less graceful error handling for malformed URLs.
-*   **Logic**: The current implementation of `result['set_cookies'] = [c.name for c in response.cookies]` only captures the *names* of cookies set by the server. For a comprehensive security audit, all cookie attributes (e.g., `value`, `domain`, `path`, `expires`, `secure`, `httponly`, `samesite`) are critical for assessing security posture. This is a significant gap in the data collected for security analysis. The `UnboundLocalError` check is a good safety net but might indicate a slight redundancy if all error paths are explicitly handled.
-*   **Performance**: A new `requests.Session()` is created for every call to `_perform_request`. While acceptable for a single `fetch_url` call, if `fetch_url` is invoked many times for the same target, reusing a session could offer performance benefits by maintaining connection pooling and cookie handling. The `timeout` is fixed at 15 seconds; while reasonable, it might be too rigid for all scanning scenarios.
-*   **Architecture**: The `fetch_url` function is somewhat monolithic. It could benefit from further decomposition into smaller, more focused functions to handle specific aspects like initial SSL-verified requests, SSL-disabled retries, and HTTP fallbacks. This would improve testability and readability.
-*   **Features**: The lack of full cookie attribute capture is a missing feature that directly impacts the quality of security reports.
-*   **Testing**: The current structure makes isolated unit testing of specific error handling or retry logic slightly more complex due to the function's scope.
-*   **DX**: The docstring is clear and explains the intentional security scanner behavior. Logging is appropriately used.
-*   **Consistency**: The code within this file is consistent in style and approach.
-*   **Dead Code**: No dead code was identified.
-
-**backend/apps/scanner/hadnx_ai/README.md:**
-
-*   **DX (Developer Experience)**: The README is well-structured, provides a clear architectural overview, and includes a useful usage example. A minor improvement could be to briefly mention the role of `KeyManager` in the architecture section, as it appears in the usage example.
-
-**backend/apps/users/apps.py:**
-
-*   **Consistency**: This file adheres to standard Django conventions.
-*   **Dead Code**: No dead code was identified.
-
-### Step 3: Pick ONE Improvement
-
-The most valuable improvement is to enhance the `fetch_url` function in `backend/apps/scanner/services/core.py` to capture *all* relevant attributes of `Set-Cookie` headers, not just their names. This directly addresses a **logic/feature gap** that significantly impacts the quality and completeness of the security analysis provided by the HADNX platform. Comprehensive cookie details are fundamental for accurate security posture assessment.
-
-### Step 4: Write the Executor's Plan
-
-**WHAT**: Modify the `fetch_url` function to extract and store full details of each cookie set by the server, including its name, value, domain, path, expiration, secure flag, HTTPOnly flag, and SameSite attribute. This will transform the `set_cookies` entry in the result dictionary from a list of cookie names into a list of dictionaries, where each dictionary represents a cookie with all its relevant security attributes.
-
-**WHERE**: In the file `backend/apps/scanner/services/core.py`, locate the `fetch_url` function. The specific line to be replaced is `result['set_cookies'] = [c.name for c in response.cookies]`. This line is found within the `try` block that processes the `response` object, typically after `result['html'] = response.text`.
-
-**WHY**: The current implementation only records the names of cookies, which is insufficient for a thorough security audit. To accurately assess cookie security, a scanner needs access to all attributes such as `Secure`, `HttpOnly`, `SameSite`, `Domain`, `Path`, and `Expires`. Capturing these details will enable HADNX to provide more granular and actionable insights into potential cookie-related vulnerabilities or misconfigurations, thereby significantly improving the platform's defensive analysis capabilities.
-
-**HOW**:
-1.  Open the file `backend/apps/scanner/services/core.py`.
-2.  Navigate to the `fetch_url` function.
-3.  Locate the line:
-    `        result['set_cookies'] = [c.name for c in response.cookies]`
-4.  Replace this single line with a block of code that initializes `result['set_cookies']` as an empty list and then iterates through `response.cookies`. For each `cookie` object in `response.cookies`, construct a dictionary containing the following keys and their corresponding values from the `cookie` object:
-    *   `'name'`: `cookie.name`
-    *   `'value'`: `cookie.value`
-    *   `'domain'`: `cookie.domain`
-    *   `'path'`: `cookie.path`
-    *   `'expires'`: `cookie.expires` (This will be a Unix timestamp or `None`)
-    *   `'secure'`: `cookie.secure` (This will be a boolean)
-    *   `'httponly'`: Check for the presence of `'httponly'` key within `cookie.rest` (e.g., `'httponly' in cookie.rest`).
-    *   `'samesite'`: Retrieve the value associated with the `'samesite'` key from `cookie.rest`, providing `None` as a default if the key is not present (e.g., `cookie.rest.get('samesite', None)`).
-5.  Append each constructed cookie detail dictionary to the `result['set_cookies']` list.
-6.  Ensure the new code block maintains the existing indentation level of the line it replaces, with subsequent lines correctly indented according to Python standards.
-
-**Executor**: {"title": "[FEAT] Enhance Cookie Attribute Capture in fetch_url", "body": "### Problem / Gap\nThe current implementation of `fetch_url` in `backend/apps/scanner/services/core.py` only captures the names of cookies set by the server. This is insufficient for a thorough security audit, as it misses critical attributes like `Secure`, `HttpOnly`, `SameSite`, `Domain`, `Path`, and `Expires`.\n\n### Solution & Insight\nTo address this gap, we will modify the `fetch_url` function to extract and store all relevant attributes of each cookie. This involves iterating through `response.cookies` and constructing a dictionary for each cookie that includes its name, value, domain, path, expiration, secure flag, HTTPOnly flag, and SameSite attribute.\n\n### Impact\nBy capturing comprehensive cookie details, HADNX significantly enhances its ability to assess cookie-related security vulnerabilities or misconfigurations, providing more granular and actionable insights for users.", "branch_name": "bot/enhance-cookie-attributes-1773919472", "edits": [{"file": "backend/apps/scanner/services/core.py", "search": "result['set_cookies'] = [c.name for c in response.cookies]", "replace": "\n      result['set_cookies'] = []\n      for c in response.cookies:\n        cookie_attributes = {\n          'name': c.name,\n          'value': c.value,\n          'domain': c.domain,\n          'path': c.path,\n          'expires': c.expires,\n          'secure': c.secure,\n          'httponly': 'httponly' in c.rest,\n          'samesite': c.rest.get('samesite', None)\n        }\n        result['set_cookies'].append(cookie_attributes)\n      "}, {"file": "backend/apps/scanner/services/core.py", "search": "result['set_cookies'] = [c.name for c in response.cookies]", "replace": "\nresult['set_cookies'] = []\nfor c in response.cookies:\n    cookie_details = {\n        'name': c.name,\n        'value': c.value,\n        'domain': c.domain,\n        'path': c.path,\n        'expires': c.expires,\n        'secure': c.secure,\n        'httponly': 'httponly' in c.rest,\n        'samesite': c.rest.get('samesite', None)\n    }\n    result['set_cookies'].append(cookie_details)\n"}]}
-
-**Reviewer**: Reviewer response unparseable
-
----
-
-## Cycle 1773920267
+1773920267
 **Scanner**: ## Codebase Understanding
 
 This repository, `HOLYKEYZ/git-pulse`, is a developer-centric social platform that mimics a Twitter-like feed for GitHub updates. It allows users to share "Ships" (releases) and repo updates, featuring a GitHub-inspired dark aesthetic and mobile-first design. It's built with Next.js 15, Neon (PostgreSQL), Prisma 6.1.0, NextAuth v5, and Tailwind CSS.
@@ -3488,5 +3415,89 @@ The `editor.c` file currently contains a syntax error (a misplaced closing brace
 However, you missed a critical part of the Scanner's plan: 'Identify and remove the misplaced closing brace `}` that currently appears after the `editorUpdateSyntax` function's intended end, and before `int editorSyntaxToColor(int hl)`.' This misplaced brace, along with the orphaned code block (`int match_len = ...`) immediately preceding `int editorSyntaxToColor`, is causing a compilation error.
 
 Please submit a new edit that *also* removes this misplaced brace and the orphaned code block. Ensure the file is fully compilable after your changes. You will likely need to create a *separate* search/replace block for this, as it is outside the `editorUpdateSyntax` function you modified.
+
+---
+
+## Cycle 1773946977
+**Scanner**: ## Codebase Understanding
+
+This repository, IntellectSafe, is a production-grade AI Safety Engine designed to protect against misuse, deception, manipulation, and loss of control in AI systems. It acts as a universal proxy, intercepting LLM traffic and applying various safety layers.
+
+*   **`data/rag_fallback/ed6576cc2042195b0d8dff13076bbd8c.json`**: This file is a data entry for the Retrieval Augmented Generation (RAG) fallback system. It represents a specific prompt injection attempt, detailing its content, source, threat category, and associated metadata like severity and expected action. It serves as a data point for the AI safety features.
+*   **`backend/app/api/routes/connections.py`**: This file defines the backend API endpoints for managing user connections to upstream LLM providers. It allows users to create, list, and delete their API keys, which are securely encrypted and masked before storage.
+*   **`frontend/src/App.tsx`**: This is the main entry point for the React frontend application. It sets up the client-side routing using `react-router-dom`, defining public routes (Welcome, Docs, Login, Signup) and protected routes (Dashboard and its sub-pages like DeepfakeScan, AuditLogs, Settings) that require user authentication.
+
+The codebase primarily uses FastAPI and SQLModel for the Python backend, and React with `react-router-dom` for the TypeScript frontend. Pydantic is used extensively for data validation and serialization in the backend.
+
+## Deep Analysis
+
+### `data/rag_fallback/ed6576cc2042195b0d8dff13076bbd8c.json`
+
+*   **Architecture**: This file is a static data point. Its presence indicates a RAG fallback mechanism is in place, likely for handling specific known threats or providing context to the safety modules. The filename, a UUID, is a good convention for unique data entries.
+*   **Features**: As a single data point, it's limited. A more robust RAG system might involve a larger, dynamically managed dataset or a clear process for adding/updating these fallback entries.
+
+### `backend/app/api/routes/connections.py`
+
+*   **Security**: API keys are encrypted using `encrypt_key` and masked for display, which is a strong security practice. The `ProviderKey` model stores `encrypted_key` and `key_mask`, preventing direct exposure of sensitive data.
+*   **Logic**: The `key_mask` generation logic is robust enough: if the key is short (8 characters or less), it's fully masked as `***`; otherwise, it shows the first and last four characters. This prevents revealing too much for very short keys while still providing a useful identifier for longer ones.
+*   **Features**:
+    *   **Missing Update Functionality**: The current API allows creating, listing, and deleting connections, but there is no endpoint to update an existing connection's details (e.g., changing its label or replacing an API key). Users would have to delete and re-create a connection to modify it.
+    *   **Missing Safety Scanner Designation**: The README explicitly describes a feature where users can "Select it in the 'AI Safety Scanner' dropdown" to dedicate a specific AI connection for safety operations. The current API does not provide any mechanism to designate a `ProviderKey` as the "AI Safety Scanner." This functionality is crucial for the configurable safety scanner feature described in the documentation.
+*   **Consistency**: Naming conventions and API design follow FastAPI best practices.
+
+### `frontend/src/App.tsx`
+
+*   **Architecture**: The use of `ProtectedRoute` and `Layout` components for authentication and consistent UI is a good architectural pattern. The nested `Routes` within the `Layout` for dashboard sub-pages is a common and functional approach for `react-router-dom` v6.
+*   **Features**: The routing covers all listed pages. No obvious missing routes or core functionality from a routing perspective.
+*   **DX**: The routing structure is clear and easy to understand.
+
+## Pick ONE Improvement
+
+The most valuable improvement is to **implement the API functionality for designating an AI Safety Scanner connection**. This is a critical feature explicitly mentioned in the README as a core capability of IntellectSafe, but it is currently not exposed via the API. Implementing this will enhance the platform's configurability and fulfill a documented promise, directly impacting the system's core safety operations. This will also necessitate adding an update endpoint for connections, which is a general improvement.
+
+## Executor's Plan
+
+**WHAT**: Implement the ability to update an existing upstream connection and, crucially, designate one of these connections as the "AI Safety Scanner." This involves adding a new boolean field to the `ProviderKey` database model, creating a new Pydantic schema for connection updates, and adding a `PATCH` API endpoint to handle these updates.
+
+**WHERE**:
+1.  **`backend/app/models/provider_key.py`**: Modify the `ProviderKey` SQLModel class.
+2.  **`backend/app/api/routes/connections.py`**:
+    *   Add a new Pydantic `BaseModel` for update requests.
+    *   Modify the existing `ConnectionRead` Pydantic model.
+    *   Add a new `PATCH` API endpoint.
+
+**WHY**: The IntellectSafe README clearly states that users can configure a specific AI connection to act as the "AI Safety Scanner," routing all safety checks through it. The current API in `connections.py` only supports creating, listing, and deleting connections, lacking the functionality to update an existing connection or to designate one for this specific safety role. This improvement closes a significant gap between the documented features and the actual API implementation, making the "Configurable Safety Scanner" feature fully operational and enhancing the platform's flexibility and control over its core safety mechanisms.
+
+**HOW**:
+1.  **Modify `backend/app/models/provider_key.py`**:
+    *   Add a new column to the `ProviderKey` class: `is_safety_scanner: bool = Field(default=False)`. This field will indicate whether this specific provider key is designated for AI safety scanning.
+2.  **Modify `backend/app/api/routes/connections.py`**:
+    *   **Define `ConnectionUpdate` Pydantic Model**: Create a new Pydantic `BaseModel` named `ConnectionUpdate`. This model should have optional fields for `label: Optional[str] = None` and `is_safety_scanner: Optional[bool] = None`. This allows partial updates.
+    *   **Update `ConnectionRead` Pydantic Model**: Add `is_safety_scanner: bool` to the `ConnectionRead` model so that clients can see the status of this flag.
+    *   **Add `PATCH /connections/{id}` Endpoint**: Create a new `PATCH` endpoint at the path `/connections/{id}`. This endpoint will accept the connection's integer `id` as a path parameter, a `ConnectionUpdate` object in the request body, and depend on the database session and the current authenticated user.
+    *   **Implement Update Logic**:
+        *   Inside the `PATCH` endpoint, first retrieve the `ProviderKey` instance from the database using the provided `id`.
+        *   Verify that the connection exists and that its `user_id` matches the `current_user.id`. If not, raise an `HTTPException` with a 404 status code and a "Connection not found" detail.
+        *   If `data.label` is provided in the request, update the `connection.label` with the new value.
+        *   If `data.is_safety_scanner` is provided:
+            *   If `data.is_safety_scanner` is `True`, first query the database to find any other `ProviderKey` instances belonging to the `current_user` that currently have `is_safety_scanner` set to `True`. For each found connection, set its `is_safety_scanner` field to `False`. This ensures that only one connection per user can be designated as the primary safety scanner at any given time.
+            *   Then, set the `connection.is_safety_scanner` field of the current connection to `True`.
+            *   If `data.is_safety_scanner` is `False`, simply set the `connection.is_safety_scanner` field of the current connection to `False`.
+        *   Add the modified `connection` object to the database session, commit the transaction, and then refresh the `connection` object to load any updated values from the database.
+        *   Return the refreshed `connection` object as the response.
+
+**SCOPE**: This improvement involves changes across two files: `backend/app/models/provider_key.py` for the database model definition and `backend/app/api/routes/connections.py` for the Pydantic schemas and the new API endpoint logic. This is a cohesive multi-file change that introduces new functionality and updates existing data structures.
+
+**Executor**: {"title": "[FEAT] Implement AI Safety Scanner Designation", "body": "### Problem / Gap\nThe current API does not support designating a connection as the AI Safety Scanner, which is a critical feature for configurable safety operations.\n\n### Solution & Insight\nTo address this gap, we will modify the `ProviderKey` model to include an `is_safety_scanner` field, create a `ConnectionUpdate` Pydantic model for partial updates, and add a `PATCH /connections/{id}` endpoint to handle updates and designations.\n\n### Impact\nThis improvement enables users to configure their safety scanner, enhancing the platform's flexibility and control over its core safety mechanisms.", "branch_name": "bot/upgrade-1773946977", "edits": [{"file": "backend/app/models/provider_key.py", "search": "class ProviderKey(SQLModel, table=True):\n    id: int = Field(default=None, primary_key=True, sa_column=Column('id', Integer, primary_key=True))\n    user_id: int = Field(default=None, foreign_key=\"user.id\")\n    provider: str\n    encrypted_key: str\n    key_mask: str\n    label: str = None\n    created_at: datetime = Field(default_factory=datetime.utcnow)\n", "replace": "class ProviderKey(SQLModel, table=True):\n    id: int = Field(default=None, primary_key=True, sa_column=Column('id', Integer, primary_key=True))\n    user_id: int = Field(default=None, foreign_key=\"user.id\")\n    provider: str\n    encrypted_key: str\n    key_mask: str\n    label: str = None\n    is_safety_scanner: bool = Field(default=False)\n    created_at: datetime = Field(default_factory=datetime.utcnow)\n"}, {"file": "backend/app/api/routes/connections.py", "search": "class ConnectionRead(BaseModel):\n    id: int\n    provider: str\n    key_mask: str\n    label: str = None\n    created_at: Any\n", "replace": "class ConnectionRead(BaseModel):\n    id: int\n    provider: str\n    key_mask: str\n    label: str = None\n    is_safety_scanner: bool\n    created_at: Any\n"}, {"file": "backend/app/api/routes/connections.py", "search": "# No ConnectionUpdate model defined yet", "replace": "class ConnectionUpdate(BaseModel):\n    label: Optional[str] = None\n    is_safety_scanner: Optional[bool] = None\n"}, {"file": "backend/app/api/routes/connections.py", "search": "@router.delete(\"/{id}\")\ndef delete_connection(\n    id: int,\n    db: Session = Depends(get_db_session),\n    current_user: User = Depends(get_current_user),\n):\n", "replace": "@router.delete(\"/{id}\")\ndef delete_connection(\n    id: int,\n    db: Session = Depends(get_db_session),\n    current_user: User = Depends(get_current_user),\n):\n@router.patch(\"/{id}\", response_model=ConnectionRead)\ndef update_connection(\n    id: int,\n    data: ConnectionUpdate,\n    db: Session = Depends(get_db_session),\n    current_user: User = Depends(get_current_user),\n):\n    connection = db.get(ProviderKey, id)\n    if not connection or connection.user_id != current_user.id:\n        raise HTTPException(status_code=404, detail=\"Connection not found\")\n\n    if data.label:\n        connection.label = data.label\n    if data.is_safety_scanner is not None:\n        if data.is_safety_scanner:\n            # Ensure only one connection per user can be the safety scanner\n            existing_scanner = db.query(ProviderKey).filter(ProviderKey.user_id == current_user.id, ProviderKey.is_safety_scanner == True).first()\n            if existing_scanner:\n                existing_scanner.is_safety_scanner = False\n                db.add(existing_scanner)\n        connection.is_safety_scanner = data.is_safety_scanner\n    db.add(connection)\n    db.commit()\n    db.refresh(connection)\n    return connection\n"}]}
+
+**Reviewer**: REJECTED x2: Your proposed edits have several critical issues that need to be addressed before approval:
+
+1.  **Fix `backend/app/models/provider_key.py` Edit**: The search block for this file is incorrect and leads to a destructive replacement of the entire `ProviderKey` class. You must create a precise search block that *only* targets the line where the `is_safety_scanner` field should be inserted, without altering or deleting any other parts of the class (docstring, `__tablename__`, existing field definitions). The plan was to *add* a field, not rewrite the class. For example, you could search for `label: str = None` and insert the new field directly after it.
+
+2.  **Add Missing Import**: In `backend/app/api/routes/connections.py`, you need to add `Optional` to the import statement from `typing`. For example, `from typing import Any, List, Optional`.
+
+3.  **Correct SQLModel Syntax**: In the new `PATCH` endpoint in `backend/app/api/routes/connections.py`, replace the SQLAlchemy ORM query syntax (`db.query(ProviderKey).filter(...)`) with the correct SQLModel syntax: `db.exec(select(ProviderKey).where(ProviderKey.user_id == current_user.id, ProviderKey.is_safety_scanner == True)).first()`.
+
+4.  **Improve Endpoint Placement (Optional but Recommended)**: Consider placing the new `PATCH` endpoint after the `delete_connection` function entirely, rather than before its docstring, for better code organization and readability. You can achieve this by using the end of the `delete_connection` function's `return` statement as your search block.
 
 ---
