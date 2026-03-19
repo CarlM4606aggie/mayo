@@ -16,6 +16,13 @@ from index import (
     commit_changes_via_api, update_ai_communication_log, query_gemini_newcrons
 )
 
+def co_author_msg(msg):
+    co_author_name = os.environ.get('CO_AUTHOR_NAME', '')
+    co_author_email = os.environ.get('CO_AUTHOR_EMAIL', '')
+    if co_author_name and co_author_email:
+        return f"{msg}\n\nCo-authored-by: {co_author_name} <{co_author_email}>"
+    return msg
+
 def run_cron():
     print("DEBUG: Cron triggered — Triple-AI Pipeline (GitHub Actions)")
     
@@ -58,7 +65,7 @@ def run_cron():
                     if issue.state == 'closed':
                         print(f"DEBUG: Issue {issue_url} is closed. Marking as resolved in memory.")
                         mem_content = mem_content.replace(f"(Ref: {issue_url}) - *Status: AWAITING JOSEPH'S INPUT*", f"(Ref: {issue_url}) - *Status: RESOLVED (Closed)*")
-                        bot_repo.update_file("data/global_memory.md", f"chore(memory): mark closed issue as resolved", mem_content, mem_file.sha)
+                        bot_repo.update_file("data/global_memory.md", co_author_msg("chore(memory): mark closed issue as resolved"), mem_content, mem_file.sha)
                         mem_file = bot_repo.get_contents("data/global_memory.md") # refresh sha
                         continue
                     
@@ -195,7 +202,7 @@ def run_cron():
                                         f"(Ref: {issue_url}) - *Status: AWAITING JOSEPH'S INPUT*",
                                         f"(Ref: {issue_url}) - *Status: EXECUTED → {pr.html_url}*"
                                     )
-                                    bot_repo.update_file("data/global_memory.md", f"feat(memory): executed approved issue on {repo_name}", mem, mem_file.sha)
+                                    bot_repo.update_file("data/global_memory.md", co_author_msg(f"feat(memory): executed approved issue on {repo_name}"), mem, mem_file.sha)
                 except Exception as e:
                     print(f"DEBUG: Error processing approved issue {issue_url}: {e}")
         except Exception as e:
@@ -235,7 +242,12 @@ def run_cron():
                 new_mem = memory_text + f'\n<!-- {phase_key}={ts_now} -->'
             try:
                 mem_file = bot_repo_obj.get_contents("data/global_memory.md")
-                bot_repo_obj.update_file("data/global_memory.md", f"chore(timing): update {phase_key}", new_mem, mem_file.sha)
+                timing_msg = f"chore(timing): update {phase_key}"
+                co_author_name = os.environ.get('CO_AUTHOR_NAME', '')
+                co_author_email = os.environ.get('CO_AUTHOR_EMAIL', '')
+                if co_author_name and co_author_email:
+                    timing_msg = f"{timing_msg}\n\nCo-authored-by: {co_author_name} <{co_author_email}>"
+                bot_repo_obj.update_file("data/global_memory.md", timing_msg, new_mem, mem_file.sha)
             except Exception as e:
                 print(f"DEBUG: Failed to update {phase_key} timestamp: {e}")
         
@@ -687,7 +699,7 @@ Write a helpful, concise reply. Be friendly and technical. If it's a question, a
                     mem_file = bot_repo.get_contents("data/global_memory.md")
                     old_mem = mem_file.decoded_content.decode('utf-8')
                     note = f"\n- **Repo: {target_repo.name}**: Opened issue — {issue_title}. (Ref: {issue.html_url}) - *Status: AWAITING JOSEPH'S INPUT*"
-                    bot_repo.update_file("data/global_memory.md", f"feat(memory): scanner opened issue on {target_repo.name}", old_mem + note, mem_file.sha)
+                    bot_repo.update_file("data/global_memory.md", co_author_msg(f"feat(memory): scanner opened issue on {target_repo.name}"), old_mem + note, mem_file.sha)
                 except Exception as e:
                     print(f"DEBUG: Failed to save issue to memory: {e}")
             except Exception as e:
@@ -865,7 +877,7 @@ Write a helpful, concise reply. Be friendly and technical. If it's a question, a
                     mem_file = bot_repo.get_contents("data/global_memory.md")
                     mem_content = mem_file.decoded_content.decode('utf-8')
                     mem_content += f"\n- **REJECTED by Reviewer**: {memory_note}"
-                    bot_repo.update_file("data/global_memory.md", f"feat(memory): reviewer rejected edit on {target_repo.name}", mem_content, mem_file.sha)
+                    bot_repo.update_file("data/global_memory.md", co_author_msg(f"feat(memory): reviewer rejected edit on {target_repo.name}"), mem_content, mem_file.sha)
                 except Exception as e:
                     print(f"DEBUG: Failed to save rejection to memory: {e}")
                 
@@ -933,7 +945,7 @@ Write a helpful, concise reply. Be friendly and technical. If it's a question, a
                 lesson = f"\n- **Repo: {target_repo.name}**: {final_title}. (Ref: {pr.html_url}) - *Status: PENDING REVIEW*"
                 bot_repo.update_file(
                     "data/global_memory.md",
-                    f"feat(memory): record lesson from {target_repo.name}",
+                    co_author_msg(f"feat(memory): record lesson from {target_repo.name}"),
                     old_memory + lesson,
                     old_memory_file.sha
                 )
