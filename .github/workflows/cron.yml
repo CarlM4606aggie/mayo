@@ -36,4 +36,6 @@ jobs:
           GEMINI_EXECUTOR_API_KEY: ${{ secrets.GEMINI_EXECUTOR_API_KEY }}
           GEMINI3_FALLBACK_API_KEY: ${{ secrets.GEMINI3_FALLBACK_API_KEY }}
           BOT_REPO_NAME: ${{ secrets.BOT_REPO_NAME }}
+          CO_AUTHOR_NAME: ${{ secrets.CO_AUTHOR_NAME }}
+          CO_AUTHOR_EMAIL: ${{ secrets.CO_AUTHOR_EMAIL }}
         run: python run_cron.py

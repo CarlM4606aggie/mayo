@@ -65,6 +65,21 @@ The Scanner performs a rigorous multi-layered analysis:
 
 ## ⚙️ Setup & Deployment
 
+> **⚠️ FORK BEFORE USING**
+> 
+> This repo contains hardcoded references to my personal accounts, API keys, GitHub App configuration, and other credentials scattered throughout the codebase. **Do not use this repo directly.**
+> 
+> To use Mayo:
+> 1. **Fork this repo**
+> 2. **Search and replace** all personal references:
+>    - `HOLYKEYZ` → your GitHub username
+>    - `ayandajoseph390@gmail.com` → your email
+>    - `joe-gemini-bot` → your bot name
+>    - `mayo` → your bot repo name
+>    - All API keys/env vars → your own keys
+> 3. **Set up your own GitHub App** and add secrets to your repo
+> 4. **Update the workflow file** (`.github/workflows/cron.yml`) with your secrets
+
 ### Environment Variables
 | Variable | Purpose |
 |---|---|
