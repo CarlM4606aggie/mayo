@@ -574,6 +574,7 @@ def query_gemini_newcrons(prompt, temperature=0.2):
     return None
 
 GEMINI_EXECUTOR_API_KEY = os.environ.get('GEMINI_EXECUTOR_API_KEY')
+GEMINI3_FALLBACK_API_KEY = os.environ.get('GEMINI3_FALLBACK_API_KEY')
 
 def query_groq(prompt, api_key=None, temperature=0.1):
     """Executor AI (Llama 3.3 70B) — produces surgical code edits via Groq."""
@@ -615,22 +616,28 @@ def query_gemini_executor(prompt, temperature=0.1):
     if not GEMINI_EXECUTOR_API_KEY:
         print("DEBUG: GEMINI_EXECUTOR_API_KEY not set, skipping Gemini executor fallback.")
         return None
-        
+    
     headers = {'Content-Type': 'application/json'}
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": temperature, "maxOutputTokens": 8000}
     }
-    for attempt in range(2):
+    keys = [k for k in [GEMINI_EXECUTOR_API_KEY, GEMINI3_FALLBACK_API_KEY] if k]
+    if not keys:
+        print("DEBUG: No Gemini executor keys available.")
+        return None
+    
+    for i, key in enumerate(keys):
         try:
-            r = requests.post(f"{GEMINI_API_URL}?key={GEMINI_EXECUTOR_API_KEY}", json=payload, headers=headers, timeout=120)
+            r = requests.post(f"{GEMINI_API_URL}?key={key}", json=payload, headers=headers, timeout=120)
             r.raise_for_status()
             return r.json()['candidates'][0]['content']['parts'][0]['text']
         except Exception as e:
             err_body = str(getattr(getattr(e, 'response', None), 'text', ''))
-            print(f"Gemini Executor Error (attempt {attempt+1}/2): {e} | {err_body}")
-            if attempt < 1:
-                print(f"DEBUG: Gemini Executor failed. Waiting 15s before retry...")
+            key_preview = "".join([c for i2, c in enumerate(str(key)) if i2 < 10])
+            print(f"Gemini Executor Error (key {key_preview}...): {e} | {err_body}")
+            if i < len(keys) - 1:
+                print(f"DEBUG: Gemini Executor failed. Waiting 15s before trying fallback key...")
                 time.sleep(15)
             else:
                 return None
