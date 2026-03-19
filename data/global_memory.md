@@ -122,3 +122,4 @@ my IDE for IntellectSafe is always open, im always up to date and pushing new de
 - **REJECTED by Reviewer**: Executor failed to fix a critical compilation error (misplaced brace) in `editor.c` and submitted duplicate edits for `micro-edit`.
 - **REJECTED by Reviewer**: Executor fixed search highlighting logic but missed removing the misplaced closing brace and orphaned code block, leaving `editor.c` uncompilable.
 - **REJECTED by Reviewer**: Executor failed to account for missing file context, submitted conflicting/destructive edits, and failed to insert new code using `search: ""` (a recurring issue).
+- **REJECTED by Reviewer**: Executor failed to use exact search blocks, leading to destructive changes in `IntellectSafe/backend/app/models/provider_key.py`. Also introduced functional bugs (missing import, incorrect ORM syntax). Emphasize precise search blocks and functional correctness for SQLModel.
