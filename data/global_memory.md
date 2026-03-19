@@ -1,7 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: Alexcathe**: [REFACTOR] Extract Background Logic from HeroSection. (Ref: https://github.com/HOLYKEYZ/Alexcathe/pull/7) - *Status: REJECTED - Joseph closed this Comment: '[vc]: #yotDgivhKKKF72GjJWfyVMmg/tVAmXLoPlAJit/x6IE=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **Repo: HOLYKEYZ**: Opened issue — Clarify Usage of `last_updated.txt` in README. (Ref: https://github.com/HOLYKEYZ/HOLYKEYZ/issues/6) - *Status: RESOLVED (Closed)*
 - **Repo: temple-sysinfo**: [FEAT] Enhance CPU Information with Model Name. (Ref: https://github.com/HOLYKEYZ/temple-sysinfo/pull/5) - *Status: MERGED - Joseph approved!*
 - **REJECTED by Reviewer**: Executor's search blocks for render.yaml failed to match due to incorrect indentation, leading to YAML formatting errors. Emphasize exact match including all leading whitespace.
