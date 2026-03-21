@@ -3933,3 +3933,77 @@ The most critical issue is the **Logic/Functionality Bug in `api/index.py`'s `re
 **Reviewer**: REJECTED x2: The search block for `api/index.py` did not match the original file content, resulting in 'NO CHANGES'. Specifically, the search block included a leading newline (`\n`) before `def read_file_content` which was not present in the actual file content at the start of the block. Ensure your search blocks are an *exact* match, including all leading/trailing whitespace and newlines, for the target code block. Remove the leading `\n` from both the `search` and `replace` blocks to ensure a precise match and correct application of the fix.
 
 ---
+
+## Cycle 1774089026
+**Scanner**: ## Codebase Understanding
+
+This repository, `HOLYKEYZ/temple-sysinfo`, provides a Windows system information utility written in C. It aims to consolidate various system details (CPU, memory, disk, uptime, power, etc.) into a single, easy-to-view interface. The repository also includes a HolyC version as a syntax demonstration and tribute to TempleOS.
+
+The `README.md` file serves as the primary documentation, offering an overview of the tool, its features, build and run instructions, project structure, and context for the HolyC implementation.
+
+The `sysinfo.c` file is the core C source code that implements the functionality for gathering and displaying various system information modules using Windows API calls.
+
+The codebase uses standard C programming practices and leverages the Windows API for system information retrieval. A consistent pattern of `print_header` and `print_footer` functions is used to frame each information module within a stylized text box.
+
+## Deep Analysis
+
+### Security
+*   **Buffer Overflows**: Several functions (e.g., `print_os_info`, `print_cpu_info`) use fixed-size character arrays (e.g., `char computer_name[256]`). While `GetComputerNameA` and `GetUserNameA` correctly use a size parameter, `GetWindowsDirectoryA` and `GetSystemDirectoryA` also use `sizeof(buffer)`. For a system information display tool, the risk of malicious input causing a buffer overflow is low, but it's a common C vulnerability pattern. For the typical lengths of system names and paths, 256 bytes is generally sufficient.
+
+### Logic
+*   **`print_uptime` Formatting Bug**: The `printf` statement within the `print_uptime` function has a newline character (`\n`) embedded *before* the closing pipe character (`|`) in its format string. This causes the output box to break visually, as the footer will not align correctly.
+*   **`print_power_info` ACLineStatus Handling**: The `print_power_info` function's logic for `ACLineStatus` only explicitly checks for `1` (AC Power) and `0` (Battery Power). If `ACLineStatus` is `255` (Unknown status, as per Windows API documentation), it will fall into the `else if (sps.ACLineStatus == 0)` block, incorrectly reporting "Battery Power" instead of "Unknown". This is a functional bug that provides misleading information.
+
+### Performance
+*   The application performs a series of system calls and calculations once upon execution. There are no apparent performance bottlenecks for this type of utility.
+
+### Architecture
+*   **Minimal Error Handling**: Error handling for Windows API calls is present (e.g., `RegOpenKeyExA`, `GetDiskFreeSpaceA`), but often results in "Unknown" or simply skips printing information without detailed error messages. This is acceptable for a simple utility but could be enhanced for robustness.
+*   **Consistent Module Structure**: The use of `print_header` and `print_footer` provides a good architectural pattern for modular display.
+
+### Features
+*   The tool covers a comprehensive set of system information modules as described in the `README.md`. No critical missing features are immediately apparent for its stated purpose.
+
+### Testing
+*   No explicit testing framework or unit tests are present, which is typical for small C utilities. The functionality relies on direct interaction with the Windows API.
+
+### DX (Developer Experience)
+*   **Inconsistent Output Formatting**: The `printf` statements within the `print_power_info` function do not consistently align with the `print_header` and `print_footer` box style. They lack the right-side pipe (`|`) and proper padding, making the output for this module visually inconsistent with the rest of the utility.
+
+### Consistency
+*   Naming conventions are consistent. The overall code style is uniform. The primary inconsistency lies in the output formatting of the `print_power_info` module, as noted above.
+
+### Dead Code
+*   No dead code, unused variables, or unreachable branches were identified.
+
+## Pick ONE Improvement
+
+The most valuable improvement is to address the logical bug in `print_power_info` regarding the `ACLineStatus` handling and simultaneously correct the inconsistent output formatting within that function, along with fixing the `print_uptime` formatting bug. These issues directly impact the accuracy and presentation of information to the user.
+
+## Executor's Plan
+
+**WHAT**:
+Correct the `printf` format string in the `print_uptime` function to ensure proper box formatting. Additionally, enhance the `print_power_info` function to accurately display the AC power status, including an explicit "Unknown" state, and standardize its output lines to align with the consistent box-style formatting used throughout the utility.
+
+**WHERE**:
+*   In `sysinfo.c`, within the `print_uptime` function.
+*   In `sysinfo.c`, within the `print_power_info` function.
+
+**WHY**:
+The `print_uptime` function currently has a newline character embedded within its `printf` format string, which visually breaks the output box and degrades the user experience. The `print_power_info` function provides misleading information by incorrectly reporting an "Unknown" AC power status as "Battery Power". Furthermore, its output lines do not conform to the consistent boxed format established by `print_header` and `print_footer`, leading to an inconsistent and less professional display. Addressing these issues will ensure accurate information and a uniform, high-quality presentation across all system information modules.
+
+**HOW**:
+1.  Locate the `print_uptime` function in `sysinfo.c`.
+2.  Modify the `printf` statement that displays the uptime. The newline character (`\n`) should be moved from its current position inside the string literal to immediately after the closing pipe character (`|`).
+3.  Locate the `print_power_info` function in `sysinfo.c`.
+4.  Adjust the conditional logic for `sps.ACLineStatus`. Introduce an `else if` block to explicitly check for `sps.ACLineStatus == 0` (Battery Power) and an `else` block to handle `sps.ACLineStatus == 255` (Unknown status) by printing "Unknown". The existing `if (sps.ACLineStatus == 1)` for AC Power should remain.
+5.  For all `printf` statements within the `print_power_info` function, reformat them to match the `print_header` and `print_footer` style. This involves ensuring each line starts with `  |  `, includes appropriate padding, and ends with a right-side pipe character (`|`) followed by a newline (`\n`), maintaining a consistent total width for the content area. For example, a line like `printf("  |  Power Status: AC Power\n");` should be adjusted to `printf("  |  Power Status: AC Power       |\n");` to fit the established width.
+
+**SCOPE**:
+These changes are confined to the `sysinfo.c` file and involve modifying the `print_uptime` and `print_power_info` functions to correct existing bugs and improve output consistency.
+
+**Executor**: {"title": "[LOGIC] Correct Power Status Display and Uptime Formatting", "body": "### Problem / Gap\nThe current implementation of `print_power_info` does not correctly handle the 'Unknown' power status, and `print_uptime` has a formatting issue with the newline character inside the `printf` statement.\n\n### Solution & Insight\nTo address these issues, we need to modify the `print_power_info` function to explicitly check for the 'Unknown' status and display it accordingly. Additionally, we will correct the `print_uptime` function by moving the newline character to the end of the `printf` statement to ensure proper formatting.\n\n### Impact\nThese changes will improve the accuracy and readability of the system information display, enhancing the overall user experience.", "branch_name": "bot/fix-power-status-and-uptime-formatting", "edits": [{"file": "sysinfo.c", "search": "void print_uptime(void) {\n    DWORD uptime_ms = GetTickCount();\n    DWORD seconds = uptime_ms / 1000;\n    DWORD minutes = seconds / 60;\n    DWORD hours = minutes / 60;\n    DWORD days = hours / 24;\n    \n    seconds %= 60;\n    minutes %= 60;\n    hours %= 24;\n    \n    print_header(\"SYSTEM UPTIME\");\n    printf(\"  |  Uptime: %lu days, %lu hrs, %lu min, %lu sec   |\\\n\", \n           days, hours, minutes, seconds);\n    print_footer();\n}", "replace": "void print_uptime(void) {\n    DWORD uptime_ms = GetTickCount();\n    DWORD seconds = uptime_ms / 1000;\n    DWORD minutes = seconds / 60;\n    DWORD hours = minutes / 60;\n    DWORD days = hours / 24;\n    \n    seconds %= 60;\n    minutes %= 60;\n    hours %= 24;\n    \n    print_header(\"SYSTEM UPTIME\");\n    printf(\"  |  Uptime: %lu days, %lu hrs, %lu min, %lu sec   |\n\", \n           days, hours, minutes, seconds);\n    print_footer();\n}"}, {"file": "sysinfo.c", "search": "void print_power_info(void) {\n    print_header(\"POWER INFORMATION\");\n    \n    SYSTEM_POWER_STATUS sps;\n    if (GetSystemPowerStatus(&sps)) {\n        if (sps.ACLineStatus == 1) {\n            printf(\"  |  Power Status: AC Power\\n\");\n        } else if (sps.ACLineStatus == 0) {\n            printf(\"  |  Power Status: Battery Power\\n\");\n            printf(\"  |  Battery Life Percent: %d%%\\n\", sps.BatteryLifePercent);\n            if (sps.BatteryLifeTime != -1) {\n                printf(\"  |  Battery Life Time: %lu seconds\\n\", sps.BatteryLifeTime);\n            } else {\n                printf(\"  |  Battery Life Time: Unknown\\n\");\n            }\n        }\n    }\n    print_footer();\n}", "replace": "void print_power_info(void) {\n    print_header(\"POWER INFORMATION\");\n    \n    SYSTEM_POWER_STATUS sps;\n    if (GetSystemPowerStatus(&sps)) {\n        if (sps.ACLineStatus == 1) {\n            printf(\"  |  Power Status: AC Power       |\n\");\n        } else if (sps.ACLineStatus == 0) {\n            printf(\"  |  Power Status: Battery Power   |\n\");\n            printf(\"  |  Battery Life Percent: %d%%       |\n\", sps.BatteryLifePercent);\n            if (sps.BatteryLifeTime != -1) {\n                printf(\"  |  Battery Life Time: %lu seconds   |\n\", sps.BatteryLifeTime);\n            } else {\n                printf(\"  |  Battery Life Time: Unknown     |\n\");\n            }\n        } else if (sps.ACLineStatus == 255) {\n            printf(\"  |  Power Status: Unknown         |\n\");\n        }\n    }\n    print_footer();\n}"}]}
+
+**Reviewer**: Reviewer response unparseable
+
+---
