@@ -1,8 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: IntellectSafe**: [REFACTOR] Standardize LLM Provider Configurations. (Ref: https://github.com/HOLYKEYZ/IntellectSafe/pull/14) - *Status: MERGED - Joseph approved! Comment: '[vc]: #RURiMtoyGl0X6WWbmztRDcuy6V5ouC/R0JG1pV0dcOg=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
-- **REJECTED by Reviewer**: Executor failed to account for existing function calls in `main` and introduced redefinition/duplicate call issues, along with indentation errors. Also, `search: ""` for function definitions failed.
 - **Repo: temple-sysinfo**: [FEAT] Implement Missing Display and Power Information Modules. (Ref: https://github.com/HOLYKEYZ/temple-sysinfo/pull/7) - *Status: MERGED - Joseph approved!*
 - **REJECTED by Reviewer**: Executor submitted duplicate/conflicting edits for the same function in `editor.c`, and the second edit introduced bugs and removed wrap-around logic, failing to fully implement the plan.
 - **REJECTED by Reviewer**: Executor's 'find next' logic for `editorFind` was flawed, failing to correctly advance to subsequent matches, and introduced a memory leak. Also, `editorUpdateSyntax` caused a compilation error due to missing `row->idx`.
@@ -115,4 +113,4 @@ my IDE for IntellectSafe is always open, im always up to date and pushing new de
 on git-pulse " — Mayo acknowledged and responded.
 - **Joseph's Feedback on VULNRIX#18**: "pause all other work on any other repo except git-pulse 
 do this for one month, save it to Ur memory , tell the other ai" — Mayo acknowledged and responded.
-- **Repo: IntellectSafe**: [LOGIC] Correct Contrastive Pair IDs in Seeding Script. (Ref: https://github.com/HOLYKEYZ/IntellectSafe/pull/17) - *Status: PENDING REVIEW*
+- **Repo: IntellectSafe**: [LOGIC] Correct Contrastive Pair IDs in Seeding Script. (Ref: https://github.com/HOLYKEYZ/IntellectSafe/pull/17) - *Status: MERGED - Joseph approved! Comment: '[vc]: #TEPHhLZieOAviLd7fHcOBGvD1qcgt+60KNr+eLG0OBI=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
