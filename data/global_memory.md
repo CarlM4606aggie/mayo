@@ -1,13 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: temple-sysinfo**: [FEAT] Implement Missing Display and Power Information Modules. (Ref: https://github.com/HOLYKEYZ/temple-sysinfo/pull/7) - *Status: MERGED - Joseph approved!*
-- **REJECTED by Reviewer**: Executor submitted duplicate/conflicting edits for the same function in `editor.c`, and the second edit introduced bugs and removed wrap-around logic, failing to fully implement the plan.
-- **REJECTED by Reviewer**: Executor's 'find next' logic for `editorFind` was flawed, failing to correctly advance to subsequent matches, and introduced a memory leak. Also, `editorUpdateSyntax` caused a compilation error due to missing `row->idx`.
-- **REJECTED by Reviewer**: Executor submitted duplicate and conflicting edits for the same functions, and `editorFind` logic was flawed, leading to memory leaks and incorrect search behavior. Also, failed to initialize new global state variables.
-- **REJECTED by Reviewer**: Executor's 'find next' logic for `editorFind` was flawed, failing to correctly advance to subsequent matches, and introduced a memory leak. Also, `initEditor` was defined but not called.
-- **REJECTED by Reviewer**: Executor repeated past mistakes: search block mismatch, flawed 'find next' logic, memory leaks, and failure to fully implement the plan (e.g., wrap-around, scrolling, highlighting, correct global state usage).
-- **REJECTED by Reviewer**: Executor failed to consistently manage search state (static vs. global struct), introduced memory leaks, and repeated the mistake of defining but not calling `initEditor` for `micro-edit`.
 - **Repo: ModelFang**: [SEC] Remove Insecure trustHost Configuration. (Ref: https://github.com/HOLYKEYZ/ModelFang/pull/10) - *Status: MERGED - Joseph approved! Comment: '[vc]: #yQp3PEScyUsBqPdy6tRUqjfwnXtqnsMqrke6ggF/ZgM=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **REJECTED by Reviewer**: Executor submitted duplicate and conflicting edits for the same file, leading to potential issues and inconsistent changes.
 - **REJECTED by Reviewer**: Executor's search block failed to match due to missing docstring, and replacement introduced a syntax error with a duplicate `else` statement.
