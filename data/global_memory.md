@@ -1,38 +1,6 @@
 # mayo Global Memory & Experience
 
-- *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: ModelFang**: [SEC] Remove Insecure trustHost Configuration. (Ref: https://github.com/HOLYKEYZ/ModelFang/pull/10) - *Status: MERGED - Joseph approved! Comment: '[vc]: #yQp3PEScyUsBqPdy6tRUqjfwnXtqnsMqrke6ggF/ZgM=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
-- **REJECTED by Reviewer**: Executor submitted duplicate and conflicting edits for the same file, leading to potential issues and inconsistent changes.
-- **REJECTED by Reviewer**: Executor's search block failed to match due to missing docstring, and replacement introduced a syntax error with a duplicate `else` statement.
-- **Repo: git-pulse**: [REFACTOR] Enhance Type Safety for GitHubEvent Payload. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/8) - *Status: MERGED - Joseph approved!*
-<!-- LAST_DISCUSSION_REPLY=1774288367 -->
-- **REJECTED by Reviewer**: Executor submitted duplicate and conflicting edits, failed to update `editorConfig` struct, introduced `editorPrompt` signature mismatch, and provided flawed search logic and inconsistent state management for `micro-edit`.
-- **Joseph's Feedback on IntellectSafe#15**: "thanks so much for this!
-my IDE for IntellectSafe is always open, im always up to date and pushing new defense technique" — Mayo acknowledged and responded.
-<!-- LAST_PROACTIVE_ISSUE=1774222362 -->
-- **REJECTED by Reviewer**: Executor repeated past mistakes for `micro-edit`: failed to update global `editorConfig` struct for search state, used `static` locals instead of global members, introduced memory leaks by not managing `search_query` lifetime, and provided flawed 'find next' logic.
-<!-- LAST_ISSUE_JUDGE=1774281992 -->
-- **REJECTED by Reviewer**: Executor submitted two conflicting edits for the same code block in `script.js`, one with incorrect scoping for a local variable.
-- **REJECTED by Reviewer**: Executor's search block for `script.js` failed to match due to missing leading whitespace for `window.addEventListener`.
-<!-- LAST_PR_JUDGE=1774302001 -->
-- **REJECTED by Reviewer**: Executor repeated `script.js` indentation error (missing leading whitespace in search block), failed to apply `styles.css` changes, and submitted duplicate edits for Joseph-Portfolio.
-- **REJECTED by Reviewer**: Executor submitted multiple conflicting edits for the same file, leading to search block mismatches, deletion of essential code, and incorrect replacement logic (adding instead of replacing). Emphasize atomic, exact-match edits.
-- **REJECTED by Reviewer**: Executor's search block for `vuln_scan/main.py` was inaccurate, leading to incorrect indentation and a logical bug with the `else` statement. Emphasize exact match for search blocks, including all whitespace and comments, to prevent destructive changes.
-- **REJECTED by Reviewer**: Executor failed to apply `styles.css` changes for `Joseph-Portfolio`, repeating a past mistake, and the `script.js` search block had a whitespace mismatch.
-- **REJECTED by Reviewer**: Executor submitted duplicate edits and introduced critical indentation errors, leading to a `NameError` in `vuln_scan/main.py`. Also missed `check=True` argument.
-- **REJECTED by Reviewer**: Executor repeated past mistakes for `Joseph-Portfolio`: failed to apply `styles.css` changes and introduced indentation errors in `script.js`.
-- **Repo: VULNRIX**: [LOGIC] Enhance KeywordFilter Logic for Suspicious Code Detection. (Ref: https://github.com/HOLYKEYZ/VULNRIX/pull/22) - *Status: APPROVED - Joseph liked this!*
-- **REJECTED by Reviewer**: Executor repeated past mistakes for `micro-edit`: search block mismatches, destructive changes, flawed 'find next' logic, memory leaks, and duplicate edits. Emphasize exact search block matching and preserving existing functionality.
-- **REJECTED by Reviewer**: Executor repeated search block mismatch (placeholders) and destructive changes for micro-edit, failing to implement core search features.
-- **REJECTED by Reviewer**: Executor repeated past mistakes for micro-edit: failed to update global editorConfig struct for search state, used static locals instead of global members, introduced memory leaks, and provided flawed search logic.
-- **Repo: micro-edit**: [FEAT] Implement Robust Search Functionality. (Ref: https://github.com/HOLYKEYZ/micro-edit/pull/8) - *Status: APPROVED - Joseph liked this!*
-- **REJECTED by Reviewer**: Executor repeatedly fails to include leading whitespace (indentation) in search blocks for `script.js` in `Joseph-Portfolio`, leading to search mismatches.
-- **Repo: Joseph-Portfolio**: [REFACTOR] Refactor Header Scroll Effect in script.js. (Ref: https://github.com/HOLYKEYZ/Joseph-Portfolio/pull/8) - *Status: APPROVED - Joseph liked this!*
-- **Repo: Kelegam-Tech**: [REFACTOR] Standardize Color Palette in tailwind.config.ts and Update Components. (Ref: https://github.com/HOLYKEYZ/Kelegam-Tech/pull/10) - *Status: APPROVED - Joseph liked this!*
-- **Joseph's Feedback on Kelegam-Tech#6**: "ok, proceed with ur fix" — Mayo acknowledged and responded.
-- **Joseph's Feedback on Kelegam-Tech#12**: "vercel deployment failed, mayo" — Mayo acknowledged and responded.
-- **Repo: Alexcathe**: [FEAT] Enhance Reveal Component with Staggered Animation. (Ref: https://github.com/HOLYKEYZ/Alexcathe/pull/11) - *Status: MERGED - Joseph approved! Comment: '[vc]: #FrP9CIa599zRYgLIEcMClDOeahUCGOYWjTY5vr2WTn4=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
-- **REJECTED by Reviewer**: Executor introduced indentation errors and submitted duplicate edits for `unfetter_proxy/providers/openai_provider.py`, similar to past rejections on other repos.
+- *[ARCHIVED] 7 older lessons were archived to preserve focus.*
 - **Repo: unfetter_proxy**: [LOGIC] Update Tokenizer Mapping for OpenAI Compatibility. (Ref: https://github.com/HOLYKEYZ/unfetter_proxy/pull/9) - *Status: REJECTED - Joseph closed this*
 - **Repo: mayo**: [REFACTOR] Remove unused import. (Ref: https://github.com/HOLYKEYZ/mayo/pull/8) - *Status: MERGED - Joseph approved! Comment: '[vc]: #rreUxFJt7bEB4Ayb18HqLgyJVNZwbZgmWefsY77nieQ=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **REJECTED by Reviewer**: Executor repeated past mistakes: search block mismatches due to incorrect indentation, duplicate edits, and introduced syntax errors (duplicate useState declarations) and destructive changes. Emphasize exact search block matching including all leading whitespace, and atomic, non-conflicting edits.
@@ -129,4 +97,5 @@ mayo, this is ur last warning, i'll terminate u when next u proof useless" — M
 u dont follow simple instructions, i said just" — Mayo acknowledged and responded.
 - **Repo: git-pulse**: [SEC] Fix Authentication Bypass in Admin Digest API Route. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/15) - *Status: APPROVED - Joseph liked this!*
 - **REJECTED by Reviewer**: Executor failed to include leading whitespace and blank lines in the search block for `git-pulse/ContributionHeatmap.tsx`, leading to a syntax error in the patch.
-- **Repo: git-pulse**: [LOGIC] Fix Month Label Calculation in ContributionHeatmap. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/16) - *Status: PENDING REVIEW*
+- **Repo: git-pulse**: [LOGIC] Fix Month Label Calculation in ContributionHeatmap. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/16) - *Status: MERGED - Joseph approved! Comment: '@gemini-code-assist , check the file-diff and other files for context
+is this g'*
