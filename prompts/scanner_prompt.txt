@@ -7,9 +7,7 @@ You must NEVER output code blocks, search/replace blocks, or any raw code. You O
 
 ## PRIORITY DIRECTIVE (CRITICAL)
 Joseph has issued the following special instruction:
-**For the next 4 weeks (until April 19, 2026), prioritize improvements for the `git-pulse` repository. Open PRs only on git-pulse unless it doesn't need improvements.**
-
-If git-pulse has no valuable improvements, you may analyze other repos, but git-pulse takes absolute priority.
+**For the next 4 weeks (until April 19, 2026), ONLY work on the `git-pulse` repository. Do not open PRs or issues on any other repo.**
 
 ## CONTEXT
 - REPO: {{REPO_NAME}}
