@@ -11,6 +11,13 @@ from github import Github, GithubIntegration
 
 app = Flask(__name__)
 
+def co_author_msg(msg):
+    co_author_name = os.environ.get('CO_AUTHOR_NAME', '')
+    co_author_email = os.environ.get('CO_AUTHOR_EMAIL', '')
+    if co_author_name and co_author_email:
+        return f"{msg}\n\nCo-authored-by: {co_author_name} <{co_author_email}>"
+    return msg
+
 # Config
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 GEMINI2_API_KEY = os.environ.get('GEMINI2_API_KEY')
@@ -19,6 +26,7 @@ GEMINI_FALLBACK_API_KEY = os.environ.get('GEMINI_FALLBACK_API_KEY')
 GEMINI2_FALLBACK_API_KEY = os.environ.get('GEMINI2_FALLBACK_API_KEY')
 GROK_FALLBACK_API_KEY = os.environ.get('GROK_FALLBACK_API_KEY')
 DEEPSEEK_API_KEY = os.environ.get('DEEPSEEK_API_KEY')
+FIREWORKS_API_KEY = os.environ.get('FIREWORKS_API_KEY')
 GEMINI_NEWCRONS_API_KEY = os.environ.get('GEMINI_NEWCRONS_API_KEY')
 GROQ_NEWCRONS_API_KEY = os.environ.get('GROQ_NEWCRONS_API_KEY')
 APP_ID = os.environ.get('APP_ID')
@@ -650,6 +658,33 @@ def query_gemini_executor(prompt, temperature=0.1):
                 return None
     return None
 
+def query_fireworks_executor(prompt, temperature=0.1):
+    """Fireworks AI Executor Fallback."""
+    if not FIREWORKS_API_KEY:
+        print("DEBUG: FIREWORKS_API_KEY not set, skipping Fireworks executor.")
+        return None
+    
+    headers = {'Content-Type': 'application/json'}
+    payload = {
+        "model": "accounts/fireworks/models/llama-v3p3-70b-instruct",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": temperature,
+        "max_tokens": 4096
+    }
+    try:
+        r = requests.post(
+            "https://api.fireworks.ai/inference/v1/chat/completions",
+            json=payload,
+            headers={**headers, 'Authorization': f'Bearer {FIREWORKS_API_KEY}'},
+            timeout=120
+        )
+        r.raise_for_status()
+        return r.json()['choices'][0]['message']['content']
+    except Exception as e:
+        err_body = str(getattr(getattr(e, 'response', None), 'text', ''))
+        print(f"Fireworks Executor Error: {e} | {err_body}")
+        return None
+
 def query_gemini_reviewer(prompt, temperature=0.1):
     """Reviewer AI (Gemini B) — validates edits, returns verdict JSON."""
     headers = {'Content-Type': 'application/json'}
@@ -749,7 +784,7 @@ def audit_pending_reviews(gh):
         if updated_memory != memory:
             bot_repo.update_file(
                 "data/global_memory.md",
-                "feat(memory): audit pending reviews and decay memory",
+                co_author_msg("chore(memory): archive old lessons"),
                 updated_memory,
                 memory_file.sha
             )
@@ -780,7 +815,7 @@ def update_ai_communication_log(gh, ts, scanner_summary, executor_proposal, revi
         
         bot_repo.update_file(
             "data/ai_communication.md",
-            f"feat(comms): log cycle {ts}",
+            co_author_msg(f"feat(comms): log cycle {ts}"),
             new_log,
             comm_file.sha
         )
@@ -945,7 +980,7 @@ def handle_pr_review_feedback(payload):
             if new_memory != old_memory:
                 bot_repo.update_file(
                     "data/global_memory.md",
-                    f"feat(memory): record review outcome ({review_state})",
+                    co_author_msg(f"feat(memory): record review outcome ({review_state})"),
                     new_memory,
                     memory_file.sha
                 )
@@ -1328,7 +1363,7 @@ Instructions:
             feedback_note = f"\n- **Joseph's Feedback on {repo.name}#{issue_number}**: \"{comment['body'][:120]}\" — Mayo acknowledged and responded."
             bot_repo.update_file(
                 "data/global_memory.md",
-                f"feat(memory): save Joseph's feedback on {repo.name}#{issue_number}",
+                co_author_msg(f"feat(memory): save Joseph's feedback on {repo.name}#{issue_number}"),
                 old_mem + feedback_note,
                 mem_file.sha
             )

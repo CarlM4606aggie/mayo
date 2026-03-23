@@ -773,12 +773,20 @@ Write a helpful, concise reply. Be friendly and technical. If it's a question, a
                 improvement_data = extract_json_from_response(fb1_resp) if fb1_resp else None
                 
                 if not improvement_data or 'edits' not in improvement_data:
-                    # Fallback 2: The Ultimate Gemini Executor
-                    print("DEBUG: Groq Fallback failed. Engaging Ultimate Gemini Executor...")
-                    from api.index import query_gemini_executor
-                    fb2_resp = query_gemini_executor(executor_prompt)
+                    # Fallback 2: Fireworks AI
+                    print("DEBUG: Groq Fallback failed. Engaging Fireworks AI Executor...")
+                    from api.index import query_fireworks_executor
+                    fb2_resp = query_fireworks_executor(executor_prompt)
                     if fb2_resp:
                         improvement_data = extract_json_from_response(fb2_resp)
+                    
+                    if not improvement_data or 'edits' not in improvement_data:
+                        # Fallback 3: The Ultimate Gemini Executor
+                        print("DEBUG: Fireworks failed. Engaging Ultimate Gemini Executor...")
+                        from api.index import query_gemini_executor
+                        fb3_resp = query_gemini_executor(executor_prompt)
+                        if fb3_resp:
+                            improvement_data = extract_json_from_response(fb3_resp)
             
             if not improvement_data or 'edits' not in improvement_data:
                 print("DEBUG: ALL Executors and Fallbacks failed. No valid JSON produced.")
