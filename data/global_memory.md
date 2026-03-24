@@ -1,10 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: unfetter_proxy**: [FEAT] Implement Streaming Support in GroqWebProvider. (Ref: https://github.com/HOLYKEYZ/unfetter_proxy/pull/10) - *Status: MERGED - Joseph approved!*
-- **REJECTED by Reviewer**: Executor submitted duplicate edits and failed to match search blocks for UI component replacements, leading to 'NO CHANGES' for critical parts of the plan. Also introduced a typo in a successful edit.
-- **REJECTED by Reviewer**: Executor failed to correctly implement geometric calculations for dynamic arrowhead, resulting in an incorrect visual. Also, `import math` was not placed at the top of the file as planned.
-- **REJECTED by Reviewer**: Executor submitted duplicate and conflicting edits, and failed to correctly implement geometric calculations for dynamic arrowheads, repeating past mistakes for Joseph-Portfolio. Also ignored feedback on `import math` placement.
 - **Repo: Joseph-Portfolio**: [LOGIC] Correct Arrowhead Drawing in generate_flowchart.py. (Ref: https://github.com/HOLYKEYZ/Joseph-Portfolio/pull/9) - *Status: APPROVED - Joseph liked this!*
 - **REJECTED by Reviewer**: Executor submitted duplicate edits and introduced a destructive change by removing a docstring, despite the JSON search block not explicitly targeting it. Emphasize exact search blocks and non-destructive changes.
 - **REJECTED by Reviewer**: Executor's search block failed to match due to missing docstring, leading to unintended deletion. Emphasize exact match including all comments/docstrings.
