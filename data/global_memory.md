@@ -1,8 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: Alexcathe**: [SEC] Secure Payment Gate by Moving Status Check to Server-Side. (Ref: https://github.com/HOLYKEYZ/Alexcathe/pull/12) - *Status: MERGED - Joseph approved! Comment: '[vc]: #w06JH/9HvrgDp7dUQBl7iuoK3IU85WTsdLDYeucXoLs=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
-- **REJECTED by Reviewer**: Executor submitted duplicate edits for `unfetter_proxy/providers/groq_web.py`, with one edit destructively removing `curl_cffi` impersonation.
 - **Repo: unfetter_proxy**: [FEAT] Implement Streaming Support in GroqWebProvider. (Ref: https://github.com/HOLYKEYZ/unfetter_proxy/pull/10) - *Status: MERGED - Joseph approved!*
 - **REJECTED by Reviewer**: Executor submitted duplicate edits and failed to match search blocks for UI component replacements, leading to 'NO CHANGES' for critical parts of the plan. Also introduced a typo in a successful edit.
 - **REJECTED by Reviewer**: Executor failed to correctly implement geometric calculations for dynamic arrowhead, resulting in an incorrect visual. Also, `import math` was not placed at the top of the file as planned.
@@ -77,15 +75,15 @@ is this g'*
 <!-- LAST_ISSUE_JUDGE=1774364513 -->
 - **REJECTED by Reviewer**: Executor failed to match pretty-printed JSON content with a minified search block for `manifest.json`, resulting in 'NO CHANGES'. This is a recurring search block mismatch issue.
 - **REJECTED by Reviewer**: Executor failed to match `manifest.json` search block due to formatting (minified vs. pretty-printed JSON), a recurring issue with exact search block matching for `git-pulse`.
-- **Repo: git-pulse**: [LOGIC] Correct params type and await usage in ProfilePage. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/21) - *Status: PENDING REVIEW*
+- **Repo: git-pulse**: [LOGIC] Correct params type and await usage in ProfilePage. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/21) - *Status: MERGED - Joseph approved!*
 <!-- LAST_PR_JUDGE=1774358287 -->
-- **Repo: git-pulse**: [SEC] Enhance SSRF Prevention in Image Proxy. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/22) - *Status: PENDING REVIEW*
+- **Repo: git-pulse**: [SEC] Enhance SSRF Prevention in Image Proxy. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/22) - *Status: MERGED - Joseph approved!*
 - **REJECTED by Reviewer**: Executor failed to match search block due to incorrect escape sequence (`\$`) in template literal within the Authorization header, leading to 'NO CHANGES' for `git-pulse`.
-- **Repo: git-pulse**: [LOGIC] Improve Error Handling in GitHub Repos API Route. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/23) - *Status: PENDING REVIEW*
-- **Repo: git-pulse**: [LOGIC] Correct Navigation Logic for Discover Link. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/24) - *Status: PENDING REVIEW*
+- **Repo: git-pulse**: [LOGIC] Improve Error Handling in GitHub Repos API Route. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/23) - *Status: MERGED - Joseph approved!*
+- **Repo: git-pulse**: [LOGIC] Correct Navigation Logic for Discover Link. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/24) - *Status: MERGED - Joseph approved!*
 - **REJECTED by Reviewer**: Executor's search block matched prompt's original content, but diff preview showed a different original line and a syntactically incorrect replacement, indicating a patching failure due to search block mismatch with the actual file state.
 - **Repo: git-pulse**: [LOGIC] Fix Syntax Error in getGitHubReadme Function. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/25) - *Status: APPROVED - Joseph liked this!*
 - **Repo: git-pulse**: Opened issue — Clarify Admin Authentication for Digest API Route. (Ref: https://github.com/HOLYKEYZ/git-pulse/issues/26) - *Status: AWAITING JOSEPH'S INPUT*
 - **Repo: git-pulse**: [REFACTOR] Upgrade TypeScript Compiler Target to ES2020. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/27) - *Status: APPROVED - Joseph liked this!*
 - **Repo: git-pulse**: [FEAT] Enhance Post Timestamps with Actual Creation Time. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/28) - *Status: APPROVED - Joseph liked this!*
-- **Repo: git-pulse**: [LOGIC] Fix Incorrect Type Definition and Await Usage for Params in FollowersPage. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/29) - *Status: PENDING REVIEW*
+- **Repo: git-pulse**: [LOGIC] Fix Incorrect Type Definition and Await Usage for Params in FollowersPage. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/29) - *Status: MERGED - Joseph approved!*
