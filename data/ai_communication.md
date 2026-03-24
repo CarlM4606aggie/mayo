@@ -4817,3 +4817,71 @@ The most critical issue identified is the **logic bug in `apps/web/src/app/profi
 **Reviewer**: APPROVE: The Executor has correctly identified and fixed a critical logic bug in `apps/web/src/app/profile/[username]/followers/page.tsx`. The `params` prop in Next.js App Router server components is an object, not a Promise, and the `await` keyword was incorrectly used. The proposed edit accurately corrects the type annotation and removes the unnecessary `await`, ensuring the `username` is correctly extracted and the page functions as intended. The search block is an exact match, and the replacement code is valid and functional.
 
 ---
+
+## Cycle 1774379224
+**Scanner**: **Step 1: Codebase Understanding**
+
+*   **Repository Purpose**: The `git-pulse` repository appears to be a web application designed as a social platform or dashboard for developers. It likely integrates with GitHub to display user profiles, contributions, and facilitate connections between developers.
+*   **Target Files Purpose**:
+    *   `apps/web/src/components/CollabWidget.tsx`: This component is responsible for fetching and displaying a list of "Developers like you," which are collaboration matches based on shared languages and similarity. It shows a loading skeleton while data is being fetched and links to individual developer profiles.
+    *   `apps/web/src/components/BottomNav.tsx`: This component provides a responsive navigation bar positioned at the bottom of the screen, primarily for mobile users. It includes links to Home, Discover, Notifications, and a user's Profile, using Octicons for visual cues and highlighting the currently active route.
+    *   `package.json` (root): This file defines the project's metadata, scripts for development, building, and linting the `web` application within a monorepo structure, and specifies the required Node.js engine version.
+*   **Patterns, Frameworks, or Conventions**: The codebase utilizes Next.js for server-side rendering and routing, React for UI components (using hooks like `useState` and `useEffect`), and TypeScript for type safety. Styling is managed with Tailwind CSS, and icons are sourced from `@primer/octicons-react`. The project is structured as a monorepo, indicated by the root `package.json` and `pnpm-workspace.yaml`. API calls are made using the native `fetch` API.
+
+**Step 2: Deep Analysis**
+
+*   **Security**:
+    *   `CollabWidget.tsx`: The component fetches data from `/api/collab`. Assuming the backend API is properly secured against common vulnerabilities (e.g., authentication, authorization, input validation), the client-side component itself does not introduce direct security flaws. User-provided data (username, shared languages) is rendered, which could be an XSS vector if not properly sanitized on the backend, but `Image` and `Link` components from Next.js generally handle basic sanitization for their attributes.
+    *   `BottomNav.tsx`: No direct security concerns. The `username` prop, if derived from user input, should be sanitized upstream before being used in the profile link.
+*   **Logic**:
+    *   `CollabWidget.tsx`: The `useEffect` hook correctly fetches data on component mount. The loading state and the `null` return for `matches.length === 0` are handled appropriately. However, the `try...catch` block in `fetchMatches` silently swallows errors, which means the user receives no feedback if the API call fails. This is a significant logic flaw from a user experience perspective.
+    *   `BottomNav.tsx`: The navigation logic, active link highlighting, and conditional rendering of the "Profile" link based on `username` presence are all logically sound.
+*   **Performance**:
+    *   Both `CollabWidget.tsx` and `BottomNav.tsx` are small, client-side components with minimal logic, so no significant performance bottlenecks are apparent. The `CollabWidget` includes a good loading skeleton for perceived performance.
+*   **Architecture**:
+    *   `CollabWidget.tsx`: The component directly handles data fetching. While acceptable for a small widget, the silent error handling is an architectural weakness as it lacks a consistent error feedback mechanism.
+    *   `BottomNav.tsx`: The component demonstrates good separation of concerns for navigation and icon abstraction.
+    *   `package.json`: The monorepo setup with `pnpm --filter web` scripts is a sound architectural choice.
+*   **Features**:
+    *   `CollabWidget.tsx`: The "Developers like you" feature is valuable. Adding user feedback for API errors would enhance this feature.
+    *   `BottomNav.tsx`: Provides essential mobile navigation.
+*   **Testing**:
+    *   The provided files do not include explicit tests. The silent error handling in `CollabWidget.tsx` makes it harder to observe and test error states from a user's perspective.
+*   **DX (Developer Experience)**:
+    *   The components are well-structured and use standard React/Next.js patterns.
+    *   The root `package.json` provides basic scripts, but a root-level `test` script for the entire monorepo (or at least the `web` app) could be beneficial.
+*   **Consistency**:
+    *   Styling with Tailwind CSS classes (e.g., `bg-git-card`, `text-git-text`) and icon usage from Octicons are consistent across the components.
+    *   There's a minor inconsistency in icon sizing: the SVG in `CollabWidget` is 16x16, while Octicons in `BottomNav` are `size={20}`. This is a minor aesthetic point.
+*   **Dead Code**: No dead code is apparent in the provided files.
+
+**Step 3: Pick ONE Improvement**
+
+The most valuable improvement is to address the silent error handling in `CollabWidget.tsx`. This is a logic and architecture issue that directly impacts user experience by hiding critical information about why a feature might not be working. It's a functional bug in terms of user feedback, making it a high-priority fix.
+
+**Step 4: Write the Executor's Plan**
+
+**WHAT** to change:
+The `CollabWidget` component currently fetches collaboration matches from an API endpoint. If this fetch operation encounters an error (e.g., network issue, server error), the component silently catches the error and simply stops displaying the widget or remains empty. This behavior should be modified to provide explicit user feedback by displaying an error message when the API call fails. This involves introducing a new state variable to track error status and conditionally rendering a message to the user.
+
+**WHERE** in the file(s):
+The changes will be implemented within the `apps/web/src/components/CollabWidget.tsx` file. Specifically, modifications will be made to the `fetchMatches` asynchronous function inside the `useEffect` hook, and to the component's main return block to include conditional rendering for the error state.
+
+**WHY** this matters:
+Silently failing to load data creates a confusing and frustrating user experience. Users will not understand why the "Developers like you" section is missing or empty, potentially leading them to believe the feature is broken or non-existent. By displaying a clear error message, the application becomes more transparent and robust. This improves the overall user experience, provides valuable debugging information (even if generic to the user), and aligns with better error handling architectural patterns, preventing a "Logic" and "Architecture" flaw.
+
+**HOW** to do it:
+1.  Introduce a new state variable named `error` using `useState`, initialized to `null` or an empty string, alongside the existing `matches` and `loading` states. This variable will hold an error message if an API call fails.
+2.  Inside the `fetchMatches` asynchronous function, within the `try` block, ensure that if the API call is successful, the `error` state is explicitly reset to `null` or an empty string before `setMatches` is called. This clears any previous error messages.
+3.  Modify the `catch` block in `fetchMatches`. Instead of an empty comment, set the `error` state variable to a user-friendly message, such as "Failed to load developers. Please try again later."
+4.  In the component's main render logic, after the `if (loading)` check, add a new conditional check for the `error` state. If `error` is not `null` or empty, render a `div` element that displays the `error` message. This `div` should be styled appropriately (e.g., using `text-git-muted` or a similar class for subtle feedback) and could optionally include a "Retry" button that triggers `fetchMatches` again.
+5.  Ensure that if an `error` is present, the component renders the error message and does not proceed to render `null` based on `matches.length === 0`, as the error state takes precedence over an empty match list.
+
+**SCOPE**:
+This improvement is entirely contained within the `apps/web/src/components/CollabWidget.tsx` file. No changes are required in any other files.
+
+**Executor**: {"title": "[LOGIC] Enhance Error Handling in CollabWidget", "body": "### Problem / Gap\nThe CollabWidget component silently fails when encountering an error during API calls, leaving the user without feedback.\n\n### Solution & Insight\nWe introduce a new state variable `error` to track error status and conditionally render an error message. This enhances user experience by providing clear feedback on failures.\n\n### Impact\nImproved transparency and robustness in error handling, aligning with better architectural patterns and enhancing overall user experience.", "branch_name": "bot/enhance-error-handling-1774379224", "edits": [{"file": "apps/web/src/components/CollabWidget.tsx", "search": "const [matches, setMatches] = useState<CollabMatch[]>([]);\nconst [loading, setLoading] = useState(true);", "replace": "const [matches, setMatches] = useState<CollabMatch[]>([]);\nconst [loading, setLoading] = useState(true);\nconst [error, setError] = useState<string | null>(null);"}, {"file": "apps/web/src/components/CollabWidget.tsx", "search": "try {\n                const res = await fetch(\"/api/collab\");\n                if (res.ok) {\n                    const data = await res.json();\n                    setMatches(data.matches || []);\n                }\n            } catch {\n                // silently fail\n            } finally {\n                setLoading(false);\n            }", "replace": "try {\n                const res = await fetch(\"/api/collab\");\n                if (res.ok) {\n                    const data = await res.json();\n                    setMatches(data.matches || []);\n                    setError(null);\n                }\n            } catch (e) {\n                setError('Failed to load developers. Please try again later.');\n            } finally {\n                setLoading(false);\n            }"}, {"file": "apps/web/src/components/CollabWidget.tsx", "search": "if (loading) {\n            return (\n                <div className=\"border border-git-border rounded-lg p-4 bg-git-card\">\n                    <h3 className=\"text-sm font-semibold text-git-text mb-3\">Developers like you</h3>\n                    <div className=\"space-y-3\">\n                        {[1, 2, 3].map((i) => (\n                            <div key={i} className=\"flex items-center gap-3 animate-pulse\">\n                                <div className=\"w-8 h-8 rounded-full bg-git-border\" />\n                                <div className=\"flex-1 space-y-1\">\n                                    <div className=\"h-3 w-24 bg-git-border rounded\" />\n                                    <div className=\"h-2 w-32 bg-git-border rounded\" />\n                                </div>\n                            </div>\n                        ))}\n                    </div>\n                </div>\n            );\n        }\n        if (matches.length === 0) return null;", "replace": "if (loading) {\n            return (\n                <div className=\"border border-git-border rounded-lg p-4 bg-git-card\">\n                    <h3 className=\"text-sm font-semibold text-git-text mb-3\">Developers like you</h3>\n                    <div className=\"space-y-3\">\n                        {[1, 2, 3].map((i) => (\n                            <div key={i} className=\"flex items-center gap-3 animate-pulse\">\n                                <div className=\"w-8 h-8 rounded-full bg-git-border\" />\n                                <div className=\"flex-1 space-y-1\">\n                                    <div className=\"h-3 w-24 bg-git-border rounded\" />\n                                    <div className=\"h-2 w-32 bg-git-border rounded\" />\n                                </div>\n                            </div>\n                        ))}\n                    </div>\n                </div>\n            );\n        }\n        if (error) {\n            return (\n                <div className=\"border border-git-border rounded-lg p-4 bg-git-card\">\n                    <h3 className=\"text-sm font-semibold text-git-text mb-3\">Developers like you</h3>\n                    <div className=\"text-git-muted\">{error}</div>\n                </div>\n            );\n        }\n        if (matches.length === 0) return null;"}]}
+
+**Reviewer**: APPROVE: The Executor's proposed edits correctly implement robust error handling for the `CollabWidget` component. All three edits are precise, non-destructive, and align perfectly with the Scanner's plan to introduce an `error` state, catch API errors, and display a user-friendly message. The conditional rendering order (loading -> error -> no matches) is also correct. This significantly improves user experience by providing feedback instead of silently failing.
+
+---
