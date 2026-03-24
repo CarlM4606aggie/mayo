@@ -4701,3 +4701,59 @@ This change is confined to a single file, `apps/web/src/components/BottomNav.tsx
 **Reviewer**: APPROVE: The Executor's proposed edit precisely addresses the identified logical inconsistency in the `BottomNav` component. The search block is an exact match, the replacement is syntactically correct and functional, and the change is valuable for user experience and future feature development. It aligns perfectly with the Scanner's plan and avoids the common pitfalls (search block mismatches, destructive changes, duplicate edits) seen in previous `git-pulse` rejections.
 
 ---
+
+## Cycle 1774346461
+**Scanner**: **Step 1: Codebase Understanding**
+
+This repository, `git-pulse`, appears to be a social layer built on top of GitHub, designed to allow users to share updates and interact with their GitHub activity. It aims to provide a "social feed" experience for GitHub users.
+
+-   **`apps/web/src/lib/github.ts`**: This file serves as the primary service layer for interacting with the GitHub API. It encapsulates logic for fetching various GitHub data, including user profiles, repositories, events, contribution calendars, and pinned repositories, utilizing both REST and GraphQL APIs. It also incorporates a caching mechanism to optimize API calls.
+-   **`apps/web/src/components/ShipItForm.tsx`**: This React client-side component provides a user interface for creating "Ship It" posts. Users can select one of their GitHub repositories, specify a version tag, and write a changelog. Upon submission, this data is sent to a backend API endpoint (`/api/posts`) to create a new release-related post in the GitPulse feed.
+-   **`apps/web/public/manifest.json`**: This is a standard Web App Manifest file. It defines metadata for the web application, such as its name, short name, description, start URL, display mode, theme colors, and icons. This file is crucial for enabling Progressive Web App (PWA) features, allowing the web application to be installed and behave more like a native application.
+
+The codebase uses Next.js for its web application framework, React for UI components, and TypeScript for type safety. It leverages Tailwind CSS for styling and interacts extensively with the GitHub API.
+
+**Step 2: Deep Analysis**
+
+**`apps/web/src/lib/github.ts`**
+-   **Logic/DX (Critical Bug)**: In the `getGitHubReadme` function, the line `return Buffer.from(data.content, "base64").toStrin` is truncated. This is a syntax error and will cause a runtime crash when this function is executed, preventing the application from decoding and displaying README content.
+-   **Performance/DX**: The `fetchGraphQL` function includes a `console.log` statement specifically for "Pinned Repos" responses. While useful for debugging, this should ideally be removed or made conditional for production environments to avoid unnecessary console output and potential performance overhead.
+-   **Architecture**: The `fetchWithAuth` and `fetchGraphQL` functions provide robust error handling and rate limit logging, which is good. The caching mechanism (`withCache`) is well-implemented.
+
+**`apps/web/src/components/ShipItForm.tsx`**
+-   **Security**: The `changelog` content, along with `repo` and `version`, is sent to the `/api/posts` endpoint. If this `changelog` content is later rendered directly in the UI without proper sanitization (either on the server-side before storage or on the client-side before display), it could introduce a Cross-Site Scripting (XSS) vulnerability. This is a potential security risk that needs server-side validation and sanitization.
+-   **Logic**: The form includes client-side validation for empty fields, which is good for user experience. `router.refresh()` is used after a successful submission to update the UI, which is appropriate.
+-   **Consistency**: The use of `useState` and `useEffect` hooks is consistent with React best practices.
+
+**`apps/web/public/manifest.json`**
+-   **Features/DX**: The `icons` array currently only specifies a single icon size (`1024x1024`). For optimal Progressive Web App (PWA) experience across various devices and platforms, it is best practice to provide multiple icon sizes (e.g., 192x192, 512x512) to ensure the browser can pick the most appropriate asset without scaling, leading to clearer visuals and better performance.
+
+**Step 3: Pick ONE Improvement**
+
+The most critical improvement is to fix the syntax error in `apps/web/src/lib/github.ts`. The truncated `toString` method is a direct bug that will cause a runtime error and prevent a core feature (displaying GitHub READMEs) from functioning. This takes precedence over potential security concerns (which require multi-file changes and server-side context not fully provided) and minor feature/DX enhancements.
+
+**Step 4: Write the Executor's Plan**
+
+**WHAT to change:**
+The `Buffer.from(data.content, "base64").toStrin` call needs to be corrected to `Buffer.from(data.content, "base64").toString('utf8')`. This will complete the `toString` method call and specify the correct encoding for the Base64 decoded content.
+
+**WHERE in the file(s):**
+This change is located within the `getGitHubReadme` asynchronous function in the file `apps/web/src/lib/github.ts`. The specific line to modify is the one that attempts to decode the Base64 content.
+
+**WHY this matters:**
+The current code contains a critical syntax error due to the truncation of the `toString` method name. When `getGitHubReadme` is called and `data.content` is available, this line will cause a runtime error, making the function non-functional. This directly breaks the ability to fetch and display GitHub README files, which is a fundamental feature for showcasing user profiles. Correcting this ensures the function executes successfully, properly decodes the content, and allows READMEs to be displayed as intended.
+
+**HOW to do it:**
+1.  Open the file `apps/web/src/lib/github.ts`.
+2.  Navigate to the `getGitHubReadme` function.
+3.  Locate the line that reads `return Buffer.from(data.content, "base64").toStrin`.
+4.  Modify this line to `return Buffer.from(data.content, "base64").toString('utf8')`.
+
+**SCOPE:**
+This improvement is a single-line fix within the `apps/web/src/lib/github.ts` file.
+
+**Executor**: {"title": "[LOGIC] Fix Syntax Error in getGitHubReadme Function", "body": "### Problem / Gap\nThe `getGitHubReadme` function contains a syntax error due to a truncated `toString` method call. This prevents the function from correctly decoding and returning the GitHub README content.\n\n### Solution & Insight\nTo fix this issue, we need to correct the `toString` method call to ensure it properly decodes the Base64 content. The corrected line should read `return Buffer.from(data.content, \"base64\").toString('utf8');`. This change will allow the function to execute without errors and correctly display GitHub README files.\n\n### Impact\nCorrecting this syntax error will resolve the runtime error caused by the truncated method call, ensuring that the `getGitHubReadme` function works as intended and README content is properly displayed.", "branch_name": "bot/fix-1774346461", "edits": [{"file": "apps/web/src/lib/github.ts", "search": "return Buffer.from(data.content, \"base64\").toStrin", "replace": "return Buffer.from(data.content, \"base64\").toString('utf8');"}]}
+
+**Reviewer**: Reviewer response unparseable
+
+---
