@@ -4769,3 +4769,58 @@ This change is confined to a single line within the `apps/web/tsconfig.json` fil
 **Reviewer**: APPROVE: The proposed edit correctly updates the TypeScript compiler target from ES2017 to ES2020 in `tsconfig.json`. This is a non-destructive, functional, and valuable modernization that aligns perfectly with the Scanner's plan and addresses a previously identified improvement for the `git-pulse` repository. The search block is exact, avoiding common pitfalls.
 
 ---
+
+## Cycle 1774364521
+**Scanner**: ## Codebase Understanding
+
+This repository, `git-pulse`, appears to be a social feed application that integrates with GitHub activity. It allows users to discover posts, follow other users, and view activity. The application likely focuses on sharing updates and "shipping releases" related to development.
+
+The `apps/web/src/components/FeedClient.tsx` file is a client-side React component responsible for rendering the main feed interface. It manages active tabs (Discover, Following, Activity), allows users to compose new posts or "ship releases," and displays a list of posts. Crucially, it uses Server-Sent Events (SSE) to receive real-time updates for new posts.
+
+The `apps/web/src/app/api/feed/stream/route.ts` file is a Next.js API route that implements the SSE server. It continuously polls the database for new posts and streams them to connected clients, enabling the real-time functionality seen in `FeedClient.tsx`.
+
+The `apps/web/tsconfig.json` file defines the TypeScript compiler options for the `web` application, specifying how TypeScript code should be compiled, including target ECMAScript version, module resolution, and JSX support.
+
+The codebase uses Next.js for its full-stack capabilities, React for the frontend UI, and Prisma for database interactions. It leverages modern web features like Server-Sent Events for real-time data flow.
+
+## Deep Analysis
+
+### apps/web/src/components/FeedClient.tsx
+
+*   **Logic/Features**: The `timestamp` property for posts, especially those received via the SSE stream, is currently hardcoded to "Just now" on the server. On the client, this means all new posts will display "Just now" regardless of their actual age, which is misleading and reduces the utility of the feed.
+*   **Logic/Testing**: The `eventSource.onmessage` handler includes a `try...catch (err) {}` block that silently swallows any errors during JSON parsing or post processing. This can hide critical issues, making debugging difficult and potentially leading to unexpected client-side behavior without any indication of a problem.
+*   **Consistency**: The initial `discoverPosts`, `followingPosts`, and `activityPosts` props also contain a `timestamp` string. If the server starts sending ISO strings for streamed posts, there will be an inconsistency in the `timestamp` format between initial loads and live updates unless handled.
+
+### apps/web/src/app/api/feed/stream/route.ts
+
+*   **Logic/Features**: The `timestamp` property within the `post` object sent to the client is hardcoded to `"Just now"`. This prevents the client from displaying accurate, relative timestamps.
+*   **Performance**: The API route polls the database every 5 seconds using `setInterval`. While effective for low-to-medium traffic, this can be inefficient for very high traffic scenarios or if the database is frequently updated, as it performs a database query even if no new posts exist. For the current scope, this might be acceptable, but it's a potential area for optimization (e.g., WebSockets, database triggers).
+*   **Security**: There are no explicit authentication or authorization checks for accessing this feed stream. While the `FeedClient` uses it for the public "discover" feed, if this stream were ever intended for private or user-specific content (like "following" or "activity" feeds), it would represent a significant security vulnerability. For the current "discover" context, it's a design choice for a public feed.
+
+### apps/web/tsconfig.json
+
+*   **DX/Consistency**: The `target` compiler option is set to `ES2017`. Global memory indicates that there have been recent attempts and discussions (PRs #13 and #27) to upgrade this to `ES2020`. This suggests an ongoing effort or desire to modernize the TypeScript compilation target.
+
+## Pick ONE Improvement
+
+The most valuable improvement is to enhance the accuracy and user experience of post timestamps by sending actual creation times from the server and formatting them client-side. This directly addresses a misleading UI element and improves data integrity. Additionally, improving the silent error handling in the client-side SSE stream is a critical debugging and stability enhancement.
+
+## Executor's Plan
+
+**WHAT**:
+1.  Modify the Server-Sent Events (SSE) stream to send the actual creation timestamp of new posts as an ISO 8601 string.
+2.  Update the client-side `FeedClient` component to format and display this timestamp as a human-readable relative time (e.g., "5 minutes ago").
+3.  Improve error handling in the `FeedClient` component's SSE message processing to log errors instead of silently swallowing them.
+
+**WHERE**:
+1.  `apps/web/src/app/api/feed/stream/route.ts`: Inside the `GET` function, specifically where the `post` object is constructed for `writeEvent`.
+2.  `apps/web/src/components/FeedClient.tsx`:
+    *   Within the `useEffect` hook that sets up the `EventSource`.
+    *   In the initialization of the `liveDiscover` state.
+    *   A new utility function will be added within this
+
+**Executor**: {"title": "[FEAT] Enhance Post Timestamps with Actual Creation Time", "body": "### Problem / Gap\nThe current implementation of post timestamps in the `FeedClient` component and the SSE stream in `route.ts` displays a hardcoded 'Just now' for all new posts, which is misleading and reduces the utility of the feed.\n\n### Solution & Insight\nTo address this, we will modify the SSE stream to send the actual creation timestamp of new posts as an ISO 8601 string and update the client-side `FeedClient` component to format and display this timestamp as a human-readable relative time. Additionally, we will improve error handling in the `FeedClient` component's SSE message processing to log errors instead of silently swallowing them.\n\n### Impact\nThis enhancement will significantly improve the user experience by providing accurate and relative timestamps for posts, making it easier for users to understand the recency of updates. Improved error handling will also enhance the stability and debuggability of the application.", "branch_name": "bot/enhance-post-timestamps-1774364521", "edits": [{"file": "apps/web/src/app/api/feed/stream/route.ts", "search": "timestamp: \"Just now\", // fast ui", "replace": "timestamp: post.createdAt.toISOString(),"}, {"file": "apps/web/src/components/FeedClient.tsx", "search": "catch (err) {}", "replace": "catch (err) { console.error('Error processing SSE message:', err); }"}, {"file": "apps/web/src/components/FeedClient.tsx", "search": "timestamp: \"Just now\",", "replace": "timestamp: formatRelativeTimestamp(data.post.timestamp),"}, {"file": "apps/web/src/components/FeedClient.tsx", "search": "", "replace": "function formatRelativeTimestamp(timestamp: string) {\n  const date = new Date(timestamp);\n  const now = new Date();\n  const diff = now.getTime() - date.getTime();\n  const minutes = Math.floor(diff / 1000 / 60);\n  if (minutes < 1) return 'Just now';\n  if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;\n  const hours = Math.floor(minutes / 60);\n  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;\n  const days = Math.floor(hours / 24);\n  return `${days} day${days > 1 ? 's' : ''} ago`;\n}"}]}
+
+**Reviewer**: CORRECT: The Executor correctly applied the server-side timestamp update and the client-side error logging. However, the critical client-side logic to format the timestamp and insert the utility function failed to apply due to incorrect search blocks. The plan is incomplete without these changes.
+
+---
