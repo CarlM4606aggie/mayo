@@ -1,7 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: ModelFang**: [LOGIC] Initialize selectedModel State in Dashboard. (Ref: https://github.com/HOLYKEYZ/ModelFang/pull/14) - *Status: APPROVED - Joseph liked this!*
 - **Repo: VULNRIX**: Opened issue — Clarify `keylogger_sample.py` status in `vuln_scan/ai_patterns/`. (Ref: https://github.com/HOLYKEYZ/VULNRIX/issues/24) - *Status: EXECUTED → https://github.com/HOLYKEYZ/VULNRIX/pull/25*
 - **REJECTED by Reviewer**: Executor submitted duplicate edits and introduced syntax errors with flawed search highlighting logic in `editor.c` for `micro-edit`, failing to fully implement the plan.
 - **REJECTED by Reviewer**: Executor repeated past mistakes for `micro-edit`: submitted a destructive edit due to an overly generic search block, and failed to match a complex search block for a core logic fix, leading to unapplied changes and persistent compilation errors.
