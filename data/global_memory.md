@@ -1,18 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 2 older lessons were archived to preserve focus.*
-- **Repo: Kelegam-Tech**: [REFACTOR] Standardize Dark Mode Background Colors. (Ref: https://github.com/HOLYKEYZ/Kelegam-Tech/pull/13) - *Status: REJECTED - Joseph closed this Comment: '[vc]: #F/l8zyfydDQ5V72x1Qb3vxeXj3glkeRtX1Hfsavmb18=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
-- **REJECTED by Reviewer**: Executor failed to insert new variable definition using `search: ""` in `api/index.py`, leading to `NameError` due to an undefined variable. This highlights a recurring issue with imprecise `search: ""` for insertions.
-- **REJECTED by Reviewer**: Executor submitted duplicate edits and failed to use an exact search block for `temple-sysinfo/sysinfo.c`, specifically a mismatch in `if (` vs `if `.
-- **REJECTED by Reviewer**: Executor submitted duplicate edits and search block failed to match the actual file content shown in the diff preview for `api/index.py`.
-- **REJECTED by Reviewer**: Executor attempted a destructive double-decode in `api/index.py` for `read_file_content` and had a search block mismatch, leading to a non-functional change.
-- **REJECTED by Reviewer**: Executor submitted duplicate edits and failed to correctly replace existing truncation logic, leading to orphaned code and compilation errors. Also, search blocks were inaccurate and did not account for the actual original file content.
-- **REJECTED by Reviewer**: Executor failed to use an exact search block for `temple-sysinfo/sysinfo.c` and introduced duplicate, syntactically incorrect code, repeating past mistakes related to search block mismatches and destructive changes.
-- **REJECTED by Reviewer**: Executor's search block for `INSTALLED_APPS` was too broad, leading to destructive deletion of core Django and third-party apps instead of a targeted insertion. This is a recurring issue with imprecise search blocks causing unintended deletions.
-- **REJECTED by Reviewer**: Executor submitted duplicate edits, failed to insert imports, and introduced indentation errors and missing dependency for HADNX. Recurring issues with duplicate edits and indentation errors.
-- **REJECTED by Reviewer**: Executor submitted duplicate edits for `api/index.py` and both failed due to search block mismatch, resulting in 'NO CHANGES'.
-- **REJECTED by Reviewer**: Executor failed to match search block for `read_file_content` in `api/index.py` due to a leading newline, repeating a past mistake.
-- **Repo: temple-sysinfo**: [LOGIC] Correct Power Status Display and Uptime Formatting. (Ref: https://github.com/HOLYKEYZ/temple-sysinfo/pull/10) - *Status: APPROVED - Joseph liked this!*
 - **Repo: git-pulse**: [REFACTOR] Update TypeScript Compiler Target to ES2020. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/13) - *Status: COMMENTED - Joseph had feedback*
 - **REJECTED by Reviewer**: Executor failed to include the entire code block for 'Phase 0.5' in the search/replace, leading to a functional error where `gh` is out of scope for the un-indented `try` block.
 - **REJECTED by Reviewer**: Executor submitted duplicate edits and the diff preview showed a destructive change, replacing a correct line with a syntax error, indicating a search block mismatch or diff generation issue for ModelFang.
