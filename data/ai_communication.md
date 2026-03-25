@@ -5357,3 +5357,68 @@ Using `setInterval` for asynchronous operations like database queries can lead t
 **Reviewer**: CORRECT: The Executor's proposed edits are functionally aligned with the Scanner's plan to refactor the SSE polling mechanism from `setInterval` to recursive `setTimeout`. However, all proposed edits suffer from critical indentation errors and search block mismatches, which would lead to syntax errors and patching failures. This is a recurring issue for this repository, as noted in memory.
 
 ---
+
+## Cycle 1774471317
+**Scanner**: ## Codebase Understanding
+
+This `git-pulse` repository appears to be a web application designed to help developers discover and track interesting GitHub projects and posts. It likely involves user authentication, fetching GitHub data, and displaying a feed of curated content.
+
+*   **`apps/web/src/app/api/notifications/stream/route.ts`**: This file implements a Server-Sent Events (SSE) endpoint. Its purpose is to stream real-time updates to connected clients, specifically the unread notification count for a logged-in user, by polling the database at regular intervals.
+*   **`apps/web/src/lib/algo.ts`**: This file contains the core logic for `calculatePostScore`, an algorithm designed to evaluate and score GitHub repositories or posts. The goal is to surface "hidden gems" by considering factors like language novelty, stars, forks, recent activity, description presence, and author's follower count, with a time-decay factor.
+*   **`packages/ui/tsconfig.json`**: This is the TypeScript configuration file for the `ui` package within the monorepo. It defines how TypeScript files in this package are compiled, including compiler options, included files, and excluded directories. It ensures consistency in TypeScript settings across the UI components.
+
+The codebase uses a Next.js framework for the web application, leveraging API routes for backend logic and a `prisma` ORM for database interactions. TypeScript is used throughout for type safety. The `ui` package suggests a component-based architecture for shared UI elements.
+
+## Deep Analysis
+
+### apps/web/src/app/api/notifications/stream/route.ts
+
+*   **Security**: The route correctly uses `auth()` to check for a valid session and user ID, preventing unauthorized access to notification counts.
+*   **Logic**:
+    *   **Bug**: There is a subtle logic flaw in the error handling for the `sendCount` function. The `interval` variable, which is meant to hold the `setInterval` ID, is declared and assigned *after* the initial `await sendCount()` call. If this *initial* `sendCount()` call fails (e.g., due to a database connection issue), the `catch` block *within* `sendCount` will execute. At this point, `interval` in the outer `start` scope will not yet have been assigned a value (it will be `undefined`). Consequently, `clearInterval(interval)` within the `catch` block will be called with `undefined`, making it ineffective for the initial failure. While `clearInterval(undefined)` doesn't throw an error, it indicates a potential resource management oversight if the intent was to clear an interval that might have been set or to ensure robust cleanup.
+    *   The `req.signal.addEventListener("abort", ...)` correctly handles client disconnects, ensuring the interval is cleared and the controller is closed.
+*   **Performance**: Polling the database every 10 seconds for each connected client could become a performance bottleneck with a large number of concurrent users. However, for a typical application, this might be acceptable. The current implementation is a standard polling approach for SSE.
+*   **Architecture**: The SSE pattern is correctly implemented. Error handling within `sendCount` attempts to close the controller, which is good.
+*   **Consistency**: Follows Next.js API route conventions.
+
+### apps/web/src/lib/algo.ts
+
+*   **Logic**:
+    *   The `calculatePostScore` function implements a well-defined algorithm for scoring posts, aiming to balance popularity with novelty and recency.
+    *   The use of `Math.min` for `starScore` and `forkScore` correctly implements diminishing returns.
+    *   The `decayFactor` using `Math.pow` and `Math.max(factors.daysSincePost, 1)` correctly handles time decay and prevents division by zero.
+    *   The `Math.max(score / decayFactor, 0)` ensures the final score is never negative.
+    *   The hardcoded `noveltyLanguages` and `commonLanguages` arrays are a design choice. While functional, they could become less maintainable if the criteria for "novelty" or "common" languages change frequently or need to be configurable.
+*   **Consistency**: The function is well-commented, explaining the rationale behind different scoring factors.
+
+### packages/ui/tsconfig.json
+
+*   **Consistency**: The `target: "ES2020"` aligns with recent refactoring efforts in the `git-pulse` repository to upgrade TypeScript compiler targets.
+*   **Architecture**: `noEmit: true` is appropriate for a UI package that is consumed by another project (like `apps/web`) which handles the final compilation and bundling. `isolatedModules: true` encourages writing modules that can be compiled independently, which is good for build performance.
+*   **DX**: The `paths` alias `@/*` to `./src/*` improves import readability and maintainability within the `ui` package.
+
+## Pick ONE Improvement
+
+The most valuable improvement is to address the **logic flaw in error handling and resource management** within the `apps/web/src/app/api/notifications/stream/route.ts` file. The current implementation has a bug where `clearInterval(interval)` is called on an `undefined` variable if the initial database call fails, leading to ineffective cleanup.
+
+## Executor's Plan
+
+**WHAT**: Refactor the `start` method within the `ReadableStream` constructor to correctly manage the `interval` variable's lifecycle, ensuring that `clearInterval` is only called on a defined interval, especially when the initial `sendCount` operation fails.
+
+**WHERE**: In the file `apps/web/src/app/api/notifications/stream/route.ts`, specifically within the `async start(controller)` method of the `ReadableStream` definition.
+
+**WHY**: The current code has a logic bug: if the very first `sendCount()` call (before `setInterval` is assigned to `interval`) throws an error, the `clearInterval(interval)` call inside `sendCount`'s `catch` block will operate on an `interval` variable that is `undefined` in the outer `start` scope. While `clearInterval(undefined)` does not cause a runtime error, it means the intended cleanup action for the interval is not performed in this specific failure scenario, which is a resource management oversight. By declaring `interval` with `let` at the top of the `start` method and checking its definition before calling `clearInterval`, we ensure robust resource cleanup under all error conditions.
+
+**HOW**:
+1.  Locate the `async start(controller)` method within the `ReadableStream` constructor.
+2.  Inside the `start` method, declare a mutable variable named `interval` of type `NodeJS.Timeout | undefined` at the very beginning of the method's body. Initialize it to `undefined`.
+3.  Locate the `sendCount` asynchronous function defined within the `start` method.
+4.  Inside the `sendCount` function's `catch` block, modify the line `clearInterval(interval);` to first check if `interval` is defined before attempting to clear it.
+5.  Locate the line where `setInterval(sendCount, 10000)` is called. Assign the result of this call to the `interval` variable declared in step 2.
+6.  Locate the `req.signal.addEventListener("abort", ...)` callback. For consistency and robustness, modify the `clearInterval(interval);` line within this callback to also first check if `interval` is defined before attempting to clear it.
+
+**Executor**: {"title": "[LOGIC] Fix Interval Management in Notifications Stream", "body": "### Problem / Gap\nThe current implementation of the notifications stream has a logic flaw in error handling and resource management. If the initial database call fails, the `clearInterval` function is called on an undefined variable, leading to ineffective cleanup.\n\n### Solution & Insight\nTo address this issue, we need to refactor the `start` method within the `ReadableStream` constructor to correctly manage the `interval` variable's lifecycle. This involves declaring the `interval` variable at the beginning of the `start` method, checking its definition before calling `clearInterval`, and assigning the result of `setInterval` to the `interval` variable.\n\n### Impact\nThis fix ensures robust resource cleanup under all error conditions, preventing potential resource leaks and improving the overall reliability of the notifications stream.", "branch_name": "bot/fix-1774471317", "edits": [{"file": "apps/web/src/app/api/notifications/stream/route.ts", "search": "const stream = new ReadableStream({\n  async start(controller) {\n    const sendCount = async () => {\n      try {\n        const unreadCount = await prisma.notification.count({\n          where: { userId, read: false }\n        });\n        const data = `data: ${JSON.stringify({ unreadCount })}\\n\\n`;\n        controller.enqueue(new TextEncoder().encode(data));\n      } catch (error) {\n        console.error(\"[SSE] Error sending notification count:\", error);\n        clearInterval(interval);\n        try {controller.close();} catch {}\n      }\n    };\n\n    // send initial count immediately\n    await sendCount();\n\n    // poll database every 10 seconds and push updates\n    const interval = setInterval(sendCount, 10000);\n\n    // clean up on disconnect\n    req.signal.addEventListener(\"abort\", () => {\n      clearInterval(interval);\n      controller.close();\n    });\n  }\n});", "replace": "const stream = new ReadableStream({\n  async start(controller) {\n    let interval: NodeJS.Timeout | undefined;\n    const sendCount = async () => {\n      try {\n        const unreadCount = await prisma.notification.count({\n          where: { userId, read: false }\n        });\n        const data = `data: ${JSON.stringify({ unreadCount })}\\n\\n`;\n        controller.enqueue(new TextEncoder().encode(data));\n      } catch (error) {\n        console.error(\"[SSE] Error sending notification count:\", error);\n        if (interval) clearInterval(interval);\n        try {controller.close();} catch {}\n      }\n    };\n\n    // send initial count immediately\n    await sendCount();\n\n    // poll database every 10 seconds and push updates\n    interval = setInterval(sendCount, 10000);\n\n    // clean up on disconnect\n    req.signal.addEventListener(\"abort\", () => {\n      if (interval) clearInterval(interval);\n      controller.close();\n    });\n  }\n});"}]}
+
+**Reviewer**: APPROVE: The Executor has correctly identified and fixed the logic flaw in the `notifications/stream/route.ts` file. The `interval` variable is now properly declared with `let` at the correct scope, and `clearInterval` calls are conditionally executed, ensuring robust resource cleanup even if the initial `sendCount` fails. The search block is an exact match, and the replacement code is functional and aligns perfectly with the Scanner's plan. This demonstrates a clear understanding of the problem and a precise application of the solution, addressing past issues with search block accuracy.
+
+---
