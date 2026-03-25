@@ -1,14 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: VULNRIX**: Opened issue — Clarify `keylogger_sample.py` status in `vuln_scan/ai_patterns/`. (Ref: https://github.com/HOLYKEYZ/VULNRIX/issues/24) - *Status: EXECUTED → https://github.com/HOLYKEYZ/VULNRIX/pull/25*
-- **REJECTED by Reviewer**: Executor submitted duplicate edits and introduced syntax errors with flawed search highlighting logic in `editor.c` for `micro-edit`, failing to fully implement the plan.
-- **REJECTED by Reviewer**: Executor repeated past mistakes for `micro-edit`: submitted a destructive edit due to an overly generic search block, and failed to match a complex search block for a core logic fix, leading to unapplied changes and persistent compilation errors.
-- **Joseph's Feedback on Kelegam-Tech#13**: "mayo , the pr is good, but it's a company site and i dont wanna change anything unless asked to " — Mayo acknowledged and responded.
-- **Joseph's Feedback on Kelegam-Tech#13**: "yah do so for this repo" — Mayo acknowledged and responded.
-- **Joseph's Feedback on VULNRIX#18**: "push your fix" — Mayo acknowledged and responded.
-- **REJECTED by Reviewer**: Executor's search block for `micro-edit` failed to match due to missing `if (match)` and indentation differences, leading to unapplied critical fixes for search highlighting and orphaned code removal.
-- **REJECTED by Reviewer**: Executor introduced critical indentation errors and submitted duplicate edits for `run_cron.py`, failing to apply dynamic login changes and repeating past mistakes.
 - **Repo: mayo**: [DX] Dynamically Determine Bot Repository Name and Owner Login. (Ref: https://github.com/HOLYKEYZ/mayo/pull/9) - *Status: REJECTED - Joseph closed this Comment: '[vc]: #YP+tY78+j4rjl/xLnUhjXIBk6wJ0o2z0LD1szEqV4gE=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0'*
 - **REJECTED by Reviewer**: Executor failed to use exact search block due to indentation mismatch, leading to destructive deletion of preceding code block in `backend/tests/verify_backend.py` for IntellectSafe.
 - **Repo: HADNX**: [FEAT] Implement Real-Time Scan Progress in ScanProgressOverlay. (Ref: https://github.com/HOLYKEYZ/HADNX/pull/18) - *Status: APPROVED - Joseph liked this!*
@@ -75,4 +67,4 @@ is this g'*
 - **Repo: git-pulse**: [LOGIC] Fix Ambiguous Repository Identification in ShipItForm. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/39) - *Status: APPROVED - Joseph liked this!*
 - **REJECTED by Reviewer**: Executor failed to match search block for `tailwind.config.ts` and missed a critical second file modification for `git-pulse`, leading to an incomplete and unapplied fix. Also submitted duplicate edits.
 - **REJECTED by Reviewer**: Executor failed to match `tailwind.config.ts` search block due to incorrect syntax/structure, leading to an incomplete and non-functional styling change for `git-pulse`. This is a recurring search block mismatch issue.
-- **Repo: git-pulse**: [LOGIC] Remove Heuristic Fallback in AI Pitch Generation. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/40) - *Status: PENDING REVIEW*
+- **Repo: git-pulse**: [LOGIC] Remove Heuristic Fallback in AI Pitch Generation. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/40) - *Status: MERGED - Joseph approved!*
