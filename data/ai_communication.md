@@ -5033,98 +5033,7 @@ Specifically, modifications will occur in:
 
 ---
 
-## Cycle 1774439402
-**Scanner**: ## SCANNER ANALYSIS: HOLYKEYZ/git-pulse
-
-### Step 1: Codebase Understanding
-
-*   **What does this repository do?**
-    The `git-pulse` repository hosts a web application designed for discovering and sharing GitHub repositories. It features a unique scoring algorithm to highlight "hidden gems" based on factors like technology stack novelty, activity, and author influence, rather than just raw popularity. Users can manage their account settings, including API integrations and privacy preferences.
-
-*   **What do the target files do within the repo?**
-    *   `apps/web/src/lib/algo.ts`: This file contains the core logic for calculating a "quality score" for a GitHub repository. It defines the `ScoreFactors` interface and the `calculatePostScore` function, which implements the custom algorithm to evaluate repositories for posts.
-    *   `apps/web/src/app/settings/page.tsx`: This file renders the user settings page. It allows users to configure various aspects of their account, including theme preferences, API token management (generation, revocation, preview), and privacy toggles for displaying activity and contributions on their profile. It also provides a GitHub Action YAML example for integration.
-    *   `packages/ui/tsconfig.json`: This is the TypeScript configuration file for the `ui` package within the monorepo. It extends the root `tsconfig.json` and specifies compiler options, include paths, and exclude paths relevant to the shared UI components.
-
-*   **What patterns, frameworks, or conventions does the codebase use?**
-    The codebase utilizes Next.js for its web application framework, leveraging its `app` directory structure and API routes. It employs React with hooks (`useState`, `useEffect`) for building interactive user interfaces. TypeScript is used throughout for strong type-safety. Styling is managed with Tailwind CSS, indicated by utility classes and configuration files. The project is structured as a pnpm monorepo, separating applications (`apps`) from shared packages (`packages/ui`). It also integrates with GitHub Actions for automated processes.
-
-### Step 2: Deep Analysis
-
-*   **Security**:
-    *   `apps/web/src/app/settings/page.tsx`: The GitHub Action YAML example correctly uses a `GITPULSE_TOKEN` from secrets, which is good practice. API key generation and revocation are handled via backend API routes, and only a preview of the key is shown on the frontend, which enhances security. However, the privacy toggles (`showActivity`, `showContributions`) are currently client-side only, meaning they don't enforce any actual privacy settings on the backend. This is a potential security/logic gap if these settings are intended to control data visibility.
-*   **Logic**:
-    *   `apps/web/src/lib/algo.ts`: The `calculatePostScore` algorithm's logic for language novelty, star/fork diminishing returns, recent activity, and follower bias is well-defined and appears intentional for its goal of surfacing "hidden gems." The time decay factor and ensuring a non-negative score are also logically sound. The hardcoded language lists might become outdated but are functionally correct for now.
-    *   `apps/web/src/app/settings/page.tsx`: The API key management flow (fetch, generate, revoke) appears logically correct. The copy-to-clipboard functionality is standard. The significant logic flaw is that the `showActivity` and `showContributions` privacy toggles only update local React state. Changes made by the user are not persisted to a backend, meaning they are lost on page refresh and do not actually affect the user's privacy settings on the platform.
-*   **Performance**:
-    *   `apps/web/src/lib/algo.ts`: The scoring algorithm involves simple array lookups and arithmetic operations, making it highly performant.
-    *   `apps/web/src/app/settings/page.tsx`: Initial data fetching in `useEffect` runs once on mount. State updates and UI rendering for a small number of tabs and settings are efficient. No obvious performance bottlenecks.
-*   **Architecture**:
-    *   `apps/web/src/app/settings/page.tsx`: The settings page is well-structured with tabs for different categories. The API key management logic is self-contained. The `ACTION_YAML` is hardcoded; for greater flexibility, it could be externalized or fetched, but this is a minor point for the current scope.
-    *   `apps/web/src/lib/algo.ts`: This file serves as a pure utility, which is good architectural practice, promoting reusability and testability.
-    *   `packages/ui/tsconfig.json`: The `tsconfig.json` correctly extends the root configuration, promoting consistent TypeScript settings across the monorepo.
-*   **Features**:
-    *   `apps/web/src/app/settings/page.tsx`: The theme switching and API integration example are valuable features. The privacy toggles are a presented feature, but their lack of backend persistence makes them incomplete and non-functional.
-*   **Testing**:
-    *   No test files were provided in the analysis context. `apps/web/src/lib/algo.ts` is a pure function and would benefit greatly from comprehensive unit tests. `apps/web/src/app/settings/page.tsx` would benefit from integration tests to ensure UI interactions correctly trigger API calls and update state.
-*   **DX (Developer Experience)**:
-    *   The monorepo structure, TypeScript usage, and consistent styling with Tailwind CSS generally contribute to a good DX. The `tsconfig.json` files are well-configured.
-*   **Consistency**:
-    *   Naming conventions, import patterns, and overall code style appear consistent across the analyzed files. The `tsconfig.json` in `packages/ui` correctly extends the root `tsconfig.json`, ensuring consistent TypeScript compiler options.
-*   **Dead Code**:
-    *   No strictly dead code was found. However, the `showActivity` and `showContributions` state variables in `apps/web/src/app/settings/page.tsx` are functionally incomplete as their changes are not persisted, making their current effect negligible beyond local UI updates.
-
-### Step 3: Pick ONE Improvement
-
-The most critical improvement is to address the **non-functional privacy toggles** in `apps/web/src/app/settings/page.tsx`. This is a significant logic flaw and a missing core feature, as users expect their privacy preferences to be saved and applied. Fixing this directly impacts user experience and the integrity of the application's settings.
-
-### Step 4: Write the Executor's Plan
-
-**WHAT** to change:
-The privacy toggles for "Show activity on your profile" and "Show contributions on your profile" in the settings page currently only update local component state. This improvement will integrate these toggles with a backend API to persist the user's preferences, ensuring that their privacy settings are saved and applied across sessions. This involves adding new state for managing the saving process, extending the initial data fetch to retrieve current privacy settings, and creating new functions to update these settings via API calls.
-
-**WHERE** in the file(s):
-The changes will be made within `apps/web/src/app/settings/page.tsx`.
-Specifically, modifications will occur:
-1.  Near the existing `useState` declarations for `showActivity` and `showContributions`.
-2.  Within the `useEffect` hook that currently fetches the API token.
-3.  New asynchronous functions will be added to handle API calls for updating privacy settings.
-4.  The JSX for the privacy toggles will be updated to invoke these new functions and reflect the saving state.
-
-**WHY** this matters:
-Currently, the privacy settings presented in the user interface are purely cosmetic. Toggling "Show activity on your profile" or "Show contributions on your profile" has no lasting effect, as these changes are not communicated to or stored by the backend. This creates a broken user experience, as users naturally expect their preferences to be saved and respected. Implementing persistence for these settings is crucial for the application's functionality, user trust, and overall data privacy compliance, addressing a significant logic flaw and an incomplete feature.
-
-**HOW** to do it:
-1.  **Introduce a new state variable for saving status**: Add a `useState` variable named `savingPrivacy`, initialized to `false`, to indicate when a privacy setting update is in progress.
-2.  **Enhance the initial data fetching**:
-    *   Modify the existing `useEffect` hook (which fetches `/api/auth/token`) to also make a `fetch` call to a new or existing backend API endpoint (e.g., `/api/user/privacy-settings`) to retrieve the user's current `showActivity` and `showContributions` preferences.
-    *   Upon successful retrieval, update the `showActivity` and `showContributions` state variables with the values from the backend.
-    *   Ensure the `setLoading` state correctly reflects the completion of both the API token and privacy settings fetches.
-3.  **Create an asynchronous function to update privacy settings**:
-    *   Define a new `async` function, for example, `handlePrivacyToggle`, which accepts the setting name (e.g., "showActivity", "showContributions") and the new boolean value.
-    *   Inside this function, set `savingPrivacy` to `true` to disable the toggles during the API call.
-    *   Make a `fetch` call to a backend API endpoint (e.g., `PUT /api/user/privacy-settings`) with the setting name and its new value in the request body.
-    *   Include appropriate error handling for the API call.
-    *   In a `finally` block, set `savingPrivacy` back to `false`.
-4.  **Update the privacy toggle JSX**:
-    *   Modify the `onClick` handlers for both the "Show activity on your profile" and "Show contributions on your profile" toggles.
-    *   These handlers should now call the new `handlePrivacyToggle` function, passing the specific setting name and the inverse of the current state (`!showActivity` or `!showContributions`).
-    *   Add a `disabled` attribute to the toggle buttons, setting it to `savingPrivacy` to prevent multiple updates while an API call is in progress.
-    *   Consider adding a visual indicator (e.g., a small spinner or "Saving..." text) next to the toggles when `savingPrivacy` is `true`.
-
-**Executor**: {"title": "[LOGIC] Persist Privacy Settings", "body": "### Problem / Gap\nThe privacy toggles for 'Show activity on your profile' and 'Show contributions on your profile' in the settings page do not persist their state. Changes made by the user are lost on page refresh because they are not communicated to or stored by the backend.\n\n### Solution & Insight\nTo address this, we introduce a new state variable `savingPrivacy` to track when a privacy setting update is in progress. We enhance the initial data fetching to retrieve the user's current privacy settings from the backend and update the state accordingly. A new asynchronous function `handlePrivacyToggle` is created to handle API calls for updating these settings. The JSX for the privacy toggles is updated to invoke this function and reflect the saving state.\n\n### Impact\nThis change ensures that user preferences for privacy settings are saved and applied across sessions, enhancing the overall user experience and data privacy compliance.", "branch_name": "bot/persist-privacy-settings-1774439402", "edits": [{"file": "apps/web/src/app/settings/page.tsx", "search": "const [showActivity, setShowActivity] = useState(true);\nconst [showContributions, setShowContributions] = useState(true);", "replace": "const [showActivity, setShowActivity] = useState(true);\nconst [showContributions, setShowContributions] = useState(true);\nconst [savingPrivacy, setSavingPrivacy] = useState(false);"}, {"file": "apps/web/src/app/settings/page.tsx", "search": "useEffect(() => {\n    fetch(\"/api/auth/token\")\n      .then((r) => r.json())\n      .then((data) => {\n        setHasKey(data.hasKey);\n        setKeyPreview(data.keyPreview);\n      })\n      .finally(() => setLoading(false));\n}, []);", "replace": "useEffect(() => {\n    Promise.all([\n      fetch(\"/api/auth/token\").then((r) => r.json()),\n      fetch(\"/api/user/privacy-settings\").then((r) => r.json())\n    ])\n      .then(([tokenData, privacyData]) => {\n        setHasKey(tokenData.hasKey);\n        setKeyPreview(tokenData.keyPreview);\n        setShowActivity(privacyData.showActivity);\n        setShowContributions(privacyData.showContributions);\n      })\n      .finally(() => setLoading(false));\n}, []);"}, {"file": "apps/web/src/app/settings/page.tsx", "search": "const copy = (text: string, type: \"key\" | \"yaml\") => {\n    navigator.clipboard.writeText(text);\n    setCopied(type);\n    setTimeout(() => setCopied(null), 2000);\n};", "replace": "const copy = (text: string, type: \"key\" | \"yaml\") => {\n    navigator.clipboard.writeText(text);\n    setCopied(type);\n    setTimeout(() => setCopied(null), 2000);\n};\n\nconst handlePrivacyToggle = async (setting: \"showActivity\" | \"showContributions\", value: boolean) => {\n    setSavingPrivacy(true);\n    try {\n      await fetch(\"/api/user/privacy-settings\", {\n        method: \"PUT\",\n        headers: {\n          \"Content-Type\": \"application/json\"\n        },\n        body: JSON.stringify({ [setting]: value })\n      });\n    } finally {\n      setSavingPrivacy(false);\n    }\n};"}, {"file": "apps/web/src/app/settings/page.tsx", "search": "<div className=\"flex items-center mb-4\">\n  <label className=\"flex items-center gap-2 cursor-pointer\">\n    <input\n      type=\"checkbox\"\n      checked={showActivity}\n      onChange={() => setShowActivity(!showActivity)}\n      className=\"h-4 w-4 text-git-accent focus:ring-git-accent border-git-border rounded\"\n    />\n    <span className=\"text-sm font-medium text-git-text\">Show activity on your profile</span>\n  </label>\n</div>\n<div className=\"flex items-center mb-4\">\n  <label className=\"flex items-center gap-2 cursor-pointer\">\n    <input\n      type=\"checkbox\"\n      checked={showContributions}\n      onChange={() => setShowContributions(!showContributions)}\n      className=\"h-4 w-4 text-git-accent focus:ring-git-accent border-git-border rounded\"\n    />\n    <span className=\"text-sm font-medium text-git-text\">Show contributions on your profile</span>\n  </label>\n</div>", "replace": "<div className=\"flex items-center mb-4\">\n  <label className=\"flex items-center gap-2 cursor-pointer\">\n    <input\n      type=\"checkbox\"\n      checked={showActivity}\n      onChange={() => handlePrivacyToggle(\"showActivity\", !showActivity)}\n      disabled={savingPrivacy}\n      className=\"h-4 w-4 text-git-accent focus:ring-git-accent border-git-border rounded\"\n    />\n    <span className=\"text-sm font-medium text-git-text\">Show activity on your profile</span>\n    {savingPrivacy && <span className=\"text-sm text-git-muted\">Saving...</span>}\n  </label>\n</div>\n<div className=\"flex items-center mb-4\">\n  <label className=\"flex items-center gap-2 cursor-pointer\">\n    <input\n      type=\"checkbox\"\n      checked={showContributions}\n      onChange={() => handlePrivacyToggle(\"showContributions\", !showContributions)}\n      disabled={savingPrivacy}\n      className=\"h-4 w-4 text-git-accent focus:ring-git-accent border-git-border rounded\"\n    />\n    <span className=\"text-sm font-medium text-git-text\">Show contributions on your profile</span>\n    {savingPrivacy && <span className=\"text-sm text-git-muted\">Saving...</span>}\n  </label>\n</div>"}]}
-
-**Reviewer**: REJECTED x2: Your proposed changes for `apps/web/src/app/settings/page.tsx` are logically sound and align with the Scanner's plan to fix the privacy toggles. However, all four edits failed due to incorrect `search` blocks. You consistently omitted the leading whitespace (indentation) present in the original file content. This is a critical error that prevents the patch from applying correctly or introduces syntax errors.
-
-**Specific instructions for retry:**
-1.  **Review the `ORIGINAL FILE CONTENT` very carefully.** Pay close attention to the exact indentation of every line you intend to search for.
-2.  **Ensure your `search` block in the JSON exactly matches the original content, including all leading spaces and blank lines.** For example, if a line starts with 4 spaces in the original file, your `search` string for that line must also start with 4 spaces.
-3.  **Ensure your `replace` block also maintains correct indentation** relative to the surrounding code.
-4.  **Re-evaluate each of the four edits** with this precision in mind. The `corrected_edits` provided above demonstrate the correct way to format the `search` and `replace` blocks to include the necessary indentation.
-
----
-
-## Cycle 1774444636
+1774444636
 **Scanner**: ### Step 1: Codebase Understanding
 
 *   **What does this repository do?**
@@ -5420,5 +5329,84 @@ The most valuable improvement is to address the **logic flaw in error handling a
 **Executor**: {"title": "[LOGIC] Fix Interval Management in Notifications Stream", "body": "### Problem / Gap\nThe current implementation of the notifications stream has a logic flaw in error handling and resource management. If the initial database call fails, the `clearInterval` function is called on an undefined variable, leading to ineffective cleanup.\n\n### Solution & Insight\nTo address this issue, we need to refactor the `start` method within the `ReadableStream` constructor to correctly manage the `interval` variable's lifecycle. This involves declaring the `interval` variable at the beginning of the `start` method, checking its definition before calling `clearInterval`, and assigning the result of `setInterval` to the `interval` variable.\n\n### Impact\nThis fix ensures robust resource cleanup under all error conditions, preventing potential resource leaks and improving the overall reliability of the notifications stream.", "branch_name": "bot/fix-1774471317", "edits": [{"file": "apps/web/src/app/api/notifications/stream/route.ts", "search": "const stream = new ReadableStream({\n  async start(controller) {\n    const sendCount = async () => {\n      try {\n        const unreadCount = await prisma.notification.count({\n          where: { userId, read: false }\n        });\n        const data = `data: ${JSON.stringify({ unreadCount })}\\n\\n`;\n        controller.enqueue(new TextEncoder().encode(data));\n      } catch (error) {\n        console.error(\"[SSE] Error sending notification count:\", error);\n        clearInterval(interval);\n        try {controller.close();} catch {}\n      }\n    };\n\n    // send initial count immediately\n    await sendCount();\n\n    // poll database every 10 seconds and push updates\n    const interval = setInterval(sendCount, 10000);\n\n    // clean up on disconnect\n    req.signal.addEventListener(\"abort\", () => {\n      clearInterval(interval);\n      controller.close();\n    });\n  }\n});", "replace": "const stream = new ReadableStream({\n  async start(controller) {\n    let interval: NodeJS.Timeout | undefined;\n    const sendCount = async () => {\n      try {\n        const unreadCount = await prisma.notification.count({\n          where: { userId, read: false }\n        });\n        const data = `data: ${JSON.stringify({ unreadCount })}\\n\\n`;\n        controller.enqueue(new TextEncoder().encode(data));\n      } catch (error) {\n        console.error(\"[SSE] Error sending notification count:\", error);\n        if (interval) clearInterval(interval);\n        try {controller.close();} catch {}\n      }\n    };\n\n    // send initial count immediately\n    await sendCount();\n\n    // poll database every 10 seconds and push updates\n    interval = setInterval(sendCount, 10000);\n\n    // clean up on disconnect\n    req.signal.addEventListener(\"abort\", () => {\n      if (interval) clearInterval(interval);\n      controller.close();\n    });\n  }\n});"}]}
 
 **Reviewer**: APPROVE: The Executor has correctly identified and fixed the logic flaw in the `notifications/stream/route.ts` file. The `interval` variable is now properly declared with `let` at the correct scope, and `clearInterval` calls are conditionally executed, ensuring robust resource cleanup even if the initial `sendCount` fails. The search block is an exact match, and the replacement code is functional and aligns perfectly with the Scanner's plan. This demonstrates a clear understanding of the problem and a precise application of the solution, addressing past issues with search block accuracy.
+
+---
+
+## Cycle 1774474937
+**Scanner**: **Codebase Understanding**
+
+*   **What does this repository do?**
+    `git-pulse` is a web application designed to enhance the GitHub user experience. It allows users to manage and edit their public GitHub profile information, discover other developers based on their tech stack, and potentially offers other features related to GitHub contributions and social interaction.
+
+*   **What do the target files do within the repo?**
+    *   `apps/web/src/app/profile/[username]/edit/page.tsx`: This is a client-side React component responsible for rendering the user interface for editing a GitHub profile. It fetches the current user's profile data, manages form input states for fields like name, bio, and location, and sends PATCH requests to an API endpoint to update the profile on GitHub. It also handles loading, saving, error, and success states.
+    *   `apps/web/src/app/api/collab/route.ts`: This file defines a Next.js API route that provides a list of similar developers for collaboration. It authenticates the user, retrieves their tech stack, uses a caching mechanism to store results for an hour, and then finds and returns matching developers.
+    *   `README.md`: This file is currently empty. In a typical repository, it would serve as the primary documentation, providing an overview of the project, setup instructions, usage guidelines, and contribution information.
+
+*   **What patterns, frameworks, or conventions does the codebase use?**
+    The codebase primarily uses the Next.js framework with its App Router for routing and API endpoints. It leverages React for building user interfaces, employing React Hooks like `useState` and `useEffect` for state management and side effects. TypeScript is used throughout for type safety. Styling is handled with Tailwind CSS, indicated by the utility-first class names. Authentication is managed via a `auth()` utility, likely NextAuth.js. API routes utilize a `withCache` utility for performance optimization.
+
+**Deep Analysis**
+
+*   **Security**:
+    *   `page.tsx`: The component sends user input directly to the `/api/github/user` endpoint. While the backend is expected to handle validation and sanitization before interacting with the GitHub API, client-side validation is absent. This could lead to a poorer user experience by allowing invalid data to be submitted, or potentially unnecessary API calls.
+    *   `route.ts`: Authentication is correctly enforced at the beginning of the API route. The use of non-null assertion operators (`!`) on `session.user.login` and `session.user.accessToken` assumes these values are guaranteed to be present after the initial `if` check, which is a common and generally safe pattern.
+
+*   **Logic**:
+    *   `page.tsx`: The `params` prop in `EditProfilePage` is incorrectly typed as `Promise<{ username: string }>`. In Next.js App Router, `params` is a plain object. The subsequent usage of `params.then(...)` in the `handleSave` function's `setTimeout` callback will result in a runtime error because a plain object does not have a `.then` method. This is a critical bug that prevents proper redirection after a successful profile update.
+    *   `route.ts`: The logic for finding similar developers, handling an empty tech stack, and caching results appears sound and robust.
+
+*   **Performance**:
+    *   `page.tsx`: Initial data fetching occurs once on component mount. The saving process involves a single PATCH request. State management for loading and saving provides good user feedback and prevents redundant submissions.
+    *   `route.ts`: The `withCache` utility with a 1-hour cache duration significantly improves the performance of the `collab` API route by reducing redundant computations for `getUserTechStack` and `findSimilarDevs`.
+
+*   **Architecture**:
+    *   `page.tsx`: The component combines data fetching, state management, and UI rendering. For more complex forms, abstracting form logic into a custom hook could improve modularity.
+    *   `route.ts`: The API route demonstrates good separation of concerns, handling authentication, caching, and delegating business logic to helper functions (`getUserTechStack`, `findSimilarDevs`). Error handling is present with `try...catch` and `console.error`.
+
+*   **Features**:
+    *   `page.tsx`: Client-side input validation (e.g., for URL formats in the blog field, or character limits) is missing, which could enhance user experience. A "cancel" button or a clear way to discard changes and navigate back is also absent. A confirmation dialog before saving, given the warning about direct GitHub updates, could be beneficial.
+    *   `README.md`: The repository lacks a `README.md` file, which is a fundamental feature for any open-source or collaborative project. This severely impacts developer onboarding and project understanding.
+
+*   **Testing**:
+    *   No test files were provided in the analysis context, making it impossible to assess the current testing strategy or coverage. Both the client component and the API route have various states and edge cases that would require testing.
+
+*   **DX (Developer Experience)**:
+    *   The empty `README.md` is a major impediment to developer experience. Without it, setting up the project, understanding its purpose, or contributing is significantly harder.
+    *   The incorrect `params` type in `page.tsx` could confuse developers trying to understand or modify the component.
+
+*   **Consistency**:
+    *   Naming conventions, import patterns, and styling (Tailwind CSS) appear generally consistent across the analyzed files. The `params` type definition in `page.tsx` is an exception to typical Next.js App Router conventions.
+
+*   **Dead Code**:
+    *   No obvious dead code was identified in the provided file snippets.
+
+**ONE Improvement**
+
+The most critical improvement is to fix the runtime error caused by the incorrect type definition and usage of the `params` prop in `apps/web/src/app/profile/[username]/edit/page.tsx`. This is a logic bug that directly impacts the functionality of a core user feature (profile editing and redirection).
+
+**Executor's Plan**
+
+**WHAT** to change
+The type definition for the `params` prop in the `EditProfilePage` component needs to be corrected from a `Promise` type to a standard object type. Following this, any code that attempts to use `params.then()` must be updated to directly access the properties of the `params` object.
+
+**WHERE** in the file(s)
+The changes will be made in the file `apps/web/src/app/profile/[username]/edit/page.tsx`.
+Specifically, the modifications are required in two places:
+1.  The function signature of `EditProfilePage`.
+2.  The `setTimeout` callback function located within the `handleSave` asynchronous function.
+
+**WHY** this matters
+In Next.js App Router, the `params` prop passed to `page.tsx` components is a plain JavaScript object containing route parameters, not a Promise. The current type annotation `params: Promise<{ username: string }>` is fundamentally incorrect. This incorrect typing leads to a runtime error when `params.then()` is invoked, as a standard object does not possess a `.then` method. This bug directly breaks the redirection mechanism after a user successfully updates their profile, resulting in a non-functional user experience. Correcting this ensures the application adheres to Next.js conventions and functions as intended.
+
+**HOW** to do it
+1.  Locate the `EditProfilePage` function definition in `apps/web/src/app/profile/[username]/edit/page.tsx`.
+2.  Modify the type annotation for the `params` prop within the function signature. Change `params: Promise<{ username: string }>` to `params: { username: string }`.
+3.  Find the `setTimeout` call within the `handleSave` asynchronous function.
+4.  Inside the `setTimeout` callback, update the line that performs the redirection. Change `params.then(({ username }) => router.push(`/profile/${username}`));` to `router.push(`/profile/${params.username}`);`. This change directly accesses the `username` property from the now-correctly-typed `params` object, resolving the runtime error.
+
+**Executor**: {"title": "[LOGIC] Fix Incorrect Type Definition and Usage of Params in EditProfilePage", "body": "### Problem / Gap\nThe `params` prop in the `EditProfilePage` component is incorrectly typed as `Promise<{ username: string }>`, leading to a runtime error when attempting to access `params.then()`. This prevents the redirection mechanism after a successful profile update from functioning correctly.\n\n### Solution & Insight\nTo fix this issue, we need to correct the type definition of the `params` prop to `{ username: string }` and update the `setTimeout` callback to directly access the `username` property from the `params` object. This change ensures the application adheres to Next.js conventions and functions as intended.\n\n### Impact\nThis fix resolves the runtime error, enabling the redirection mechanism to work correctly after a user updates their profile. It improves the overall user experience by allowing them to navigate back to their profile page successfully.", "branch_name": "bot/fix-params-type-1774474937", "edits": [{"file": "apps/web/src/app/profile/[username]/edit/page.tsx", "search": "export default function EditProfilePage({ params }: { params: Promise<{ username: string }> })", "replace": "export default function EditProfilePage({ params }: { params: { username: string } })"}, {"file": "apps/web/src/app/profile/[username]/edit/page.tsx", "search": "params.then(({ username }) => router.push(`/profile/${username}`));", "replace": "router.push(`/profile/${params.username}`);"}]}
+
+**Reviewer**: CORRECT: The Executor correctly identified and addressed a critical runtime bug related to the `params` prop type and usage in Next.js App Router. The proposed logical changes are sound and align with the Scanner's plan. However, the second edit introduces an indentation error, which is a recurring issue for this Executor on the `git-pulse` repository, making the code non-production-ready.
 
 ---
