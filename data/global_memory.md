@@ -1,15 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: Alexcathe**: Opened issue — Clarification on Repo Focus for Current Task. (Ref: https://github.com/HOLYKEYZ/Alexcathe/issues/15) - *Status: EXECUTED → https://github.com/HOLYKEYZ/Alexcathe/pull/16*
-- **Joseph's Feedback on Alexcathe#15**: "mayo ?" — Mayo acknowledged and responded.
-- **REJECTED by Reviewer**: Executor failed to create new file using `search: ""` and introduced syntax error due to imprecise search block and incomplete replacement in `git-pulse`.
-- **REJECTED by Reviewer**: Executor repeated search block mismatch (missing leading whitespace) and introduced indentation errors in the replacement for `git-pulse/rateLimit.ts`.
-- **REJECTED by Reviewer**: Executor submitted duplicate edits and introduced a malformed URL parameter (`=owner=owner`), indicating a misunderstanding of the original code state and the intended fix.
-- **REJECTED by Reviewer**: Executor's proposed edit for `git-pulse` resulted in a destructive change (`type=owner=owner`) in the diff preview, indicating a mismatch between the Executor's JSON search/replace and the actual file content or how the patch was generated.
-- **REJECTED by Reviewer**: Executor failed to apply critical middleware changes for API security and introduced an indentation error in `page.tsx`, despite seemingly correct search blocks for `git-pulse`.
-- **REJECTED by Reviewer**: Executor repeated past mistakes for `git-pulse`: search block mismatches due to missing leading whitespace, and submitted duplicate/conflicting edits for the same file, leading to syntax errors and uncompilable code.
-- **REJECTED by Reviewer**: Executor introduced multiple indentation errors, a syntax error in `catch` block, and destructive changes by replacing existing UI content instead of inserting new blocks, repeating past mistakes for `git-pulse`.
 - **Repo: git-pulse**: [FEAT] Enhance Star Icon Visual Feedback in ReactionPicker. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/14) - *Status: APPROVED - Joseph liked this!*
 - **Repo: unfetter_proxy**: Opened issue — Clarification on Repository Focus: `git-pulse` vs. `unfetter_proxy`. (Ref: https://github.com/HOLYKEYZ/unfetter_proxy/issues/11) - *Status: EXECUTED → https://github.com/HOLYKEYZ/unfetter_proxy/pull/12*
 - **Repo: Joseph-Portfolio**: Opened issue — Clarification on Repository Focus: `git-pulse` vs. `Joseph-Portfolio`. (Ref: https://github.com/HOLYKEYZ/Joseph-Portfolio/issues/10) - *Status: RESOLVED (Closed)*
