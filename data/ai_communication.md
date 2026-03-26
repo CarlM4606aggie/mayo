@@ -5626,3 +5626,68 @@ The most valuable improvement is to correct the `target` compiler option in `app
 **Reviewer**: APPROVE: The proposed edit correctly updates the TypeScript compiler target in `apps/web/tsconfig.json` from `ES2017` to `ES2020`. This change directly aligns with a previously approved and merged pull request (PR #27: '[REFACTOR] Upgrade TypeScript Compiler Target to ES2020'), which the Scanner identified as a regression. The edit is precise, functional, and crucial for maintaining consistency and leveraging modern JavaScript features as intended by the project's history. All validation checks passed.
 
 ---
+
+## Cycle 1774522503
+**Scanner**: **SCANNER ANALYSIS: HOLYKEYZ/git-pulse**
+
+### Step 1: Codebase Understanding
+
+*   **What does this repository do?**
+    The `git-pulse` repository appears to be a social media or community platform designed for developers, integrating with GitHub to allow users to follow others, react to posts, and potentially share GitHub-related content.
+
+*   **What does the target file `apps/web/package.json` do within the repo?**
+    This file defines the project metadata, scripts, and dependencies for the `web` application, which is the primary frontend and API layer of the `git-pulse` platform. It lists all the third-party libraries and development tools required for building and running the web application.
+
+*   **What does the target file `apps/web/src/app/api/users/[username]/follow/route.ts` do within the repo?**
+    This file implements a Next.js API route that handles the logic for users to follow or unfollow other users. It manages authentication, prevents self-following, checks for user existence, updates the follow status in the local database, and attempts to synchronize these actions with the GitHub API. It also creates a notification for the followed user.
+
+*   **What does the target file `apps/web/src/app/api/posts/[id]/reactions/route.ts` do within the repo?**
+    This file implements a Next.js API route responsible for handling user reactions (emojis) to posts. It authenticates the user, validates the provided emoji, verifies user existence, and then toggles the reaction status (adding or removing a reaction) in the local database.
+
+*   **What patterns, frameworks, or conventions does the codebase use?**
+    The codebase primarily uses the Next.js App Router for its web application and API routes, leveraging `route.ts` files for API endpoints. It employs NextAuth.js for authentication and session management, and Prisma as its Object-Relational Mapper (ORM) for database interactions. TypeScript is used throughout for strong typing. API responses consistently use `NextResponse.json` with appropriate HTTP status codes, and asynchronous operations are managed with `async/await` and `Promise.all`. External API calls to GitHub are designed with best-effort error handling using `.catch` to prevent local operations from failing due to external issues. The project follows a monorepo structure with `apps/web` and `packages/ui`.
+
+### Step 2: Deep Analysis
+
+*   **Security**: Both `follow/route.ts` and `reactions/route.ts` correctly check for user authentication using `auth()` and `session?.user?.login`. Access tokens are used appropriately for GitHub API calls. Input parameters from the URL (`params`) are generally safe, and the `emoji` from the request body is validated for presence. No obvious hardcoded secrets or injection vulnerabilities were found in the analyzed files.
+*   **Logic**:
+    *   In `follow/route.ts`, checks for self-following and user existence are correctly implemented. The logic for toggling follow status (create/delete) and synchronizing with GitHub is sound, with `Promise.all` used for concurrency and `.catch` for resilience against GitHub API failures. Notification creation is fire-and-forget, which is suitable.
+    *   In `reactions/route.ts`, the `emoji` presence is validated, and user existence is checked. The logic for toggling reactions (create/delete) is correct.
+    *   **Inconsistency/Potential Bug**: In `apps/web/src/app/api/posts/[id]/reactions/route.ts`, the `params` object in the `POST` function signature is typed as `Promise<{id: string;}>`. This is incorrect for Next.js App Router, where `params` is a plain object. Consequently, the `await params` call is unnecessary and semantically incorrect. This contrasts with `apps/web/src/app/api/users/[username]/follow/route.ts` which correctly types `params` as a plain object.
+*   **Performance**: Both `follow/route.ts` and `reactions/route.ts` perform `prisma.user.findUnique` to retrieve the internal database user ID based on the `session.user.login`. While this is necessary if the session only provides the GitHub username and not the internal database ID, it represents an additional database query. `Promise.all` is used effectively where concurrent operations are possible (e.g., DB update and GitHub API call).
+*   **Architecture**: Consistent use of `NextResponse.json` and `try/catch` blocks for error handling. `dynamic = "force-dynamic"` is correctly applied to prevent caching of these API routes.
+*   **Features**:
+    *   Neither route implements rate limiting, which could be a missing feature for preventing abuse (e.g., rapid follow/unfollow or reaction spam).
+    *   `reactions/route.ts` does not create a notification for the post owner when a reaction is added, which might be a desired feature for user engagement.
+*   **Testing**: The current analysis is static; no explicit tests were reviewed. Implicit validation is present for user input (emoji presence) and existence checks. Error paths are handled with `try/catch`.
+*   **DX (Developer Experience)**: The code is generally clear and follows common Next.js and TypeScript patterns. The `package.json` is standard.
+*   **Consistency**: The primary inconsistency found is the `params` type definition between the `follow` and `reactions` API routes. Naming conventions and import patterns are generally consistent.
+*   **Dead Code**: No obvious dead code was identified in the provided files.
+
+### Step 3: Pick ONE Improvement
+
+The most valuable improvement is to correct the incorrect type definition and usage of the `params` object in `apps/web/src/app/api/posts/[id]/reactions/route.ts`. This is a direct logical and type error that introduces inconsistency and unnecessary operations, making it a high-priority fix.
+
+### Step 4: Write the Executor's Plan
+
+**WHAT**
+The Executor should modify the `POST` function in `apps/web/src/app/api/posts/[id]/reactions/route.ts` to correctly type the `params` argument as a plain object and remove the redundant `await` keyword when destructuring `postId` from `params`.
+
+**WHERE**
+The changes are located in the file `apps/web/src/app/api/posts/[id]/reactions/route.ts`.
+Specifically, the `POST` function signature and the line within the `try` block where `postId` is extracted.
+
+**WHY**
+In Next.js App Router, the `params` object provided to API routes is a standard JavaScript object containing dynamic route segments, not a Promise. The current type annotation `Promise<{id: string;}>` is incorrect and leads to an unnecessary `await params` call. While `await`ing a non-Promise object does not typically cause a runtime error (it resolves immediately to the object itself), it is semantically incorrect, adds a negligible but unnecessary operation, and creates an inconsistency with other API routes in the codebase (such as `apps/web/src/app/api/users/[username]/follow/route.ts`) that correctly type `params` as a plain object. Correcting this improves type accuracy, code clarity, and maintains consistency across the application's API layer.
+
+**HOW**
+1.  Locate the `POST` asynchronous function definition in `apps/web/src/app/api/posts/[id]/reactions/route.ts`.
+2.  Within the function signature, change the type annotation for the `params` argument from `Promise<{id: string;}>` to `{id: string;}`.
+3.  Inside the `try` block of the `POST` function, find the line where `postId` is destructured from `params`. This line currently reads `const { id: postId } = await params;`.
+4.  Remove the `await` keyword from this line, so it becomes `const { id: postId } = params;`.
+
+**Executor**: {"title": "[LOGIC] Correct params type in reactions/route.ts", "body": "### Problem / Gap\nThe `params` object in the `POST` function of `reactions/route.ts` is incorrectly typed as `Promise<{id: string;}>`, leading to unnecessary `await` usage and potential inconsistencies with other API routes.\n\n### Solution & Insight\nCorrect the type annotation of `params` to a plain object `{id: string;}` and remove the redundant `await` keyword when destructuring `postId` from `params`. This ensures semantic correctness, improves code clarity, and maintains consistency across the application's API layer.\n\n### Impact\nThis change improves the accuracy of type annotations, reduces unnecessary operations, and enhances code readability. It also prevents potential issues that could arise from incorrect typing and awaits on non-Promise objects.", "branch_name": "bot/fix-params-type-1774522503", "edits": [{"file": "apps/web/src/app/api/posts/[id]/reactions/route.ts", "search": "export async function POST(req: Request, { params }: {params: Promise<{id: string;}>;}) {\n  const session = await auth();\n  if (!session?.user?.login) {\n    return NextResponse.json({ error: \"Unauthorized\" }, { status: 401 });\n  }\n\n  try {\n    const { id: postId } = await params;\n", "replace": "export async function POST(req: Request, { params }: {params: {id: string;};}) {\n  const session = await auth();\n  if (!session?.user?.login) {\n    return NextResponse.json({ error: \"Unauthorized\" }, { status: 401 });\n  }\n\n  try {\n    const { id: postId } = params;\n"}]}
+
+**Reviewer**: APPROVE: The Executor correctly identified and fixed the incorrect type definition and redundant `await` usage for the `params` object in the Next.js App Router API route. This change aligns the code with Next.js conventions, improves type accuracy, and maintains consistency within the codebase, as noted by the Scanner. The search block is an exact match, and the replacement is functionally correct and valuable.
+
+---
