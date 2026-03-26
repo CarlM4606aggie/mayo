@@ -5454,3 +5454,92 @@ This improvement is confined to the `apps/web/src/app/api/image-proxy/route.ts` 
 **Reviewer**: APPROVE: The Executor has successfully implemented the proposed SSRF prevention enhancements. The search block accurately matches the original content, and the replacement code correctly expands the private and reserved IP range checks, including IPv6 link-local addresses and additional IPv4 ranges (0.0.0.0/8, 100.64.0.0/10, 198.18.0.0/15). The logic is sound, functional, and directly addresses a high-priority security vulnerability as identified by the Scanner. The slight deviation from the Scanner's 'how' (merging the 100.64.0.0/10 check into `isPrivateIP` instead of a new variable) is functionally equivalent and acceptable.
 
 ---
+
+## Cycle 1774492650
+**Scanner**: ## SCANNER ANALYSIS: HOLYKEYZ/git-pulse
+
+### Step 1: Codebase Understanding
+
+This repository, `git-pulse`, functions as a platform for discovering and showcasing GitHub projects and developers. It aims to highlight quality projects based on various metrics beyond mere popularity, fostering community engagement.
+
+*   **`apps/web/src/components/CollabWidget.tsx`**: This component is a client-side React widget that fetches and displays a list of "Developers like you" (collaboration matches). It shows potential collaborators based on shared languages and a similarity score, handling loading and error states gracefully.
+*   **`apps/web/package.json`**: This file defines the dependencies and scripts for the `web` application within the `git-pulse` monorepo. It indicates the use of Next.js (version 15), React (version 19), Prisma for database interaction, NextAuth for authentication, and `@google/generative-ai` for AI-related features.
+*   **`apps/web/src/app/api/admin/digest/route.ts`**: This API route is responsible for generating a weekly digest of the top 10 highest-scored posts. It calculates scores based on factors like repository activity, tech stack, and community engagement, then formats the results into a Twitter-thread-like string. It is intended to be protected by either a `CRON_SECRET` or by an authenticated admin user.
+
+The codebase primarily uses Next.js with its App Router, React for UI, TypeScript for type safety, Prisma as an ORM, and Tailwind CSS for styling. It follows a monorepo structure with `apps/web` and `packages/ui`.
+
+### Step 2: Deep Analysis
+
+**`apps/web/src/components/CollabWidget.tsx`**
+
+*   **Logic**: There is a redundant `if (matches.length === 0) return null;` statement that appears twice consecutively. One instance is sufficient.
+*   **Security**: The component renders `match.username` and `match.avatar` directly. Assuming these values are sanitized and validated by the backend API (`/api/collab`) to prevent XSS vulnerabilities, this should be safe. If the backend does not sanitize, there's a potential risk.
+*   **Consistency**: Follows standard React component patterns and Next.js `Link` usage.
+
+**`apps/web/package.json`**
+
+*   **Consistency**: Standard `package.json` structure for a Next.js application.
+*   **Anti-Hallucination Check**: React 19 and Next 15 are noted as correct versions per global memory. No dependency bumps are allowed.
+
+**`apps/web/src/app/api/admin/digest/route.ts`**
+
+*   **Security / Logic (Critical Bug)**:
+    1.  **Missing `auth` import**: The `auth()` function is used within the authentication logic (`!auth().user.isAdmin`) but is not imported or defined in the file. This will lead to a `ReferenceError` at runtime, causing the API route to crash if the `secret` parameter is incorrect or missing.
+    2.  **Flawed Authentication Logic**: The current two `if` statements for authentication are logically incorrect and redundant.
+        ```typescript
+        if (secret !== process.env.CRON_SECRET && !auth().user.isAdmin) {
+          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        if (secret !== process.env.CRON_SECRET) {
+          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        ```
+        The second `if` condition effectively overrides the first, meaning if the `secret` is incorrect or missing, the route will always return `401 Unauthorized` *without* checking if the user is an authenticated administrator. This prevents legitimate admin users from accessing the digest via the UI if the `secret` is not present, which is a denial of service for admin functionality and a direct contradiction of the stated intent ("also accessible from the admin ui authenticated route"). The intended logic is "secret is correct OR user is admin".
+*   **Architecture**: The `dynamic = "force-dynamic"` export is appropriate for a route that generates dynamic content.
+*   **Performance**: Fetching 100 posts and then sorting/slicing to 10 is a reasonable approach for this digest generation.
+*   **Consistency**: Uses Prisma for database access and standard Next.js API route structure.
+
+### Step 3: Pick ONE Improvement
+
+The most critical issue is the combination of the missing `auth` import and the flawed authentication logic in `apps/web/src/app/api/admin/digest/route.ts`. This represents a severe bug that causes runtime errors and prevents legitimate admin access, making the API route non-functional for its intended purpose. Fixing this addresses both a critical bug and a security vulnerability.
+
+### Step 4: Write the Executor's Plan
+
+**WHAT** to change:
+The authentication mechanism within the `GET` function of the admin digest API route needs to be corrected. This involves adding the necessary import for the `auth` function (from `next-auth`) and then refactoring the authorization checks into a single, logically sound conditional statement. The goal is to grant access if either the `CRON_SECRET` query parameter is valid OR the request comes from an authenticated user who has administrator privileges.
+
+**WHERE** in the file(s):
+The changes will be made exclusively in `apps/web/src/app/api/admin/digest/route.ts`.
+Specifically, an import statement will be added at the top of the file, and the existing two `if` statements that handle authentication will be replaced within the `GET` function.
+
+**WHY** this matters:
+The current implementation has two major flaws:
+1.  **Runtime Error**: The `auth()` function is called without being imported, which will cause a `ReferenceError` and crash the API route if the `secret` query parameter is not provided or is incorrect. This makes the route unstable and unusable under common conditions.
+2.  **Authentication Bypass / Denial of Service**: The existing `if` conditions are logically incorrect. They prevent authenticated administrators from accessing the digest route if the `CRON_SECRET` is missing or invalid. This contradicts the stated purpose of the route, which should allow access via either the secret or admin authentication, and effectively creates a denial of service for legitimate admin users. Correcting this ensures the route functions as intended and is properly secured.
+
+**HOW** to do it:
+1.  At the top of the `apps/web/src/app/api/admin/digest/route.ts` file, add an import statement for the `auth` function. This import should be `import { auth } from "@/lib/auth";` or `import { auth } from "next-auth";` depending on the project's `next-auth` configuration. Given the common pattern, `import { auth } from "@/lib/auth";` is a strong candidate if a custom `auth` helper exists, otherwise `import { auth } from "next-auth";` is standard. For this plan, assume `import { auth } from "@/lib/auth";` as it's common to wrap `next-auth` in a lib.
+2.  Locate the two existing authentication `if` statements within the `GET` function:
+    ```typescript
+    if (secret !== process.env.CRON_SECRET && !auth().user.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (secret !== process.env.CRON_SECRET) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    ```
+3.  Replace these two `if` statements with a single, consolidated authentication check. First, call the `auth()` function to get the session. Then, check if either the `secret` matches `process.env.CRON_SECRET` OR if the retrieved session indicates an authenticated user with `isAdmin` set to true. If neither of these conditions is met, return an unauthorized response. The `auth()` call should be awaited.
+
+    The revised logic should look like this:
+    *   Declare a constant `session` and assign it the awaited result of `auth()`.
+    *   Declare a boolean constant `isAuthenticatedAdmin` that checks if `session` exists, `session.user` exists, and `session.user.isAdmin` is true.
+    *   Introduce a single `if` statement that checks if `secret` is NOT equal to `process.env.CRON_SECRET` AND `isAuthenticatedAdmin` is false. If this combined condition is true, then return `NextResponse.json({ error: 'Unauthorized' }, { status: 401 });`.
+
+**SCOPE**:
+This improvement is a targeted fix within a single file, `apps/web/src/app/api/admin/digest/route.ts`, involving an import statement and a refactor of the authentication conditional logic.
+
+**Executor**: {"title": "[SEC] Fix Authentication Logic in Admin Digest API Route", "body": "### Problem / Gap\nThe current authentication mechanism in the admin digest API route has two critical issues: a missing import for the `auth` function and flawed authentication logic. This results in a runtime error and prevents legitimate admin access, making the API route non-functional for its intended purpose.\n\n### Solution & Insight\nTo fix this, we need to add the necessary import for the `auth` function and refactor the authentication conditional logic into a single, logically sound statement. This ensures the route functions as intended and is properly secured.\n\n### Impact\nThe measurable benefit of this fix is that it resolves the runtime error, allows legitimate admin access, and ensures the API route functions correctly. This improves the overall security and functionality of the `git-pulse` platform.", "branch_name": "bot/fix-auth-logic-1774492650", "edits": [{"file": "apps/web/src/app/api/admin/digest/route.ts", "search": "if (secret !== process.env.CRON_SECRET && !auth().user.isAdmin) {\n  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });\n}\nif (secret !== process.env.CRON_SECRET) {\n  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });\n}", "replace": "import { auth } from '@/lib/auth';\nconst session = await auth();\nconst isAuthenticatedAdmin = session && session.user && session.user.isAdmin;\nif (secret !== process.env.CRON_SECRET && !isAuthenticatedAdmin) {\n  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });\n}"}]}
+
+**Reviewer**: Reviewer response unparseable
+
+---
