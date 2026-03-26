@@ -5789,3 +5789,66 @@ This improvement is focused entirely within the `apps/web/src/app/page.tsx` file
 **Reviewer**: CORRECT: The Executor successfully applied the first three edits, centralizing magic numbers into named constants as planned. However, the fourth edit, intended to standardize timestamp formatting, failed to apply due to a search block mismatch. The original code's `toLocaleDateString` arguments were split across multiple lines with indentation, which the Executor's single-line search block did not capture. I have provided the corrected search block for this specific edit.
 
 ---
+
+## Cycle 1774552261
+**Scanner**: ## Codebase Understanding
+
+This repository, `git-pulse`, is a web application designed to provide a social platform centered around GitHub activity. It allows users to view profiles, explore repositories, and receive notifications related to their GitHub interactions.
+
+The file `apps/web/src/app/profile/[username]/repos/page.tsx` is a Next.js server component responsible for displaying a specific user's GitHub repositories. It fetches repository data using a custom GitHub API utility, processes it to extract unique languages, and renders a list of `RepoCard` components. It also handles various display states, such as no repositories found, an error during fetching, or requiring user authentication.
+
+The file `apps/web/tsconfig.json` is the TypeScript configuration for the `web` application. It extends a base configuration and defines specific compiler options, library inclusions, and path aliases (`@/*`) for the web project, ensuring type safety and proper module resolution.
+
+The file `apps/web/src/app/notifications/page.tsx` is another Next.js server component that displays a user's notifications. It fetches notifications from a Prisma database, marks unread notifications as read upon page load, and renders them with appropriate icons and relative timestamps. It also handles unauthenticated users by redirecting them to the login page.
+
+The codebase utilizes modern Next.js App Router features, React for UI, TypeScript for type safety, and Prisma for database interactions. It follows a component-based architecture and uses utility functions for common tasks like time formatting.
+
+## Deep Analysis
+
+### apps/web/src/app/profile/[username]/repos/page.tsx
+
+*   **Logic**: The `LANGUAGE_COLORS` map is hardcoded. While functional, it could lead to inconsistencies if language colors are defined elsewhere or if new languages are added. Error handling uses `console.error`, which is basic; a more robust logging mechanism or user-facing error reporting might be beneficial. The current implementation fetches a fixed number of repositories (30) without pagination, meaning users with more than 30 repositories cannot view all of them.
+*   **Performance**: Fetching a fixed number of repositories (30) is efficient for small datasets but becomes a limitation for users with many repositories, potentially requiring more requests or a larger initial fetch if the limit is increased without pagination.
+*   **Features**: The most significant missing feature is pagination for repositories. Users are currently limited to viewing only the first 30 repositories. There are also no filtering or sorting options beyond the default "updated" sort from the `getGitHubAllRepos` function.
+
+### apps/web/tsconfig.json
+
+*   **Consistency**: The `target: "ES2020"` is consistent with recent refactoring efforts across the repository. The use of `strict: true` is a good practice for maintaining high type safety.
+*   **Architecture**: The `paths` alias `@/*` to `./src/*` is a standard and beneficial convention for module imports.
+
+### apps/web/src/app/notifications/page.tsx
+
+*   **Security**: User login (`session.user.login`) is directly used in Prisma queries. While Prisma generally prevents SQL injection, ensuring the session data is always trusted is crucial.
+*   **Logic**: The `dynamic = "force-dynamic"` ensures the page is always rendered on the server, which is appropriate for real-time notifications. Notifications are marked as read *after* they are fetched and displayed, meaning a user might briefly see unread notifications before their status updates. The `notifications` variable is typed as `any[]`, which reduces type safety; it would be better to use a specific Prisma generated type or interface.
+*   **Performance**: The `take: 50` limit prevents excessive data loading, but similar to the `repos` page, there is no pagination, meaning older notifications are inaccessible.
+*   **Architecture**: The `TYPE_ICONS` map is hardcoded, similar to `LANGUAGE_COLORS` in the `repos` page.
+*   **Features**: Lack of pagination means users cannot access notifications beyond the most recent 50. There are no filtering options for notification types.
+
+## Pick ONE Improvement
+
+The most impactful improvement is to implement **pagination for the repositories displayed on the profile page**. Currently, `apps/web/src/app/profile/[username]/repos/page.tsx` only fetches and displays the first 30 repositories. This is a significant functional limitation that directly affects user experience and the completeness of the application. Implementing pagination will allow users to browse all their repositories, regardless of quantity, and sets a foundation for scalable data fetching.
+
+## Executor's Plan
+
+**WHAT**: Implement server-side pagination for the user's repositories displayed on the `/profile/[username]/repos` page. This will involve modifying the page component to accept and utilize URL search parameters for page navigation, and adding user interface controls to navigate between pages of repositories.
+
+**WHERE**: The primary file to modify is `apps/web/src/app/profile/[username]/repos/page.tsx`.
+
+**WHY**: The current implementation limits the display to only the first 30 repositories, preventing users from viewing their complete list of GitHub repositories. Adding pagination enhances the user experience by providing full access to their data and improves the scalability of the application by fetching data in manageable chunks.
+
+**HOW**:
+
+1.  **Update Page Component Signature**: Modify the `ReposPage` asynchronous function to accept a `searchParams` object in addition to the existing `params` object. The `searchParams` object will contain optional `page` and `per_page` string properties.
+2.  **Parse Pagination Parameters**: Inside the `ReposPage` function, extract the `page` and `per_page` values from `searchParams`. Convert these string values to numbers, providing default values if they are not present (e.g., `currentPage = 1`, `itemsPerPage = 30`).
+3.  **Pass Parameters to Data Fetching**: Update the call to `getGitHubAllRepos` to pass the `currentPage` and `itemsPerPage` variables as arguments.
+4.  **Implement Pagination Controls**: Below the existing "repo list" `div`, add a new section for pagination controls. This section should include:
+    *   A "Previous" button: This button should be enabled only if `currentPage` is greater than 1. Clicking it should navigate the user to the previous page by updating the `page` search parameter in the URL (e.g., `/profile/[username]/repos?page=X`).
+    *   A "Next" button: This button should be enabled if the number of `repos` fetched is exactly equal to `itemsPerPage`. This heuristic suggests there might be more repositories on the next page. Clicking it should navigate the user to the next page by updating the `page` search parameter in the URL (e.g., `/profile/[username]/repos?page=Y`).
+5.  **Update "No Repositories" Message Logic**: Ensure that the conditional message for `repos.length === 0` correctly accounts for pagination. If `repos.length` is 0 on a page greater than 1, it should indicate that there are no more repositories, rather than just "No public repositories found." The existing messages for `hasError` and `token` should remain.
+6.  **Import `Link` from `next/link`**: Ensure `Link` is imported for the pagination buttons to handle client-side navigation.
+
+**Executor**: {"title": "[FEAT] Implement Server-Side Pagination for Repositories", "body": "### Problem / Gap\nThe current implementation of the repositories page only displays the first 30 repositories for a user, without any option to view more. This limitation prevents users from accessing their full list of repositories.\n\n### Solution & Insight\nTo address this issue, we will implement server-side pagination. This involves modifying the `ReposPage` component to accept pagination parameters (`page` and `per_page`) from the URL query string, and then using these parameters to fetch the appropriate set of repositories from the GitHub API. We will also add pagination controls to the UI, allowing users to navigate between pages of repositories.\n\n### Impact\nThis feature will significantly enhance the user experience by providing access to all of a user's repositories, not just the first 30. It will also improve the scalability of the application by fetching data in manageable chunks.", "branch_name": "bot/upgrade-1774552261", "edits": [{"file": "apps/web/src/app/profile/[username]/repos/page.tsx", "search": "export default async function ReposPage({ params }: {params: {username: string};}) {", "replace": "export default async function ReposPage({ params, searchParams }: {params: {username: string}; searchParams: { page: string, per_page: string };}) {"}, {"file": "apps/web/src/app/profile/[username]/repos/page.tsx", "search": "let repos = [];", "replace": "let currentPage = searchParams?.page ? parseInt(searchParams.page, 10) : 1;\nlet itemsPerPage = searchParams?.per_page ? parseInt(searchParams.per_page, 10) : 30;\nlet repos = [];"}, {"file": "apps/web/src/app/profile/[username]/repos/page.tsx", "search": "repos = token ? await getGitHubAllRepos(username, token, 1, 30, \"updated\") : [];", "replace": "repos = token ? await getGitHubAllRepos(username, token, currentPage, itemsPerPage, \"updated\") : [];"}, {"file": "apps/web/src/app/profile/[username]/repos/page.tsx", "search": "</div>\n              {repos.length === 0 && (\n                  hasError ? (\n                      <div className=\"text-center text-git-muted text-sm py-12\">Failed to load repositories. Please try again later.</div>\n                  ) : token ? (\n                      <div className=\"text-center text-git-muted text-sm py-12\">No public repositories found.</div>\n                  ) : (\n                      <div className=\"text-center text-git-muted text-sm py-12\">Sign in to view repositories.</div>\n                  )\n              )}", "replace": "</div>\n              {repos.length === 0 && (\n                  hasError ? (\n                      <div className=\"text-center text-git-muted text-sm py-12\">Failed to load repositories. Please try again later.</div>\n                  ) : token ? (\n                      currentPage === 1 ? (\n                          <div className=\"text-center text-git-muted text-sm py-12\">No public repositories found.</div>\n                      ) : (\n                          <div className=\"text-center text-git-muted text-sm py-12\">No more repositories found.</div>\n                      )\n                  ) : (\n                      <div className=\"text-center text-git-muted text-sm py-12\">Sign in to view repositories.</div>\n                  )\n              )}\n              {(repos.length > 0 && itemsPerPage === repos.length) && (\n                  <div className=\"flex justify-center mt-4\">\n                      <Link href={`/profile/${username}/repos?page=${currentPage + 1}&per_page=${itemsPerPage}`} className=\"text-git-accent hover:text-git-accent-hover transition-colors\">Next</Link>\n                  </div>\n              )}\n              {currentPage > 1 && (\n                  <div className=\"flex justify-center mb-4\">\n                      <Link href={`/profile/${username}/repos?page=${currentPage - 1}&per_page=${itemsPerPage}`} className=\"text-git-accent hover:text-git-accent-hover transition-colors\">Previous</Link>\n                  </div>\n              )}"}]}
+
+**Reviewer**: REJECTED x2: The overall approach to pagination is correct and well-aligned with the plan. However, please review the 'ACTUAL DIFF PREVIEW' for the last edit in `apps/web/src/app/profile/[username]/repos/page.tsx`. It shows an extra `)}` right before the final `</div>` of the page component. This will cause a syntax error. Ensure that the final patched code does not contain this extraneous closing brace.
+
+---
