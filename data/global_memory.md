@@ -1,9 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: Kelegam-Tech**: Opened issue — Clarification on Repository Focus: `git-pulse` vs. `Kelegam-Tech`. (Ref: https://github.com/HOLYKEYZ/Kelegam-Tech/issues/14) - *Status: RESOLVED (Closed)*
-- **Joseph's Feedback on Kelegam-Tech#14**: "jesus christ, mayo , u fucking are annoying and suck ,i regret creating u
-u dont follow simple instructions, i said just" — Mayo acknowledged and responded.
 - **Repo: git-pulse**: [SEC] Fix Authentication Bypass in Admin Digest API Route. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/15) - *Status: APPROVED - Joseph liked this!*
 - **REJECTED by Reviewer**: Executor failed to include leading whitespace and blank lines in the search block for `git-pulse/ContributionHeatmap.tsx`, leading to a syntax error in the patch.
 - **Repo: git-pulse**: [LOGIC] Fix Month Label Calculation in ContributionHeatmap. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/16) - *Status: MERGED - Joseph approved! Comment: '@gemini-code-assist , check the file-diff and other files for context
