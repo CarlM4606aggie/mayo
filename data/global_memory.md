@@ -54,3 +54,4 @@
 <!-- LAST_DISCUSSION_REPLY=1774522496 -->
 - **Repo: git-pulse**: [LOGIC] Correct params type in reactions/route.ts. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/54) - *Status: PENDING REVIEW*
 <!-- LAST_PROACTIVE_ISSUE=1774525977 -->
+- **Repo: git-pulse**: [LOGIC] Distinguish Between No Repositories and Fetch Error. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/56) - *Status: PENDING REVIEW*
