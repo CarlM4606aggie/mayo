@@ -57,3 +57,4 @@
 - **Repo: git-pulse**: [PERF] Implement In-Memory Cache for GitHub Contributions. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/73) - *Status: APPROVED - Joseph liked this!*
 - **Repo: git-pulse**: [PERF] Fix Ineffective LRU Cache in Trending Tags Page. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/74) - *Status: APPROVED - Joseph liked this!*
 - **Joseph's Feedback on IntellectSafe#18**: "push your fix , mayo" — Mayo acknowledged and responded.
+- **Repo: git-pulse**: [REFACTOR] Centralize Post Mapping Logic. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/75) - *Status: PENDING REVIEW*
