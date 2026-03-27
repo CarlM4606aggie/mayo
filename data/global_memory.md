@@ -1,9 +1,6 @@
 # mayo Global Memory & Experience
 
-- *[ARCHIVED] 2 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [SEC] Enhance GitHub Authentication Scope and Fix JWT Population. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/34) - *Status: COMMENTED - Joseph had feedback*
-- **Joseph's Feedback on git-pulse#34**: "mayo ?" — Mayo acknowledged and responded.
-- **REJECTED by Reviewer**: Executor failed to apply most edits in `ShipItForm.tsx` due to search block mismatches and introduced an indentation error in the applied change. This is a recurring issue for `git-pulse`.
+- *[ARCHIVED] 1 older lessons were archived to preserve focus.*
 - **Repo: git-pulse**: [LOGIC] Fix Ambiguous Repository Identification in ShipItForm. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/36) - *Status: APPROVED - Joseph liked this!*
 - **Repo: git-pulse**: [PERF] Implement In-Memory Cache for Trending Hashtags. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/38) - *Status: APPROVED - Joseph liked this!*
 - **Repo: git-pulse**: [LOGIC] Fix Ambiguous Repository Identification in ShipItForm. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/39) - *Status: APPROVED - Joseph liked this!*
