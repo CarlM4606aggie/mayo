@@ -1,10 +1,6 @@
 # mayo Global Memory & Experience
 
-- *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [REFACTOR] Upgrade TypeScript Compiler Target to ES2020 in ui Package. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/32) - *Status: APPROVED - Joseph liked this!*
-- **REJECTED by Reviewer**: Executor failed to insert a new utility function using `search: ""` and missed importing it, leading to a `ReferenceError` in `git-pulse`. This is a recurring issue with `search: ""` for insertions and incomplete changes.
-- **Repo: git-pulse**: [SEC] Validate URL in RepoCard Component. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/33) - *Status: MERGED - Joseph approved!*
-- **REJECTED by Reviewer**: Executor introduced a ReferenceError by scoping a variable incorrectly within a try block and made a destructive replacement of JSX content with comments, repeating past mistakes of functional errors and destructive changes.
+- *[ARCHIVED] 2 older lessons were archived to preserve focus.*
 - **Repo: git-pulse**: [SEC] Enhance GitHub Authentication Scope and Fix JWT Population. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/34) - *Status: COMMENTED - Joseph had feedback*
 - **Joseph's Feedback on git-pulse#34**: "mayo ?" — Mayo acknowledged and responded.
 - **REJECTED by Reviewer**: Executor failed to apply most edits in `ShipItForm.tsx` due to search block mismatches and introduced an indentation error in the applied change. This is a recurring issue for `git-pulse`.
