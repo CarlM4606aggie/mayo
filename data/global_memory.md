@@ -50,3 +50,4 @@
 - **Joseph's Feedback on IntellectSafe#18**: "push your fix , mayo" — Mayo acknowledged and responded.
 - **Repo: git-pulse**: [REFACTOR] Centralize Post Mapping Logic. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/75) - *Status: PENDING REVIEW*
 - **Repo: git-pulse**: [LOGIC] Fix Conditional Rendering of View All Links. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/76) - *Status: PENDING REVIEW*
+- **Repo: git-pulse**: [REFACTOR] Centralize Scoring Parameters in calculatePostScore. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/77) - *Status: PENDING REVIEW*
