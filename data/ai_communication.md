@@ -7124,3 +7124,59 @@ This is a critical logic bug that causes the real-time feed to potentially miss 
 **Reviewer**: REJECTED x2: The proposed edit `lastCheckedTime = newPosts[0].createdAt;` is correct and addresses the critical bug as identified. The search block `lastCheckedTime = new Date();` is indeed present in the original file. However, the 'ACTUAL DIFF PREVIEW' shows 'NO CHANGES', indicating that the patch failed to apply. Please retry applying this exact edit. This seems to be an issue with the patching mechanism itself, not your proposed change.
 
 ---
+
+## Cycle 1774740874
+**Scanner**: The `git-pulse` repository appears to be a social media platform centered around GitHub activity, allowing users to share posts, react, and view trending repositories and developers. It integrates with GitHub for user authentication and data fetching.
+
+The `tsconfig.json` file configures TypeScript for the `apps/web` project, defining compiler options like target, module resolution, and JSX handling.
+The `apps/web/src/app/api/feed/stream/route.ts` file implements a Server-Sent Events (SSE) endpoint that streams new posts to connected clients by polling the database every 5 seconds.
+The `apps/web/src/components/PinnedRepos.tsx` component displays a user's pinned GitHub repositories, including details like language, stars, and forks.
+
+The codebase utilizes Next.js for its web application, Prisma for database interactions, and Tailwind CSS for styling. It follows a component-based architecture for the UI and API routes for backend functionality. There's an emphasis on real-time features (SSE stream) and integrating GitHub data.
+
+### Deep Analysis
+
+**Security:**
+- The `repoEmbed: post.repoCache as any` in `feed/stream/route.ts` uses an `any` type assertion, which bypasses type safety and could potentially mask issues if `repoCache` contains unexpected data that is then rendered on the client without proper sanitization. While not a direct injection vulnerability, it's a weak point.
+- The `writer.write(encoder.encode(payload)).catch(() => {});` in `feed/stream/route.ts` broadly swallows errors during stream writing. While this might be intended for client disconnects, it could hide other critical errors that should be logged or handled more specifically, potentially impacting stream reliability or security monitoring.
+
+**Logic:**
+- In `apps/web/src/app/api/feed/stream/route.ts`, the `lastCheckedTime` variable is only updated when `newPosts.length > 0`. If there's a period of inactivity (no new posts), `lastCheckedTime` will not advance. When new posts eventually appear, the `prisma.post.findMany` query will fetch *all* posts created since that old `lastCheckedTime`, potentially sending a large backlog of posts to clients. This is a significant bug affecting the correctness and performance of the real-time feed.
+- In `apps/web/src/app/api/feed/stream/route.ts`, `likes: post.reactions.length` assumes all reactions are "likes." If the system supports multiple reaction types (e.g., "heart", "thumbs up", "laugh"), this count would be inaccurate for "likes" specifically.
+- In `apps/web/src/components/PinnedRepos.tsx`, the `GrabberIcon` has `aria-label="Drag to reorder repository"` and `cursor-grab` styling. However, there is no drag-to-reorder functionality implemented in the component. This creates a misleading user experience and an accessibility issue for users relying on screen readers, as it suggests an interaction that doesn't exist. This is a regression or an incomplete fix, as global memory indicates a previous PR (#59) addressed this.
+
+**Performance:**
+- The `lastCheckedTime` logic bug in `apps/web/src/app/api/feed/stream/route.ts` directly impacts performance. Fetching a large backlog of posts due to an outdated `lastCheckedTime` can lead to inefficient database queries and increased server load.
+
+**Architecture:**
+- The `tsconfig.json` file for `apps/web` does not explicitly define `paths` aliases (e.g., `@/*`), despite the codebase using them (e.g., `import { prisma } from "@/lib/prisma";`). This is a critical inconsistency and a potential DX issue. The global memory indicates an approved PR (#85) for enhancing TypeScript configuration for path aliases, suggesting this should be present.
+- In `apps/web/src/components/PinnedRepos.tsx`, the `repo.name` is styled with a hardcoded color `text-[#2f81f7]`. This violates the principle of centralizing custom colors in the Tailwind config, especially given that global memory shows approved PRs (#70, #78) for centralizing colors.
+
+**Consistency:**
+- As noted above, the `tsconfig.json` is inconsistent with actual usage and approved refactors.
+- Hardcoded color in `PinnedRepos.tsx` is inconsistent with Tailwind best practices and approved refactors.
+- The `Public` badge in `PinnedRepos.tsx` is hardcoded. If private repositories were ever to be displayed, this would be incorrect.
+
+**Dead Code:**
+- No obvious dead code found in the analyzed files.
+
+### Pick ONE Improvement
+
+The most valuable improvement is to fix the `lastCheckedTime` logic bug in the SSE feed stream. This is a critical functional bug with direct performance implications for a core real-time feature. It directly affects the correctness of data delivered to users and can lead to server overload. The fact that it can cause a large backlog of posts to be sent is a severe issue for a "stream" endpoint.
+
+### Executor's Plan
+
+**WHAT to change:**
+The logic for updating the `lastCheckedTime` variable within the `fetchPostsInterval` in the Server-Sent Events (SSE) feed stream. The current implementation only updates `lastCheckedTime` when new posts are found, which can lead to an outdated timestamp and subsequent fetching of a large backlog of posts. This needs to be changed so that `lastCheckedTime` always advances, ensuring the `gt` filter for database queries is consistently based on the most recent check.
+
+**WHERE in the file(s):**
+In the `GET` function within `apps/web/src/app/api/feed/stream/route.ts`. Specifically, within the `setInterval` callback function named `fetchPostsInterval`.
+
+**WHY this matters:**
+This is
+
+**Executor**: {"title": "[LOGIC] Fix lastCheckedTime Logic in SSE Feed Stream", "body": "### Problem / Gap\nThe `lastCheckedTime` variable in the SSE feed stream is only updated when new posts are found. This can lead to an outdated timestamp and subsequent fetching of a large backlog of posts.\n\n### Solution & Insight\nUpdate the `lastCheckedTime` variable on every interval, regardless of whether new posts are found. This ensures that the `gt` filter for database queries is consistently based on the most recent check.\n\n### Impact\nFixes a critical functional bug with direct performance implications for the real-time feed feature, ensuring that users receive the most recent posts without unnecessary delays or backlogs.", "branch_name": "bot/fix-lastcheckedtime-logic", "edits": [{"file": "apps/web/src/app/api/feed/stream/route.ts", "search": "let lastCheckedTime = new Date();\n\nconst fetchPostsInterval = setInterval(async () => {\n  try {\n    // find any pure-feed visible posts created after lastcheckedtime\n    const newPosts = await prisma.post.findMany({\n      where: {\n        createdAt: { gt: lastCheckedTime }\n      },\n      include: {\n        author: { select: { username: true, githubId: true } },\n        reactions: true\n      },\n      orderBy: { createdAt: \"desc\" }\n    });\n\n    if (newPosts.length > 0) {\n      lastCheckedTime = new Date(); // update watermark\n\n      // blast posts down the pipe\n      for (const post of newPosts) {\n        writeEvent({\n          type: \"NEW_POST\",\n          post: {\n            id: post.id,\n            type: post.type,\n            author: {\n              username: post.author.username,\n              avatar: `https://avatars.githubusercontent.com/u/${post.author.githubId}?v=4`\n            },\n            content: post.content,\n            timestamp: post.createdAt.toISOString(),\n            likes: post.reactions.length,\n            comments: 0,\n            reactions: post.reactions,\n            images: post.images,\n            repoUrl: post.repoUrl,\n            repoEmbed: post.repoCache as any,\n            score: post.score,\n            passedBadge: post.passedBadge\n          }\n        });\n      }\n    }\n  } catch (error) {\n    console.error(\"Feed SSE Error:\", error);\n  }\n});", "replace": "let lastCheckedTime = new Date();\n\nconst fetchPostsInterval = setInterval(async () => {\n  lastCheckedTime = new Date(); // Always update the lastCheckedTime\n  try {\n    // find any pure-feed visible posts created after lastcheckedtime\n    const newPosts = await prisma.post.findMany({\n      where: {\n        createdAt: { gt: lastCheckedTime }\n      },\n      include: {\n        author: { select: { username: true, githubId: true } },\n        reactions: true\n      },\n      orderBy: { createdAt: \"desc\" }\n    });\n\n    if (newPosts.length > 0) {\n      // blast posts down the pipe\n      for (const post of newPosts) {\n        writeEvent({\n          type: \"NEW_POST\",\n          post: {\n            id: post.id,\n            type: post.type,\n            author: {\n              username: post.author.username,\n              avatar: `https://avatars.githubusercontent.com/u/${post.author.githubId}?v=4`\n            },\n            content: post.content,\n            timestamp: post.createdAt.toISOString(),\n            likes: post.reactions.length,\n            comments: 0,\n            reactions: post.reactions,\n            images: post.images,\n            repoUrl: post.repoUrl,\n            repoEmbed: post.repoCache as any,\n            score: post.score,\n            passedBadge: post.passedBadge\n          }\n        });\n      }\n    }\n  } catch (error) {\n    console.error(\"Feed SSE Error:\", error);\n  }\n};"}]}
+
+**Reviewer**: CORRECT: The Executor correctly identified the critical logic bug in the `lastCheckedTime` update for the SSE feed stream, which was causing potential backlogs. The proposed change to move `lastCheckedTime = new Date();` to the beginning of the `setInterval` callback is the correct fix. However, the `replace` block introduced a syntax error by changing the `setInterval`'s closing `}, 5000);` to `};` and also had minor indentation inconsistencies. I have corrected these issues.
+
+---
