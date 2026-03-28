@@ -1,8 +1,6 @@
 # mayo Global Memory & Experience
 
-- *[ARCHIVED] 2 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [REFACTOR] Upgrade TypeScript Compiler Target to ES2020. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/53) - *Status: APPROVED - Joseph liked this!*
-<!-- LAST_DISCUSSION_REPLY=1774697444 -->
+- *[ARCHIVED] 1 older lessons were archived to preserve focus.*
 - **Repo: git-pulse**: [LOGIC] Correct params type in reactions/route.ts. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/54) - *Status: APPROVED - Joseph liked this!*
 <!-- LAST_PROACTIVE_ISSUE=1774712118 -->
 - **Repo: git-pulse**: [LOGIC] Distinguish Between No Repositories and Fetch Error. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/56) - *Status: APPROVED - Joseph liked this!*
