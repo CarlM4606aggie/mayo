@@ -6564,3 +6564,67 @@ This change is crucial for maintaining consistency and improving the maintainabi
 **Reviewer**: APPROVE: The Executor's proposed edits correctly centralize hardcoded color values from `RepoCard.tsx` into `tailwind.config.ts`. This aligns perfectly with the Scanner's plan and previous refactoring efforts in the repository (e.g., PR #70). The search blocks are precise, the replacement code is functional, and the change significantly improves maintainability and consistency of the design system.
 
 ---
+
+## Cycle 1774677571
+**Scanner**: ## SCANNER ANALYSIS: HOLYKEYZ/git-pulse
+
+### Step 1: Codebase Understanding
+
+This repository, `HOLYKEYZ/git-pulse`, appears to be a web application built with Next.js that serves as a social platform or dashboard for GitHub activity. It integrates with the GitHub API to display trending repositories and developers, user profiles, posts, and provides search functionality. It likely uses a database (Prisma is indicated) to store user-generated content and profiles.
+
+*   **`apps/web/tsconfig.json`**: This is the TypeScript configuration file for the `web` application. It defines how TypeScript compiles the project, including target ECMAScript version, module resolution, JSX handling, and path aliases.
+*   **`apps/web/src/app/search/page.tsx`**: This file implements the client-side search page. It fetches search results (for repositories, users, and posts) based on a user's query, displays them in a tabbed interface, and manages the loading state.
+*   **`apps/web/src/components/RightSidebar.tsx`**: This is an asynchronous server component responsible for rendering the right-hand sidebar of the application. It fetches and displays various dynamic content such as trending GitHub repositories and developers, upcoming projects, most active projects, and suggested users to follow, utilizing both GitHub API and a local database.
+
+The codebase primarily uses Next.js (App Router), React, TypeScript, and Tailwind CSS. It follows a component-based architecture, leverages server components for data fetching, and integrates with Prisma for database operations and GitHub's API for external data.
+
+### Step 2: Deep Analysis
+
+**`apps/web/tsconfig.json`**
+*   **Consistency**: The `target: "ES2020"` is consistent with previous refactoring efforts (PR #53). No immediate issues found.
+
+**`apps/web/src/app/search/page.tsx`**
+*   **Logic/Features**:
+    *   The `RepoCard` component is rendered with `languageColor=""` and `lastPush=""`. The `getLanguageColor` utility exists in the codebase (seen in `RightSidebar.tsx`), suggesting that `languageColor` should be dynamically determined and passed. `lastPush` would require the search API to provide this data or an additional fetch. This represents a partial implementation or a feature gap for the `RepoCard` display.
+    *   Error handling for `fetchResults` currently only logs to the console (`console.error`). There is no user-facing feedback if the search API call fails, which could lead to a poor user experience.
+*   **Accessibility**: The tab buttons (`Repositories`, `Users`, `Posts`) lack ARIA attributes like `role="tablist"`, `role="tab"`, and `aria-selected`, which are important for screen reader users to understand the interactive nature and current state of the tabs.
+*   **Consistency**: The `SearchResult` interface for `repos` does not include `lastPush`, which the `RepoCard` component expects, leading to the hardcoded empty string.
+
+**`apps/web/src/components/RightSidebar.tsx`**
+*   **Consistency/Architecture**: The titles for "Upcoming Projects" and "Most Active Today" (`repo.full_name`) use hardcoded hex color values (`text-[#2ea043]` and `text-[#4493f8]`). This directly contradicts recent refactoring efforts (PR #70, #78) to centralize custom colors within `tailwind.config.ts`. This is a significant inconsistency that impacts maintainability and adherence to established styling conventions.
+*   **Logic/Type Safety**: The `map` functions for `upcomingProjects` and `activeProjects` use `(repo: any)`. While functional, this bypasses TypeScript's type checking and reduces code robustness. A more specific type for GitHub repository objects should be defined and used.
+*   **Logic**: The expression `repo.stargazers_count?.toLocaleString() || 0` for displaying stars could be more robust. If `stargazers_count` is `undefined` or `null`, `toLocaleString()` would not be called, and `|| 0` would correctly provide a fallback. However, if `stargazers_count` is `0`, `toLocaleString()` would be called on `0`, which is fine. The current usage is acceptable but could be slightly clearer as `(repo.stargazers_count ?? 0).toLocaleString()`.
+*   **Features/UX**: The "Follow" button in the "Who to follow" section navigates to the user's profile page. While this is a valid interaction, a direct "Follow" action (e.g., via an API call) might be expected by users, potentially leading to an extra click. This is a minor UX consideration rather than a bug.
+
+### Step 3: Pick ONE Improvement
+
+The most valuable improvement is to address the **hardcoded color values in `RightSidebar.tsx`**. This is a direct violation of recent refactoring efforts to centralize custom colors in `tailwind.config.ts` (PR #70, #78). It's a clear consistency and maintainability issue that can be fixed by using the project's established styling conventions. This aligns with improving code quality and adhering to architectural patterns.
+
+### Step 4: Write the Executor's Plan
+
+**WHAT to change:**
+The hardcoded hex color values used for the `repo.full_name` titles within the "Upcoming Projects" and "Most Active Today" sections of the `RightSidebar` component must be replaced with appropriate Tailwind CSS utility classes. These classes should either already exist in the centralized `tailwind.config.ts` or be added there if they are new semantic colors.
+
+**WHERE in the file(s):**
+The primary changes will be in `apps/web/src/components/RightSidebar.tsx`.
+Specifically, within the `upcomingProjects.map` loop, the `div` element displaying `repo.full_name` currently has `className="text-[15px] font-bold text-[#2ea043] mb-0.5 truncate"`.
+Similarly, within the `activeProjects.map` loop, the `div` element displaying `repo.full_name` currently has `className="text-[15px] font-bold text-[#4493f8] mb-0.5 truncate"`.
+A secondary change might be required in `apps/web/tailwind.config.ts` if the semantic colors are not yet defined.
+
+**WHY this matters:**
+This change is critical for maintaining consistency, improving maintainability, and adhering to the established architectural patterns of the `git-pulse` repository. The project has recently undergone refactoring to centralize custom colors in `tailwind.config.ts`. Using hardcoded hex values directly in JSX bypasses this centralized configuration, making it difficult to manage, update, and ensure a consistent visual theme. By utilizing Tailwind classes, future color adjustments can be made in a single, well-defined location, reducing the risk of inconsistencies and simplifying the overall maintenance burden.
+
+**HOW to do it:**
+1.  **Inspect `apps/web/tailwind.config.ts`:** First, examine the `apps/web/tailwind.config.ts` file to determine if semantic color names corresponding to `#2ea043` (a green, often used for success or new features) and `#4493f8` (a blue, often used for information or links) have already been defined within the `theme.extend.colors` section.
+2.  **Define new colors if necessary:** If suitable semantic color classes are not found (e.g., `git-success` for green, `git-info` for blue), add these new custom colors to the `theme.extend.colors` object in `apps/web/tailwind.config.ts`. For example, add entries like `git-success: '#2ea043'` and `git-info: '#4493f8'`.
+3.  **Modify "Upcoming Projects" title color:** In `apps/web/src/components/RightSidebar.tsx`, locate the `div` element within the `upcomingProjects.map` function that contains `repo.full_name` and currently uses `text-[#2ea043]`. Replace `text-[#2ea043]` with the appropriate Tailwind utility class (e.g., `text-git-success`).
+4.  **Modify "Most Active Today" title color:** In `apps/web/src/components/RightSidebar.tsx`, locate the `div` element within the `activeProjects.map` function that contains `repo.full_name` and currently uses `text-[#4493f8]`. Replace `text-[#4493f8]` with the appropriate Tailwind utility class (e.g., `text-git-info`).
+
+**SCOPE:**
+This improvement may involve changes to two files: `apps/web/tailwind.config.ts` (if new colors need to be defined) and `apps/web/src/components/RightSidebar.tsx`. This multi-file approach ensures a complete and consistent application of the centralized color strategy.
+
+**Executor**: {"title": "[REFACTOR] Centralize Custom Colors in RightSidebar", "body": "### Problem / Gap\nThe `RightSidebar` component uses hardcoded hex color values for the titles of 'Upcoming Projects' and 'Most Active Today' sections. This contradicts the recent refactoring efforts to centralize custom colors in `tailwind.config.ts`, making it difficult to manage and update the visual theme consistently.\n\n### Solution & Insight\nTo address this inconsistency, we will replace the hardcoded hex color values with appropriate Tailwind CSS utility classes. First, we need to define these colors in `tailwind.config.ts` if they do not already exist. Then, we will update the `RightSidebar` component to use these classes instead of the hardcoded values.\n\n### Impact\nThis change improves the maintainability and consistency of the codebase by adhering to the established architectural patterns. It simplifies future adjustments to the color scheme, as changes can be made in a single, well-defined location.", "branch_name": "bot/upgrade-1774677571", "edits": [{"file": "apps/web/tailwind.config.ts", "search": "", "replace": "theme: {\n  extend: {\n    colors: {\n      'git-success': '#2ea043',\n      'git-info': '#4493f8',\n    }\n  }\n}"}, {"file": "apps/web/src/components/RightSidebar.tsx", "search": "              <div className=\"text-[15px] font-bold text-[#2ea043] mb-0.5 truncate\">\n                {repo.full_name}\n              </div>", "replace": "              <div className=\"text-[15px] font-bold text-git-success mb-0.5 truncate\">\n                {repo.full_name}\n              </div>"}, {"file": "apps/web/src/components/RightSidebar.tsx", "search": "              <div className=\"text-[15px] font-bold text-[#4493f8] mb-0.5 truncate\">\n                {repo.full_name}\n              </div>", "replace": "              <div className=\"text-[15px] font-bold text-git-info mb-0.5 truncate\">\n                {repo.full_name}\n              </div>"}]}
+
+**Reviewer**: Reviewer response unparseable
+
+---
