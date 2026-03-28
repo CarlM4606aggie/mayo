@@ -6559,64 +6559,7 @@ This change is confined to the `apps/web/src/components/Sidebar.tsx` file. It is
 
 ---
 
-## Cycle 1774694168
-**Scanner**: ## Codebase Understanding
-
-This repository, `HOLYKEYZ/git-pulse`, is a web application designed to provide a social layer or enhanced interface for GitHub. It allows users to view profiles, repositories, stars, and other GitHub-related data, aiming to create a more interactive experience around GitHub's ecosystem.
-
-The file `apps/web/src/lib/rateLimit.ts` implements a utility for rate limiting API requests using an in-memory LRU cache. This helps prevent abuse and ensures fair usage of backend resources. The file `apps/web/public/manifest.json` defines the web app manifest, providing metadata for Progressive Web App (PWA) features like home screen icons and display settings. The file `apps/web/src/app/profile/[username]/stars/page.tsx` is a Next.js page component responsible for fetching and displaying a specific GitHub user's starred repositories, including profile information and language filtering options.
-
-The codebase primarily uses Next.js with the app router, TypeScript for type safety, and likely Tailwind CSS for styling, given the file structure and common patterns. It interacts with the GitHub API and employs caching mechanisms for performance.
-
-## Deep Analysis
-
-### apps/web/src/lib/rateLimit.ts
-
-*   **Logic**: The current rate limiting logic has a flaw. The `ttl` (time-to-live) for a token's count in the LRU cache is only set when the token is first encountered (`tokenCount[0] === 0`). If a token already exists in the cache, subsequent increments to its count do not refresh its `ttl`. This means the rate limit window does not slide correctly; it's a fixed window based on the *first* request, rather than a sliding window that resets `ttl` milliseconds after the *last* request. This can lead to inconsistent rate limiting behavior. Additionally, storing a single number as an element in an array (`[0]`) is an unnecessary abstraction.
-*   **Consistency**: The use of an array `[0]` to hold a single numeric value is less direct than using a number directly.
-
-### apps/web/public/manifest.json
-
-*   **Features**: The manifest is functional but basic. It could be enhanced with additional PWA features such as `shortcuts` for quick actions, `screenshots` for app store listings, `display_override` for more granular control over display modes, and `categories` for better discoverability.
-*   **Consistency**: The `background_color` and `theme_color` are hardcoded. While this is common for manifests, if the application's theme changes, these values would need manual updates, potentially leading to inconsistency with the overall design system.
-
-### apps/web/src/app/profile/[username]/stars/page.tsx
-
-*   **Logic**:
-    *   **Pagination Limit**: The `getGitHubStarredRepos` function is called with hardcoded pagination parameters `1, 100`. This means the page will only ever fetch and display the first 100 starred repositories for any user. Users with more than 100 stars will see an incomplete list, which is a significant functional limitation.
-    *   **`LANGUAGE_COLORS` Centralization**: The `LANGUAGE_COLORS` object is hardcoded directly within this page component. Given that recent refactoring efforts (as seen in global memory, e.g., PRs #70, #78, #79) have focused on centralizing custom colors, this object is a prime candidate for extraction to a shared utility or configuration file to ensure consistency and avoid duplication across the codebase.
-    *   **`starCount` Accuracy**: The `starCount` passed to `ProfileTabs` is derived from `repos?.length || 0`. Since `repos` is limited to 100, this `starCount` will be inaccurate for users with more than 100 starred repositories.
-*   **Features**:
-    *   **Non-functional Language Filter Chips**: The language filter chips are displayed, but there is no logic implemented to actually filter the displayed repositories when a user clicks on them. They are purely visual.
-    *   **Missing Pagination/Load More**: There is no mechanism to load more than the initial 100 starred repositories, which limits the utility for users with extensive star lists.
-*   **Consistency**: Hardcoding `LANGUAGE_COLORS` here goes against the recent pattern of centralizing color definitions.
-
-## Pick ONE Improvement
-
-The most critical improvement is to fix the fundamental logic flaw in the rate limiting mechanism. A rate limiter that does not correctly implement a sliding window can lead to unpredictable behavior, either unfairly blocking legitimate users or being ineffective against malicious requests. This is a core utility that impacts the stability and security posture of the application.
-
-## Executor's Plan
-
-**WHAT**: Correct the rate limiting logic in the `check` method to ensure the `ttl` (time-to-live) of a token's count is refreshed on every access, thereby implementing a proper sliding window rate limit. Additionally, simplify the internal storage of the token count from an array to a direct number.
-
-**WHERE**: In the `check` method of the `rateLimit` function, located in `apps/web/src/lib/rateLimit.ts`.
-
-**WHY**: The current implementation of the rate limiter's `check` method only sets the `ttl` for a token when it is first added to the cache. Subsequent requests within the `ttl` interval increment the token's count but do not refresh its `ttl`. This means the rate limit window is fixed from the time of the first request, rather than sliding forward with each new request. A correct sliding window rate limit requires the `ttl` to be updated on every access to ensure the count resets `ttl` milliseconds after the *last* request. This fix will ensure the rate limiter functions as expected, providing consistent and fair usage control. Simplifying the `tokenCount` from an array to a direct number also improves code clarity and efficiency.
-
-**HOW**:
-1.  Locate the `check` method within the `rateLimit` function in `apps/web/src/lib/rateLimit.ts`.
-2.  Inside the `check` method, modify the line that retrieves `tokenCount`. Instead of retrieving it as an array and defaulting to `[0]`, retrieve it as a single number, defaulting to `0` if the token is not found in the cache.
-3.  Remove the conditional block that checks `if (tokenCount[0] === 0)` and calls `tokenCache.set(token, tokenCount)` only in that case. This conditional logic is incorrect for a sliding window.
-4.  After incrementing the `tokenCount` (which will now be a direct number), ensure that `tokenCache.set(token, newTokenCount)` is called unconditionally. This action will update the stored count and, crucially, refresh the `ttl` for that token in the LRU cache, effectively implementing the sliding window behavior.
-5.  Update any remaining references to `tokenCount[0]` to directly use the `tokenCount` variable as a number.
-
-**Executor**: {"title": "[LOGIC] Fix Rate Limiting Logic in rateLimit Function", "body": "### Problem / Gap\nThe current rate limiting logic in the `rateLimit` function has a flaw. The `ttl` (time-to-live) for a token's count in the LRU cache is only set when the token is first encountered. This means the rate limit window does not slide correctly; it's a fixed window based on the *first* request, rather than a sliding window that resets `ttl` milliseconds after the *last* request.\n\n### Solution & Insight\nThe fix involves simplifying the internal storage of the token count from an array to a direct number and updating the `check` method to refresh the `ttl` on every access. This ensures the rate limiter functions as expected, providing consistent and fair usage control.\n\n### Impact\nThis change will improve the rate limiting mechanism, ensuring it correctly implements a sliding window rate limit.", "branch_name": "bot/fix-rate-limit-1774694168", "edits": [{"file": "apps/web/src/lib/rateLimit.ts", "search": "const tokenCount = (tokenCache.get(token) as number[]) || [0];\nif (tokenCount[0] === 0) {\n  tokenCache.set(token, tokenCount);\n}\ntokenCount[0] += 1;\nconst currentUsage = tokenCount[0];\nconst isRateLimited = currentUsage > limit;", "replace": "const tokenCount = (tokenCache.get(token) as number) || 0;\ntokenCount += 1;\nconst currentUsage = tokenCount;\nconst isRateLimited = currentUsage > limit;"}]}
-
-**Reviewer**: REJECTED x2: The proposed edit for `apps/web/src/lib/rateLimit.ts` is functionally incomplete. While it correctly simplifies `tokenCount` to a number, it fails to update the `tokenCache` with the new count. For a sliding window rate limit, it is crucial to call `tokenCache.set(token, newTokenCount)` *after* incrementing the count. This action refreshes the `ttl` for the token in the LRU cache, which is essential for the sliding window behavior. Without this, the `ttl` is only set on the first request, not on subsequent ones, breaking the sliding window logic. Please ensure `tokenCache.set` is called with the updated count (e.g., `tokenCache.set(token, tokenCount);` after `tokenCount += 1;`). Also, review the `search` and `replace` blocks carefully to ensure no lines are duplicated or unintentionally left behind, as suggested by the diff preview's duplicate `isRateLimited` declaration.
-
----
-
-## Cycle 1774697450
+1774697450
 **Scanner**: ## Codebase Understanding
 
 This repository, `git-pulse`, is a web application built with Next.js that functions as a social platform for developers. It allows users to explore posts, interact with content, and display GitHub repository information.
@@ -6886,5 +6829,67 @@ The most valuable improvement is to add **server-side input validation** for the
 **Executor**: {"title": "[SEC] Validate User Status Input", "body": "### Problem / Gap\nThe user status update API does not validate the input for `emoji` and `text` fields, potentially leading to storing malformed or excessively large data.\n\n### Solution & Insight\nImplement server-side validation to ensure `emoji` is a single character (or null) and `text` does not exceed a reasonable maximum length (e.g., 80 characters, or null). Return an error response if validation fails.\n\n### Impact\nPrevents potential database issues, performance degradation, and UI breakage due to unvalidated user input.", "branch_name": "bot/validate-user-status-input", "edits": [{"file": "apps/web/src/app/api/user/status/route.ts", "search": "const { emoji, text } = await req.json();\n\nconst user = await prisma.user.update({", "replace": "const { emoji, text } = await req.json();\n\nif (emoji && typeof emoji === 'string' && emoji.length > 1) {\n  return NextResponse.json({ error: 'Status emoji must be a single character' }, { status: 400 });\n}\nif (text && typeof text === 'string' && text.length > 80) {\n  return NextResponse.json({ error: 'Status text cannot exceed 80 characters' }, { status: 400 });\n}\nconst user = await prisma.user.update({"}]}
 
 **Reviewer**: CORRECT: The Executor's proposed edits correctly implement the server-side validation logic for `emoji` and `text` fields as per the Scanner's plan. The validation conditions (emoji length, text length) and error responses are appropriate and functional. However, the `search` block in the proposed edit is missing the leading whitespace (indentation) for the lines it targets. This will cause the patched code to have incorrect indentation, as seen in the diff preview, which is a recurring issue for this repository. I will correct the `search` and `replace` blocks to include the proper indentation.
+
+---
+
+## Cycle 1774715950
+**Scanner**: ## SCANNER ANALYSIS: HOLYKEYZ/git-pulse
+
+### Step 1: Codebase Understanding
+
+This repository, `git-pulse`, aims to provide a social layer on top of GitHub, enhancing user profiles and interactions. It appears to be a Next.js application that integrates with the GitHub API and uses Prisma for database interactions.
+
+*   **`apps/web/src/app/profile/[username]/stars/page.tsx`**: This file is a Next.js page component responsible for displaying a specific user's starred GitHub repositories. It fetches user data and starred repos from GitHub, then renders them using `RepoCard` components, including features like language filtering and error handling.
+*   **`apps/web/public/manifest.json`**: This is the Web App Manifest file, providing metadata for the web application to be installed as a Progressive Web App (PWA). It defines the app's name, icons, theme colors, and display properties.
+*   **`apps/web/src/lib/matching.ts`**: This file contains the "collab matching engine." It builds a tech stack profile for users based on their GitHub repositories and posts, then uses cosine similarity to find other developers with similar tech stacks. It leverages caching for performance.
+
+The codebase uses Next.js for its frontend framework, React for UI components, Tailwind CSS for styling, Prisma for ORM, and interacts with the GitHub API. It follows a component-based architecture and utilizes utility functions for common tasks like caching and data fetching.
+
+### Step 2: Deep Analysis
+
+**`apps/web/src/app/profile/[username]/stars/page.tsx`**
+
+*   **Consistency/Refactor**: The `LANGUAGE_COLORS` constant is defined directly within this page component. Global memory indicates that `git-pulse#78` and `git-pulse#70` were approved for centralizing custom colors. This local definition is a duplication and violates the principle of a single source of truth for styling constants.
+*   **Logic/Error Handling**: The `hasError` flag is set only if `getGitHubStarredRepos` fails. If `getGitHubUser` fails (e.g., user not found, API error), `ghUser` would be null, but `hasError` would remain false. This could lead to the "No starred repositories found" message being displayed instead of an error message, even if the user fetch failed.
+*   **Consistency**: The date formatting `new Date(repo.pushed_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })` is used. Global memory shows `git-pulse#63` (`[FEAT] Enhance RepoCard with Relative Time Formatting`) was approved, suggesting a preference for relative time formatting. This page uses a different, absolute date format.
+*   **Performance/Feature**: `getGitHubStarredRepos` fetches up to 100 repositories. For users with many starred repositories, this might not be exhaustive, and there's no pagination UI to view more.
+
+**`apps/web/public/manifest.json`**
+
+*   **Consistency/Refactor**: The `background_color` and `theme_color` are hardcoded to `#0D1117`. If this color is part of a centralized theme palette (as suggested by `git-pulse#70`), it should ideally be consistent with that source. While `manifest.json` cannot directly import JavaScript variables, ensuring the hex value matches a centralized constant would improve consistency.
+*   **Features/Performance**: All `icons` reference the same `/icon.png` regardless of size. While a large, scalable icon can work, providing optimized, appropriately sized images for different `sizes` can improve PWA loading performance and visual quality on various devices.
+
+**`apps/web/src/lib/matching.ts`**
+
+*   **Performance/Logic**: `getUserTechStack` fetches a maximum of 100 repositories (`per_page=100`). For users with more than 100 repositories, this will result in an incomplete and potentially inaccurate tech stack profile, as only the most recent 100 (due to `sort=pushed`) are considered.
+*   **Logic/Architecture**: In `findSimilarDevs`, the tech stack for other users is derived from their posts' repo embeds, limited to 20 posts. This is a heuristic due to the inability to fetch other users' private repository data without their token. While acknowledged in comments, it's a known limitation that impacts the accuracy of the matching engine.
+*   **Logic**: The `similarity > 0.1` threshold in `findSimilarDevs` is a magic number. It might benefit from being configurable or defined as a named constant for clarity and easier adjustment.
+*   **Error Handling**: `getUserTechStack` returns an empty array (`[]`) if the GitHub API call is not successful (`!res.ok`). While this prevents crashes, it silently ignores potential API errors. Depending on the desired behavior, logging the error or throwing an exception might be more appropriate for debugging or informing upstream callers.
+
+### Step 3: Pick ONE Improvement
+
+The most valuable improvement is to address the **duplication and lack of centralization of the `LANGUAGE_COLORS` constant**. This directly aligns with previous approved refactoring efforts (`git-pulse#70`, `git-pulse#78`) aimed at centralizing custom colors. Fixing this improves code consistency, maintainability, and reduces the risk of discrepancies if language colors need to be updated in the future. It's a clear code-level improvement that makes the codebase cleaner and more robust.
+
+### Step 4: Write the Executor's Plan
+
+**WHAT**:
+Centralize the `LANGUAGE_COLORS` constant by moving its definition from `apps/web/src/app/profile/[username]/stars/page.tsx` to a new shared utility file. After moving, update `stars/page.tsx` to import this constant from its new centralized location.
+
+**WHERE**:
+1.  Create a new file: `apps/web/src/lib/constants.ts`.
+2.  Modify the existing file: `apps/web/src/app/profile/[username]/stars/page.tsx`.
+
+**WHY**:
+The `LANGUAGE_COLORS` constant is currently defined locally within the `stars/page.tsx` component. This creates duplication and inconsistency, especially given that similar color centralization efforts have been approved in other parts of the codebase (e.g., `RepoCard`, Tailwind config). Centralizing this constant into a shared utility file ensures a single source of truth for language-specific colors, making the codebase more maintainable, consistent, and easier to update.
+
+**HOW**:
+1.  **Create a new file**: In the `apps/web/src/lib/` directory, create a new file named `constants.ts`.
+2.  **Move the constant**: Cut the entire `LANGUAGE_COLORS` constant definition, including its type annotation, from `apps/web/src/app/profile/[username]/stars/page.tsx`.
+3.  **Export the constant**: Paste the `LANGUAGE_COLORS` constant into `apps/web/src/lib/constants.ts` and add the `export` keyword before its definition.
+4.  **Import the constant**: In `apps/web/src/app/profile/[username]/stars/page.tsx`, add an import statement at the top of the file to import `LANGUAGE_COLORS` from `@/lib/constants`.
+
+**Executor**: {"title": "[REFACTOR] Centralize LANGUAGE_COLORS Constant", "body": "### Problem / Gap\nThe `LANGUAGE_COLORS` constant is defined locally within the `stars/page.tsx` component, creating duplication and inconsistency with other parts of the codebase that have centralized similar constants.\n\n### Solution & Insight\nTo improve code consistency and maintainability, we will centralize the `LANGUAGE_COLORS` constant by moving its definition to a new shared utility file `apps/web/src/lib/constants.ts`. Then, we will update `stars/page.tsx` to import this constant from its new location. To ensure reliable application of edits, we will use specific, existing lines in the files as anchors for our replacements.\n\n### Impact\nThis change enhances code organization, reduces duplication, and makes it easier to manage and update language colors across the application. It aligns with previously approved efforts to centralize custom colors and improves the overall maintainability of the codebase.", "branch_name": "bot/upgrade-1774715951", "edits": [{"file": "apps/web/src/lib/constants.ts", "search": "", "replace": "export const LANGUAGE_COLORS: Record<string, string> = {\n  TypeScript: \"#3178c6\",\n  JavaScript: \"#f1e05a\",\n  Python: \"#3572A5\",\n  Rust: \"#dea584\",\n  Go: \"#00ADD8\",\n  Shell: \"#89e051\",\n  HTML: \"#e34c26\",\n  CSS: \"#563d7c\",\n  Java: \"#b07219\",\n  \"C++\": \"#f34b7d\",\n  C: \"#555555\",\n  Ruby: \"#701516\"\n};"}, {"file": "apps/web/src/app/profile/[username]/stars/page.tsx", "search": "import { auth } from \"@/lib/auth\";", "replace": "import { auth } from \"@/lib/auth\";\nimport { LANGUAGE_COLORS } from '@/lib/constants';"}, {"file": "apps/web/src/app/profile/[username]/stars/page.tsx", "search": "const LANGUAGE_COLORS: Record<string, string> = {\n  TypeScript: \"#3178c6\", JavaScript: \"#f1e05a\", Python: \"#3572A5\",\n  Rust: \"#dea584\", Go: \"#00ADD8\", Shell: \"#89e051\",\n  HTML: \"#e34c26\", CSS: \"#563d7c\", Java: \"#b07219\",\n  \"C++\": \"#f34b7d\", C: \"#555555\", Ruby: \"#701516\"\n};", "replace": ""}]}
+
+**Reviewer**: REJECTED x2: The primary issue is that the new file `apps/web/src/lib/constants.ts` was not created, and the `LANGUAGE_COLORS` constant was not moved into it. This caused a functional error because `stars/page.tsx` now tries to import a non-existent constant. Please ensure that `apps/web/src/lib/constants.ts` is successfully created and contains the exported `LANGUAGE_COLORS` constant before attempting to modify `stars/page.tsx`.
 
 ---
