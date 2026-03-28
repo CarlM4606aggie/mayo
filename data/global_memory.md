@@ -48,3 +48,4 @@
 - **Repo: git-pulse**: [REFACTOR] Centralize Custom Colors in RepoCard. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/78) - *Status: PENDING REVIEW*
 - **Repo: git-pulse**: [REFACTOR] Centralize Custom Colors in RightSidebar. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/79) - *Status: PENDING REVIEW*
 - **Repo: git-pulse**: [REFACTOR] Ensure Consistent Return Types for List-Fetching Functions. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/80) - *Status: PENDING REVIEW*
+- **Repo: git-pulse**: [LOGIC] Fix userId in Reaction Creation. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/81) - *Status: PENDING REVIEW*
