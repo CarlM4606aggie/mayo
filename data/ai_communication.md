@@ -6750,77 +6750,7 @@ The `LANGUAGE_COLORS` constant is currently defined locally within the `stars/pa
 
 ---
 
-## Cycle 1774719142
-**Scanner**: ### Step 1: Codebase Understanding
-
-This repository, `git-pulse`, appears to be a web application designed to interact with GitHub, likely providing a dashboard or social platform for developers. It focuses on displaying user profiles, repositories, activity, and potentially facilitating collaboration, as suggested by the "CollabWidget" component.
-
-The target file `apps/web/src/components/CollabWidget.tsx` is a client-side React component responsible for fetching and displaying a list of "collaboration matches" (developers with similar profiles) from a backend API route (`/api/collab`). It handles loading states, error display, and renders a list of matched users with their avatars, usernames, shared languages, and a similarity score.
-
-The `pnpm-workspace.yaml` file indicates that `git-pulse` is structured as a monorepo, managing multiple packages (apps and shared packages) within a single repository using pnpm.
-
-The `apps/web/src/lib/cache.ts` file provides a utility for in-memory caching using an LRU (Least Recently Used) strategy. It exports a singleton `LRUCache` instance and a `withCache` wrapper function to easily cache the results of asynchronous operations, primarily for server-side API responses, to improve performance by reducing redundant data fetches.
-
-The codebase uses modern web development patterns:
-- **Next.js**: For server-side rendering, API routes, and client-side navigation.
-- **React**: For building user interfaces with functional components and hooks.
-- **TypeScript**: For strong typing, enhancing code reliability and maintainability.
-- **Tailwind CSS**: For styling, indicated by utility classes like `border-git-border` and `bg-git-card`.
-- **Monorepo structure**: Facilitated by pnpm for managing multiple interdependent projects.
-- **LRU Caching**: For performance optimization on the server side.
-
-### Step 2: Deep Analysis
-
-**`apps/web/src/components/CollabWidget.tsx`**
-
-*   **Logic**: There is a redundant conditional check: `if (matches.length === 0) return null;` appears twice consecutively. The second check is unreachable if the first one evaluates to true, making it unnecessary.
-*   **Security**: The component fetches data from `/api/collab`. Assuming the backend API properly sanitizes and validates data before sending it to the frontend, the direct rendering of `match.username` and `match.avatar` within `Link` and `Image` components is generally safe. The `href` for the `Link` is constructed using `match.username`, which is typical for profile links and generally not a direct injection risk for internal routing.
-*   **Performance**: The `useEffect` hook correctly uses an empty dependency array (`[]`), ensuring the `fetchMatches` function runs only once after the initial render, preventing unnecessary re-fetches. The loading and error states are handled gracefully.
-*   **Consistency**: The duplicate `if` statement is an inconsistency in the code structure.
-
-**`pnpm-workspace.yaml`**
-
-*   This file is standard for a pnpm monorepo setup and appears correct. No issues found.
-
-**`apps/web/src/lib/cache.ts`**
-
-*   **Logic**: The `withCache` function explicitly avoids caching `null`, `undefined`, or empty arrays (`if (result !== null && result !== undefined)`). While this can prevent caching "bad" or incomplete responses, it also means that a legitimate empty array response (e.g., an API call correctly returning no items) will *not* be cached. This could lead to repeated, unnecessary API calls for known empty states, potentially impacting performance. The comment `// however, if i want to cache empty results, i should adjust this logic.` acknowledges this design choice.
-*   **Performance**: The LRU cache implementation itself is a performance enhancement. The `max` and `ttl` defaults are reasonable. However, the decision not to cache empty arrays could be a performance bottleneck if empty results are common and expensive to compute, as it forces a re-fetch every time.
-*   **Architecture**: The global singleton pattern for the cache instance (`globalForCache`) is a standard and effective way to manage shared state in a Next.js server environment, ensuring only one cache instance exists in production.
-*   **Error Handling**: The `withCache` function includes a `try...catch` block and logs errors, which is good practice.
-
-### Step 3: Pick ONE Improvement
-
-The most valuable improvement is to address the redundant conditional check in `CollabWidget.tsx`. It's a clear-cut logic and consistency issue that can be fixed without altering the component's behavior, making the code cleaner and more maintainable. While the caching of empty arrays in `cache.ts` is a valid point for discussion regarding performance, it's a design choice with a comment indicating awareness, and changing it might require a deeper understanding of all API call patterns. The duplicate `if` statement is a simpler, unambiguous improvement.
-
-### Step 4: Write the Executor's Plan
-
-**WHAT to change:**
-Remove one of the two identical and consecutive conditional statements that check if the `matches` array is empty and returns `null`.
-
-**WHERE in the file(s):**
-In the file `apps/web/src/components/CollabWidget.tsx`, locate the section just before the main `return` statement that renders the `div` with class `border border-git-border`. Specifically, find these two lines:
-`if (matches.length === 0) return null;`
-`if (matches.length === 0) return null;`
-
-**WHY this matters:**
-The presence of two identical `if (matches.length === 0) return null;` statements immediately following each other is redundant. If the first condition is met, the component returns, and the second line is never executed. If the first condition is not met, the second condition will also not be met, making it superfluous. Removing the duplicate line simplifies the code, improves readability, and adheres to the principle of "Don't Repeat Yourself" (DRY) without introducing any functional changes or risks.
-
-**HOW to do it:**
-1.  Open the file `apps/web/src/components/CollabWidget.tsx`.
-2.  Navigate to the lines where the `matches.length === 0` check is performed twice.
-3.  Delete one of these two identical lines, leaving only a single instance of `if (matches.length === 0) return null;`.
-
-**SCOPE:**
-This change is confined to a single file: `apps/web/src/components/CollabWidget.tsx`.
-
-**Executor**: {"title": "[REFACTOR] Remove Redundant Conditional Check in CollabWidget", "body": "### Problem / Gap\nThe CollabWidget.tsx file contains a redundant conditional check for an empty matches array, which can be simplified to improve code readability and maintainability.\n\n### Solution & Insight\nBy removing the duplicate conditional statement, we ensure the code adheres to the DRY principle and reduces unnecessary checks, making it more efficient and easier to understand.\n\n### Impact\nThis change improves code quality, readability, and maintainability without altering the component's functionality.", "branch_name": "bot/upgrade-1774719142", "edits": [{"file": "apps/web/src/components/CollabWidget.tsx", "search": "if (matches.length === 0) return null;\nif (matches.length === 0) return null;", "replace": "if (matches.length === 0) return null;"}]}
-
-**Reviewer**: APPROVE: The Executor's proposed edit correctly identifies and removes a redundant conditional statement in `CollabWidget.tsx`. The search block is precise, and the replacement results in cleaner, more maintainable code without altering functionality. This aligns perfectly with the Scanner's recommendation and passes all validation checks.
-
----
-
-## Cycle 1774723541
+1774723541
 **Scanner**: ## SCANNER ANALYSIS: HOLYKEYZ/git-pulse
 
 ### Step 1: Codebase Understanding
@@ -7104,5 +7034,93 @@ This change is localized to the `apps/web/src/components/ComposeFeed.tsx` file. 
 **Executor**: {"title": "[FEAT] Enhance Markdown Link Generation for Hashtags and Mentions", "body": "### Problem / Gap\nThe current Markdown processing in `ComposeFeed.tsx` generates incomplete links for hashtags and mentions, reducing the interactive functionality of posts.\n\n### Solution & Insight\nUpdate the `replace` calls within the `ReactMarkdown` component to correctly generate links for hashtags and mentions. Hashtags should link to a search results page, and mentions should link to the respective user's profile page.\n\n### Impact\nThis improvement enhances user engagement by providing functional links within posts, making it easier for users to discover related content and interact with each other.", "branch_name": "bot/upgrade-1774733551", "edits": [{"file": "apps/web/src/components/ComposeFeed.tsx", "search": "content.replace(/(^|\\s)(#[\\w-]+)/g, '$1[$2]($2)').replace(/(^|\\s)(@[\\w-]+)/g, '$1[$2]($2)')", "replace": "content.replace(/(^|\\s)(#[\\w-]+)/g, '$1[#$2](/search?q=%23$2)').replace(/(^|\\s)(@[\\w-]+)/g, '$1[@$2](/profile/$2)')"}]}
 
 **Reviewer**: APPROVE: The Executor's proposed edit precisely implements the Scanner's plan to fix the incomplete Markdown link generation for hashtags and mentions in `ComposeFeed.tsx`. The search string is an exact match, and the replacement correctly generates functional links to search pages for hashtags (with URL encoding) and profile pages for mentions. This is a valuable, non-destructive, and well-aligned improvement that enhances user experience.
+
+---
+
+## Cycle 1774737156
+**Scanner**: **SCANNER ANALYSIS: HOLYKEYZ/git-pulse**
+
+### Step 1: Codebase Understanding
+
+*   **What does this repository do?**
+    The `git-pulse` repository hosts a web application designed to aggregate and display GitHub activity, including user profiles, repositories, events, and contribution data. It also features a real-time social feed where users can share posts, providing a personalized and interactive view of developer activity.
+
+*   **What does `apps/web/src/lib/github.ts` do within the repo?**
+    This file serves as the primary service layer for interacting with the GitHub API. It encapsulates logic for fetching various GitHub data points, such as user profiles, repositories, events, contribution calendars, and pinned repositories. It leverages both GitHub's REST and GraphQL APIs and includes a caching mechanism to optimize API calls.
+
+*   **What does `apps/web/src/app/api/feed/stream/route.ts` do within the repo?**
+    This file implements a Server-Sent Events (SSE) endpoint that provides a real-time feed of new posts to connected clients. It periodically polls the database for posts created since the last check and streams them down to the client, ensuring users receive timely updates without constant page refreshes.
+
+*   **What does `packages/ui/tsconfig.json` do within the repo?**
+    This file defines the TypeScript compiler configuration specifically for the `ui` package within the monorepo. It extends the root `tsconfig.json` and specifies settings like target JavaScript version, module resolution strategy, JSX support, and path aliases (`@/*`) relevant to the UI components.
+
+*   **What patterns, frameworks, or conventions does the codebase use?**
+    The codebase primarily uses **Next.js** for its web application, leveraging its API routes and server-side rendering capabilities. It is written in **TypeScript** for strong typing and maintainability. **Prisma** is used as the ORM for database interactions. The project follows a **monorepo** structure, managed by pnpm, separating `apps` and `packages`. It employs **Server-Sent Events (SSE)** for real-time data streaming and integrates with the **GitHub API** (both REST and GraphQL) through a dedicated service layer that includes a **caching** mechanism. Path aliases (`@/`) are consistently used for module imports.
+
+### Step 2: Deep Analysis
+
+**File: `apps/web/src/lib/github.ts`**
+
+*   **Security**: GitHub API tokens are handled by slicing for cache keys, which is good, but the full token is used in headers. Upstream token management (e.g., environment variables, secure storage) is critical. No explicit input validation for `username` or other parameters, assuming internal control.
+*   **Logic**: Consistent error handling returning `null`, requiring callers to handle it. GraphQL error handling returns partial data if available, which might need careful consideration by consumers. The GraphQL cache key generation might not be perfectly unique for very long, similar queries.
+*   **Performance**: Effective use of `withCache` and `revalidate` options.
+*   **Architecture**: Clear service layer, good separation of concerns, consistent API interaction patterns.
+*   **Features**: The `GitHubEvent` payload type is very broad, potentially making it less type-safe and harder to work with. The `getGitHubReceivedEvents` function is truncated in the provided snippet, so its full implementation cannot be assessed.
+*   **Testing**: No tests are provided in the snippet, but this file is crucial for external API integration and would benefit from comprehensive unit/integration tests.
+*   **DX**: Good JSDoc comments and clear interfaces. The broad `GitHubEvent` type could be improved for better DX.
+*   **Consistency**: Consistent use of helper functions and error patterns.
+*   **Dead Code**: No obvious dead code.
+
+**File: `apps/web/src/app/api/feed/stream/route.ts`**
+
+*   **Security**: Database queries are based on internal timestamps, reducing direct user input risk. Avatar URL construction relies on `githubId` being a safe identifier. User-generated content (`content`, `repoUrl`) is streamed directly; client-side sanitization is essential to prevent XSS.
+*   **Logic**: **CRITICAL BUG**: The `lastCheckedTime = new Date();` update is flawed. It updates the watermark to the *current* time, not the `createdAt` of the newest post found. This can cause posts created between the newest fetched post's timestamp and the `new Date()` call to be permanently missed in subsequent polls, leading to an incomplete feed. `comments: 0` is hardcoded, indicating a missing feature or incomplete data. `repoEmbed: post.repoCache as any` is a type escape hatch.
+*   **Performance**: Polling the database every 5 seconds, especially for a high-traffic feed, can be inefficient and resource-intensive. A pub/sub model or more intelligent polling could improve scalability. `force-dynamic` is correctly used for SSE.
+*   **Architecture**: Standard SSE implementation for Next.js. Correct handling of client disconnection.
+*   **Features**: Hardcoded `comments: 0` suggests a missing feature for displaying comment counts. Only `NEW_POST` events are sent; a more robust feed might include updates or deletions.
+*   **Testing**: No tests provided. SSE endpoints require careful testing for reliability and event correctness.
+*   **DX**: The `any` cast for `repoEmbed` reduces type safety.
+*   **Consistency**: Consistent use of `TextEncoder` and `TransformStream`.
+*   **Dead Code**: No obvious dead code.
+
+**File: `packages/ui/tsconfig.json`**
+
+*   **Architecture**: Extends root `tsconfig.json` for monorepo consistency. Path aliases (`@/*`) are well-defined.
+*   **DX**: Clear and standard TypeScript configuration, improving developer experience with path aliases.
+*   **Consistency**: Modern TypeScript compiler options (`ES2020`, `esnext`, `bundler`).
+*   **Other**: N/A for a `tsconfig.json`.
+
+**Global Memory & Past Rejections Review**:
+The recurring issues with search block mismatches, `search: ""` for insertions, and functional errors due to incomplete changes highlight the need for extremely precise and targeted instructions. The chosen improvement is a single-line logic fix, which should minimize the risk of search block mismatches and complex multi-file coordination that led to previous rejections.
+
+### Step 3: Pick ONE Improvement
+
+The single most valuable improvement is to fix the **critical logic bug in `apps/web/src/app/api/feed/stream/route.ts`** where `lastCheckedTime` is incorrectly updated. This bug directly impacts the core functionality of the real-time feed by causing new posts to be missed, leading to an unreliable user experience. This falls under the highest priority category of "Bugs, security flaws, and broken logic."
+
+### Step 4: Write the Executor's Plan
+
+**WHAT** to change:
+The logic for updating the `lastCheckedTime` variable within the Server-Sent Events (SSE) feed stream needs to be corrected. Instead of setting `lastCheckedTime` to the current time (`new Date()`) when new posts are found, it should be updated to the `createdAt` timestamp of the newest post retrieved in that batch.
+
+**WHERE** in the file(s):
+File: `apps/web/src/app/api/feed/stream/route.ts`
+Inside the `fetchPostsInterval` function, specifically within the `if (newPosts.length > 0)` block, locate the line where `lastCheckedTime` is assigned `new Date()`.
+
+**WHY** this matters:
+This is a critical logic bug that causes the real-time feed to potentially miss new posts. When `lastCheckedTime` is updated to the current time, any posts created between the actual `createdAt` timestamp of the latest fetched post and the moment `new Date()` is called will be older than the new `lastCheckedTime` and thus will not be picked up in subsequent database polls. This results in an incomplete and unreliable real-time feed for users, directly impacting the core functionality of the application. Correcting this ensures that all new posts are accurately captured and streamed.
+
+**HOW** to do it:
+1.  Open the file `apps/web/src/app/api/feed/stream/route.ts`.
+2.  Navigate to the `setInterval` callback function, specifically the `fetchPostsInterval` asynchronous function.
+3.  Locate the `if (newPosts.length > 0)` conditional block.
+4.  Inside this block, find the line:
+    `lastCheckedTime = new Date();`
+5.  Replace this line with an assignment that uses the `createdAt` property of the newest post found in the `newPosts` array. Since the `prisma.post.findMany` query orders results by `createdAt: "desc"`, the newest post will always be at index `0`.
+6.  The corrected line should be:
+    `lastCheckedTime = newPosts[0].createdAt;`
+
+**Executor**: {"title": "[LOGIC] Fix Critical Bug in Feed Stream Route", "body": "### Problem / Gap\nThe `lastCheckedTime` variable in the feed stream route is updated incorrectly, causing new posts to be missed in the real-time feed.\n\n### Solution & Insight\nUpdate the `lastCheckedTime` assignment to use the `createdAt` timestamp of the newest post found, ensuring all new posts are captured and streamed correctly.\n\n### Impact\nThis fix ensures the reliability and completeness of the real-time feed, directly improving the user experience by preventing posts from being missed.", "branch_name": "bot/fix-feed-stream-1774737156", "edits": [{"file": "apps/web/src/app/api/feed/stream/route.ts", "search": "lastCheckedTime = new Date();", "replace": "lastCheckedTime = newPosts[0].createdAt;"}]}
+
+**Reviewer**: REJECTED x2: The proposed edit `lastCheckedTime = newPosts[0].createdAt;` is correct and addresses the critical bug as identified. The search block `lastCheckedTime = new Date();` is indeed present in the original file. However, the 'ACTUAL DIFF PREVIEW' shows 'NO CHANGES', indicating that the patch failed to apply. Please retry applying this exact edit. This seems to be an issue with the patching mechanism itself, not your proposed change.
 
 ---
