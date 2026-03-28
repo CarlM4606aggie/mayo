@@ -7021,3 +7021,88 @@ The current state of `apps/web/src/lib/algo.ts` contains a critical syntax error
 **Reviewer**: CORRECT: The Executor's proposed edits correctly identify the problematic code blocks in `apps/web/src/lib/algo.ts` that cause `ReferenceError` and logical inconsistencies, aligning with the Scanner's plan. However, the search blocks provided in the JSON are not exact matches to the original file content, which is a recurring issue for this repository. Specifically, the first edit's search block includes a closing brace `}` that is not present in the original code, and the second edit's search block fails to include a necessary stray closing brace `}` that would remain after the patch, leading to a syntax error. Both search blocks have been corrected to ensure an exact match and a compilable outcome.
 
 ---
+
+## Cycle 1774733551
+**Scanner**: # SCANNER ANALYSIS: HOLYKEYZ/git-pulse
+
+## Step 1: Codebase Understanding
+
+*   **What does this repository do?**
+    The `git-pulse` repository is a social media platform for developers, integrating with GitHub to display trending repositories, developers, and user-generated content (posts, reactions). It aims to provide a feed of relevant developer activity and facilitate collaboration.
+
+*   **What do the target files do within the repo?**
+    *   `apps/web/src/components/ComposeFeed.tsx`: This component provides the user interface for creating new posts. It allows users to input text (with Markdown support), attach images, preview their post, and submit it to the backend.
+    *   `packages/ui/tsconfig.json`: This file configures TypeScript for the `ui` package, defining compiler options, included files, and path aliases specific to the shared UI components.
+    *   `apps/web/src/components/RightSidebar.tsx`: This server component displays various dynamic content on the right side of the application's layout. It fetches and renders trending GitHub repositories and developers, upcoming projects, most active projects, and suggested users to follow, combining data from GitHub APIs and the local database.
+
+*   **What patterns, frameworks, or conventions does the codebase use?**
+    The codebase uses Next.js for server-side rendering and API routes, React for UI development (including client and server components), TypeScript for type safety, and Tailwind CSS for styling. It follows a monorepo structure with `pnpm` workspaces. Data fetching often involves asynchronous operations and `Promise.all` for parallel execution. Prisma is used for database interactions, and NextAuth.js for authentication. Markdown rendering is handled by `ReactMarkdown` with `remark-gfm`.
+
+## Step 2: Deep Analysis
+
+*   **Security**:
+    *   `ComposeFeed.tsx`: The direct rendering of user-uploaded `Data URL`s via `img src={img}` (with `eslint-disable-next-line`) in the image preview section could be a concern if the backend doesn't robustly validate and re-process image uploads. While `Data URL`s are generally safer than external URLs, very large or malformed ones could theoretically impact performance or browser stability. The primary security control should be on the server-side `/api/posts` endpoint.
+    *   `RightSidebar.tsx`: Direct use of `repo.html_url` in `<a>` tags is generally safe when sourced from a trusted API like GitHub. However, if the source of `repo.html_url` were less trusted or could be manipulated, it could lead to open redirect vulnerabilities.
+
+*   **Logic**:
+    *   `ComposeFeed.tsx`: The conditional logic for `handleSubmit` (`if (!content.trim() && images.length === 0 || content.length > maxLength || isSubmitting) return;`) is functionally correct but could benefit from clearer parenthesization for readability: `if ((!content.trim() && images.length === 0) || content.length > maxLength || isSubmitting) return;`.
+    *   `RightSidebar.tsx`: The fallback logic for `suggestedUsers` (`if (suggestedUsers.length < 5 && token)`) appends GitHub-suggested developers to the list. There's no de-duplication step, meaning a user fetched from Prisma could potentially also appear in the GitHub suggestions, leading to duplicate entries in the "Who to follow" list.
+    *   `RightSidebar.tsx`: The `upcomingProjects` and `activeProjects` mapping functions use `repo: any`. This bypasses TypeScript's type checking, making it harder to catch potential issues if the GitHub API response structure changes or if properties are accessed incorrectly.
+
+*   **Performance**:
+    *   `ComposeFeed.tsx`: Converting images to `Data URL`s (base64 strings) on the client-side and sending them directly in the JSON payload can be inefficient for larger images, increasing request size and processing overhead. For optimal performance and scalability, images are typically uploaded as raw files to a dedicated storage service (e.g., S3) and their URLs are then sent to the API.
+    *   `RightSidebar.tsx`: While `Promise.all` is used for parallel fetching, the component makes several external API calls. Ensuring robust caching mechanisms are in place for all these GitHub API calls (beyond what's mentioned in Global Memory for contributions and trending tags) is crucial to prevent redundant fetches and improve load times.
+
+*   **Architecture**:
+    *   `RightSidebar.tsx`: The component directly orchestrates multiple data fetches and combines data from different sources. While suitable for server components, as the complexity grows, abstracting data fetching logic into dedicated hooks or service layers could improve modularity and testability.
+    *   `RightSidebar.tsx`: The lack of specific types for GitHub repository objects (using `repo: any`) indicates a potential architectural gap in defining shared data structures for external API responses.
+
+*   **Features**:
+    *   `ComposeFeed.tsx`: The Markdown processing for `#hashtags` and `@mentions` currently generates self-referential links (e.g., `[#tag](#tag)`). This is incomplete; these should ideally link to a search page (e.g., `/search?q=%23tag`) or a user profile page (e.g., `/profile/@username`) respectively. This is a significant missing interactive feature.
+    *   `ComposeFeed.tsx`: No user-facing error message is displayed if the post submission fails; errors are only logged to the console.
+    *   `RightSidebar.tsx`: The "Who to follow" section provides a link to the user's profile but no direct "Follow" action button, requiring an extra navigation step for a common interaction.
+
+*   **Testing**:
+    *   The provided files do not include explicit test files. Client-side components like `ComposeFeed` and server components like `RightSidebar` would benefit from unit and integration tests to ensure functionality, especially given the complex data fetching and user interaction.
+
+*   **DX (Developer Experience)**:
+    *   `ComposeFeed.tsx`: Hardcoded values like `maxLength = 280` could be moved to a constant file for easier management. Inline styles (`background: '#010409'`, `padding: '12px'`) and hardcoded Tailwind colors (`bg-[#0d1117]`) could be replaced with named Tailwind classes for consistency and easier theming.
+    *   `RightSidebar.tsx`: The use of `repo: any` reduces type safety and makes the component harder to understand and maintain without inspecting the data fetching functions.
+
+*   **Consistency**:
+    *   `ComposeFeed.tsx`: Inconsistent use of hardcoded colors (`bg-[#0d1117]` vs. `background: '#010409'`) for similar background elements. This violates the principle of centralized custom colors, which has been a focus in recent approved PRs (e.g., #70, #78, #79).
+    *   `RightSidebar.tsx`: Frequent use of arbitrary `text-[15px]` and `text-[13px]` values. While functional, defining these as named text sizes in `tailwind.config.ts` would improve consistency.
+
+*   **Dead Code**:
+    *   No immediately obvious dead code in the provided snippets.
+
+## Step 3: Pick ONE Improvement
+
+The most valuable improvement is to fix the **incomplete Markdown link generation for hashtags and mentions in `ComposeFeed.tsx`**. This is a core interactive feature that is currently broken from a user experience perspective, making the platform less functional and engaging. It directly impacts user interaction with generated content.
+
+## Step 4: Write the Executor's Plan
+
+**WHAT** to change
+The current Markdown processing in `apps/web/src/components/ComposeFeed.tsx` for hashtags and mentions generates links that point back to the hashtag or mention itself (e.g., `[#tag](#tag)`). This needs to be updated to generate functional links: hashtags should link to a search results page (e.g., `/search?q=%23hashtag`), and mentions should link to the respective user's profile page (e.g., `/profile/@username`).
+
+**WHERE** in the file(s)
+The change will be in `apps/web/src/components/ComposeFeed.tsx`, specifically within the `ReactMarkdown` component's `children` prop, where the `content` string is pre-processed using `replace` methods.
+
+**WHY** this matters
+This matters because the current implementation of Markdown links for hashtags and mentions is functionally incomplete. Users expect to be able to click on these elements and navigate to relevant content (search results for hashtags, user profiles for mentions). Without this, the feature is misleading and reduces the interactivity and utility of the platform, hindering user experience and engagement. It's a core social media feature that is currently broken from a user interaction perspective.
+
+**HOW** to do it
+1.  Locate the `ReactMarkdown` component within the `ComposeFeed.tsx` file.
+2.  Find the `children` prop of `ReactMarkdown`, which currently contains a chain of `content.replace(...)` calls.
+3.  Modify the first `replace` call, which targets hashtags (`/(^|\s)(#[\w-]+)/g`). The replacement string should be changed from `'$1[$2]($2)'` to `'$1[$2](/search?q=$2)'`. This will create a link to the `/search` route with the hashtag as a query parameter.
+4.  Modify the second `replace` call, which targets mentions (`/(^|\s)(@[\w-]+)/g`). The replacement string should be changed from `'$1[$2]($2)'` to `'$1[$2]/profile/$2)'`. This will create a link to the `/profile` route with the username as a path parameter.
+5.  Ensure that the generated URLs are correctly formatted for Next.js routing. For hashtags, the `#` symbol in the URL query parameter should be URL-encoded (e.g., `%23`). The current regex captures `#[\w-]+` as `$2`, so the replacement should be `'$1[#$2](/search?q=%23$2)'` to include the `#` in the displayed text and correctly encode it in the URL. For mentions, the `@` symbol is typically not part of the URL path, so the replacement should be `'$1[@$2](/profile/$2)'` to include `@` in the displayed text but not in the path.
+
+**SCOPE**
+This change is localized to the `apps/web/src/components/ComposeFeed.tsx` file. It modifies the client-side rendering logic for user-generated content to correctly interpret and link hashtags and mentions, enhancing the interactive functionality of posts. No other files need to be modified for this specific improvement, as the routing for `/search` and `/profile` is assumed to already exist.
+
+**Executor**: {"title": "[FEAT] Enhance Markdown Link Generation for Hashtags and Mentions", "body": "### Problem / Gap\nThe current Markdown processing in `ComposeFeed.tsx` generates incomplete links for hashtags and mentions, reducing the interactive functionality of posts.\n\n### Solution & Insight\nUpdate the `replace` calls within the `ReactMarkdown` component to correctly generate links for hashtags and mentions. Hashtags should link to a search results page, and mentions should link to the respective user's profile page.\n\n### Impact\nThis improvement enhances user engagement by providing functional links within posts, making it easier for users to discover related content and interact with each other.", "branch_name": "bot/upgrade-1774733551", "edits": [{"file": "apps/web/src/components/ComposeFeed.tsx", "search": "content.replace(/(^|\\s)(#[\\w-]+)/g, '$1[$2]($2)').replace(/(^|\\s)(@[\\w-]+)/g, '$1[$2]($2)')", "replace": "content.replace(/(^|\\s)(#[\\w-]+)/g, '$1[#$2](/search?q=%23$2)').replace(/(^|\\s)(@[\\w-]+)/g, '$1[@$2](/profile/$2)')"}]}
+
+**Reviewer**: APPROVE: The Executor's proposed edit precisely implements the Scanner's plan to fix the incomplete Markdown link generation for hashtags and mentions in `ComposeFeed.tsx`. The search string is an exact match, and the replacement correctly generates functional links to search pages for hashtags (with URL encoding) and profile pages for mentions. This is a valuable, non-destructive, and well-aligned improvement that enhances user experience.
+
+---
