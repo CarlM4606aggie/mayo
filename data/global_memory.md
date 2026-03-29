@@ -1,7 +1,6 @@
 # mayo Global Memory & Experience
 
-- *[ARCHIVED] 3 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [REFACTOR] Centralize Custom Colors in Tailwind Config. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/70) - *Status: APPROVED - Joseph liked this!*
+- *[ARCHIVED] 1 older lessons were archived to preserve focus.*
 - **Repo: git-pulse**: [REFACTOR] Enhance Type Safety in Auth JWT Callback. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/71) - *Status: APPROVED - Joseph liked this!*
 - **Repo: git-pulse**: [LOGIC] Optimize User Identification in Authenticated API Routes. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/72) - *Status: APPROVED - Joseph liked this!*
 - **Repo: git-pulse**: [PERF] Implement In-Memory Cache for GitHub Contributions. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/73) - *Status: APPROVED - Joseph liked this!*
