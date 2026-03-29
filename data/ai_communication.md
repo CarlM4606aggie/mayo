@@ -7266,85 +7266,7 @@ This improvement involves a cohesive, multi-file change across `apps/web/tailwin
 
 ---
 
-## Cycle 1774802334
-**Scanner**: ## SCANNER ANALYSIS: HOLYKEYZ/git-pulse
-
-### Step 1: Codebase Understanding
-
-This repository, `HOLYKEYZ/git-pulse`, appears to be a web application designed to provide a social or analytical platform centered around GitHub data. It likely allows users to explore trending topics, view pinned repositories, and engage with developer-related content.
-
-*   **`apps/web/src/components/PinnedRepos.tsx`**: This React component is responsible for rendering a user's pinned GitHub repositories. It displays key information for each repository, such as its name, description, primary programming language, star count, and fork count, using a visually structured layout with icons and styling.
-*   **`apps/web/src/app/explore/tags/page.tsx`**: This Next.js server component is dedicated to displaying trending hashtags. It fetches posts from a database, aggregates hashtags, and caches the results to improve performance. The page then presents these tags as clickable links, highlighting the most popular ones.
-*   **`apps/web/tsconfig.json`**: This is the TypeScript configuration file for the `apps/web` project. It defines compiler options, specifies which files to include and exclude, and sets up path aliases (e.g., `@/` for `src/`) to simplify imports.
-
-The codebase utilizes Next.js for its web framework, React for UI components, and TypeScript for type safety. Styling is managed with Tailwind CSS, leveraging custom color variables (e.g., `git-text`, `git-muted`). Database interactions are handled via Prisma, and an LRU cache is employed for performance optimization in the trending tags feature. Primer Octicons are used for various icons throughout the UI.
-
-### Step 2: Deep Analysis
-
-**`apps/web/src/components/PinnedRepos.tsx`**
-
-*   **Security**: The `repo.url` is rendered directly into an `<a>` tag. Assuming `PinnedRepo` data originates from a trusted source like the GitHub API, this is generally safe. The use of `target="_blank" rel="noopener noreferrer"` is good practice for external links.
-*   **Logic**: The component correctly handles the case of no pinned repositories by returning `null`. Language colors have a fallback mechanism. Star and fork counts are only displayed if greater than zero.
-*   **Performance**: Standard React mapping for rendering a list; no obvious performance bottlenecks for a typical number of pinned repositories.
-*   **Architecture**: The component is purely presentational, receiving data via props, which promotes good separation of concerns. `getLanguageColor` is centralized in `@/lib/colors`.
-*   **Features**: The "Public" badge is hardcoded. If the `PinnedRepo` type were to include visibility status, this could be made dynamic. However, it's likely that only public repos are intended for display here.
-*   **Consistency**:
-    *   **Icon Sizing and Coloring**: There is an inconsistency in how Octicon components are sized and colored. `PinIcon`, `RepoIcon`, and `GrabberIcon` use the `size={16}` prop and `fill-git-muted` class. However, `StarIcon` and `RepoForkedIcon` use `className="fill-current w-3 h-3"`. The `w-3 h-3` classes override the default Octicon size, making these icons 12px, while others are 16px. `fill-current` resolves to `fill-git-muted` due to the parent `text-git-muted` class, but the explicit `fill-git-muted` is used for other icons. This creates a minor visual discrepancy and inconsistent styling approach.
-
-**`apps/web/src/app/explore/tags/page.tsx`**
-
-*   **Security**: Hashtag normalization to lowercase helps prevent case-sensitive issues. URL generation for tags uses a simple `replace('#', '')`, which is adequate for typical hashtags but might need more robust URL encoding if tags could contain complex special characters.
-*   **Logic**: The LRU cache is configured with `max: 1`, which, while unusual for a typical LRU, is likely an intentional design choice to cache a single set of trending tags for a specific duration, especially given previous work on fixing an ineffective LRU cache (PR #74). Nullish coalescing (`p.hashtags || []`) correctly handles potentially undefined hashtag arrays. The display logic for ensuring tags start with `#` and highlighting the top 3 is correct.
-*   **Performance**: The aggregation of hashtags involves fetching all posts (`prisma.post.findMany({ select: { hashtags: true } })`). As noted in the code comments, this is a basic aggregation and could be inefficient for a large number of posts. This is a known performance bottleneck and is already being tracked in issue #99 "[PERF] Optimize Trending Hashtag Aggregation in Explore Tags Page." The LRU cache helps mitigate repeated database queries within its TTL.
-*   **Architecture**: Direct Prisma usage within a Next.js server component is a common pattern for the App Router.
-*   **Features**: The current "trending" algorithm is a simple count of all hashtags. A more sophisticated algorithm might consider recency or other popularity metrics, but this is related to the existing performance issue (#99).
-
-**`apps/web/tsconfig.json`**
-
-*   **Architecture/DX**: The `paths` configuration for `@/*` is defined twice within the `compilerOptions` block. This redundancy, while not causing functional errors, makes the configuration slightly less clean and is unnecessary duplication.
-
-**Global Memory Review & Recurring Issues:**
-
-*   The codebase consistently uses custom Tailwind colors, aligning with many approved refactoring PRs.
-*   Joseph's feedback indicates a preference for implementing recommendations promptly.
-*   The recurring rejection reasons (patching failures, `search: ""` unreliability, indentation errors, destructive edits) emphasize the need for extremely precise and robust instructions for the Executor, avoiding `search: ""` for insertions and ensuring exact search block matches.
-
-### Step 3: Pick ONE Improvement
-
-From the analysis, the most valuable improvement to address at this time is the **inconsistent icon sizing and coloring in `PinnedRepos.tsx`**. This is a clear code quality and refactoring opportunity that directly impacts the user interface's consistency and aligns with previous approved PRs focused on standardizing styling. It's a minor visual bug/inconsistency that can be easily fixed without introducing risk. The `tsconfig.json` redundancy is too minor, and the `tags/page.tsx` performance issue is already being tracked.
-
-### Step 4: Write the Executor's Plan
-
-**WHAT to change:**
-Standardize the sizing and coloring of the `StarIcon` and `RepoForkedIcon` components within `apps/web/src/components/PinnedRepos.tsx` to match the consistent styling of other Octicons in the component. Specifically, ensure these icons are rendered at 16px and explicitly use the `fill-git-muted` color.
-
-**WHERE in the file(s):**
-The changes will be made in `apps/web/src/components/PinnedRepos.tsx`.
-1.  Locate the `StarIcon` component within the `stargazerCount` conditional rendering block.
-2.  Locate the `RepoForkedIcon` component within the `forkCount` conditional rendering block.
-
-**WHY this matters:**
-This improvement enhances the visual consistency and overall polish of the `PinnedRepos` component. Currently, `StarIcon` and `RepoForkedIcon` are rendered at 12px due to the `w-3 h-3` Tailwind classes, while `PinIcon`, `RepoIcon`, and `GrabberIcon` are rendered at 16px using the `size={16}` prop. This discrepancy creates a minor visual inconsistency. By standardizing all icons to 16px and explicitly applying `fill-git-muted`, the component will have a more cohesive and professional appearance, aligning with best practices for UI consistency and simplifying future maintenance. This refactoring aligns with previous efforts to centralize and standardize styling within the `git-pulse` repository.
-
-**HOW to do it:**
-1.  **For the `StarIcon` component:**
-    *   Identify the `StarIcon` element.
-    *   Remove the existing `className="fill-current w-3 h-3"` attribute from this `StarIcon` element.
-    *   Add the `size={16}` prop to the `StarIcon` element.
-    *   Add the `className="fill-git-muted"` attribute to the `StarIcon` element.
-2.  **For the `RepoForkedIcon` component:**
-    *   Identify the `RepoForkedIcon` element.
-    *   Remove the existing `className="fill-current w-3 h-3"` attribute from this `RepoForkedIcon` element.
-    *   Add the `size={16}` prop to the `RepoForkedIcon` element.
-    *   Add the `className="fill-git-muted"` attribute to the `RepoForkedIcon` element.
-
-**Executor**: {"title": "[REFACTOR] Standardize Icon Sizing and Coloring in PinnedRepos", "body": "### Problem / Gap\nThe `StarIcon` and `RepoForkedIcon` components in `PinnedRepos.tsx` have inconsistent sizing and coloring compared to other Octicon components.\n\n### Solution & Insight\nTo standardize the sizing and coloring, we will update the `StarIcon` and `RepoForkedIcon` components to use the `size={16}` prop and `className=\"fill-git-muted\"` for consistency with other icons in the component.\n\n### Impact\nThis change enhances the visual consistency of the `PinnedRepos` component, improving the overall user interface polish and maintainability.", "branch_name": "bot/upgrade-1774802334", "edits": [{"file": "apps/web/src/components/PinnedRepos.tsx", "search": "                    <StarIcon className=\"fill-current w-3 h-3\" />\n                    <span>{repo.stargazerCount.toLocaleString()}</span>\n                </div>\n                {repo.forkCount > 0 && (\n                    <div className=\"flex items-center gap-1\">\n                        <RepoForkedIcon className=\"fill-current w-3 h-3\" />\n                        <span>{repo.forkCount.toLocaleString()}</span>\n                    </div>\n                )}", "replace": "                    <StarIcon size={16} className=\"fill-git-muted\" />\n                    <span>{repo.stargazerCount.toLocaleString()}</span>\n                </div>\n                {repo.forkCount > 0 && (\n                    <div className=\"flex items-center gap-1\">\n                        <RepoForkedIcon size={16} className=\"fill-git-muted\" />\n                        <span>{repo.forkCount.toLocaleString()}</span>\n                    </div>\n                )}"}]}
-
-**Reviewer**: REJECTED x2: The 'search' block for `apps/web/src/components/PinnedRepos.tsx` must exactly match the original file content. You missed the `size={16}` prop on both the `StarIcon` and `RepoForkedIcon` elements in your 'search' block. Please ensure your 'search' block is an exact, character-for-character match of the content you intend to modify. The correct 'search' block should include `size={16}` for both icons. The 'replace' block correctly implements the desired styling changes (removing `w-3 h-3` and changing `fill-current` to `fill-git-muted`), but it cannot be applied without a matching 'search' block.
-
----
-
-## Cycle 1774805663
+1774805663
 **Scanner**: ### Step 1: Codebase Understanding
 
 This repository, `git-pulse`, appears to be a social media platform for developers, centered around sharing updates, projects, and engaging with a community. It integrates with GitHub for user activity and potentially project information.
@@ -7647,5 +7569,73 @@ This change involves modifying two files: `apps/web/tailwind.config.ts` for colo
 2.  **`apps/web/src/components/ContributionHeatmap.tsx` (LEVEL_COLORS removal)**: The search block for removing `LEVEL_COLORS` is incorrect. The original `LEVEL_COLORS` object has a trailing comma after `FOURTH_QUARTILE: "#39d353"`. Your search block is missing this comma, which will cause the patch to fail.
 
 3.  **`apps/web/src/components/ContributionHeatmap.tsx` (className update)**: The most important part of your change, applying the new Tailwind classes, failed to apply ('NO CHANGES'). Your current edit attempts to replace only the `style` attribute. The plan was to *update* the `className` attribute to dynamically apply the new Tailwind background color classes using `clsx`, while preserving the existing classes (`w-3 h-3 rounded-[2px] cursor-pointer`). You need to construct a search block that encompasses the entire `div` element (including its existing `className` and `style` attributes) and replace it with a new `div` element where the `className` attribute uses `clsx` to combine the static classes with the conditional background classes, and the `style` attribute is removed.
+
+---
+
+## Cycle 1774820117
+**Scanner**: ## SCANNER ANALYSIS: HOLYKEYZ/git-pulse
+
+### Step 1: Codebase Understanding
+
+This repository, `git-pulse`, functions as a social media platform tailored for developers, integrating with GitHub to display user activity, facilitate post sharing, and embed repository information.
+
+*   **`apps/web/src/components/FeedClient.tsx`**: This is a client-side React component that renders the main feed of posts. It manages the display of different content tabs (Discover, Following, Activity), allows users to compose new posts, and provides real-time updates for new posts via Server-Sent Events (SSE). It also contains a utility function for formatting relative timestamps.
+*   **`apps/web/src/app/api/posts/route.ts`**: This is a Next.js API route responsible for handling the creation of new posts. Its functionalities include authenticating users (via session or API key), applying rate limiting, validating post content, extracting hashtags, and optionally fetching and embedding detailed GitHub repository data by interacting with the GitHub API. Finally, it persists the new post to the database.
+*   **`tsconfig.json`**: This file configures the TypeScript compiler for the `apps/web` application. It defines essential compiler options, specifies which files to include or exclude, and sets up path aliases (e.g., `@/*`) to streamline module imports and improve developer experience.
+
+The codebase primarily uses Next.js for its full-stack capabilities, React for building user interfaces, Prisma as an ORM for database interactions, and Tailwind CSS for styling. It also leverages Server-Sent Events for real-time data streaming.
+
+### Step 2: Deep Analysis
+
+**`apps/web/src/components/FeedClient.tsx`**
+
+*   **Logic**:
+    *   The `formatRelativeTimestamp` function currently only handles time differences up to "days ago". Any post older than 24 hours will simply show "X days ago", which becomes less informative for posts that are weeks, months, or years old. This is a functional limitation that impacts the user's ability to quickly gauge the age of older content. While a recent fix (PR #102) addressed a critical bug in this function, its scope for handling longer durations remains limited.
+    *   The `setTimeout(() => setIsTabLoading(false), 300)` for tab changes provides a fixed visual loading delay. While this can enhance perceived performance, it is not tied to actual data fetching for `followingPosts` or `activityPosts` (which are currently static props). If these tabs were to become dynamic and fetch data, this fixed delay would be insufficient and could lead to the loading state disappearing before data is ready.
+    *   The client-side formatting of timestamps for SSE-received posts, while initial posts are passed as props (presumably server-formatted), introduces a potential for subtle inconsistencies if the formatting logic differs or evolves between client and server.
+*   **Consistency**: The `formatRelativeTimestamp` function's limited scope for older posts creates an inconsistent user experience for content age display.
+
+**`apps/web/src/app/api/posts/route.ts`**
+
+*   **Security**:
+    *   **Input Validation**: The `content` field is only checked for existence (`if (!content)`). There is no validation for its length, character limits, or basic sanitization to prevent excessively long strings or potential display issues if not handled robustly on the client. Similarly, `shipDetails` and `images` are used as-is without structural or content validation.
+    *   **GitHub API Token Handling**: The use of `session?.user?.accessToken` for higher rate limits is a good practice.
+*   **Logic**:
+    *   **GitHub API Error Handling**: When fetching repository embed data, the code checks `if (res.ok)`. If the response is not `ok` (e.g., 404 Not Found, 403 Rate Limited), `repoEmbed` remains null, and a generic `console.error` is logged only if a network error or JSON parsing error occurs. There's no specific logging or handling for GitHub API-specific errors, which could provide more insight into why a repo embed failed (e.g., "repository does not exist" vs. "GitHub API rate limit exceeded").
+    *   **`repoEmbed.languageColor`**: This field is explicitly set to an empty string `""` with a comment indicating it's "rendered dynamically on client". While noted, this relies entirely on client-side logic, making it a potential point of failure if client-side rendering logic is missing or incorrect.
+*   **Performance**: The use of `Promise.all` for parallelizing GitHub API calls (`getRepoCommitCount`, `getRepoConsistency`) is an effective optimization.
+*   **Architecture**: The API route combines several responsibilities (auth, rate limiting, content processing, external API calls, DB writes). While common in Next.js, it could benefit from more granular error handling for external dependencies.
+
+**`tsconfig.json`**
+
+*   **DX/Consistency**: The configuration correctly sets up path aliases (`@/*`), which significantly improves module import readability and maintainability across the project. `strict: true` is enabled, promoting strong type safety. No immediate issues were found.
+
+### Step 3: Pick ONE Improvement
+
+The most valuable improvement is to enhance the `formatRelativeTimestamp` function in `apps/web/src/components/FeedClient.tsx` to handle longer time durations (weeks, months, years). This directly addresses a logical limitation, significantly improves the user experience by providing more accurate and informative timestamps for older posts, and builds upon an area (timestamp formatting) that Joseph has previously provided feedback on.
+
+### Step 4: Write the Executor's Plan
+
+**WHAT** to change:
+The `formatRelativeTimestamp` function needs to be extended to accurately display time differences beyond "days ago". It should include logic for "weeks ago", "months ago", and "years ago" to provide more precise context for older posts in the feed.
+
+**WHERE** in the file(s):
+The change will be made within the `formatRelativeTimestamp` function in the file `apps/web/src/components/FeedClient.tsx`.
+
+**WHY** this matters:
+Currently, posts older than 24 hours are all displayed as "X days ago". This becomes increasingly uninformative as posts age, making it difficult for users to quickly understand the true recency of content that is weeks, months, or even years old. Enhancing this function will provide a more accurate and user-friendly display of post timestamps, improving the overall readability and context of the feed. This is a direct logical improvement to a core UI element and addresses a functional gap in how time is represented.
+
+**HOW** to do it:
+1.  Locate the `formatRelativeTimestamp` function in `apps/web/src/components/FeedClient.tsx`.
+2.  Modify the existing logic to introduce additional conditional checks for larger time units.
+3.  After checking for `minutes` and `hours`, add checks for `days`. If the difference is less than 7 days, display "X days ago".
+4.  If the difference is 7 days or more, calculate the number of `weeks`. If less than approximately 4 weeks (e.g., 30 days), display "X weeks ago".
+5.  If the difference is approximately 4 weeks or more, calculate the number of `months`. If less than 12 months, display "X months ago".
+6.  If the difference is 12 months or more, calculate the number of `years` and display "X years ago".
+7.  Ensure correct pluralization for all time units (minute/minutes, hour/hours, day/days, week/weeks, month/months, year/years).
+
+**Executor**: {"title": "[REFACTOR] Enhance Relative Timestamp Formatting", "body": "### Problem / Gap\nThe current `formatRelativeTimestamp` function in `FeedClient.tsx` only handles time differences up to 'days ago', which becomes less informative for older posts.\n\n### Solution & Insight\nEnhance the `formatRelativeTimestamp` function to accurately display time differences beyond 'days ago', including 'weeks ago', 'months ago', and 'years ago'. This improvement directly addresses a logical limitation and significantly enhances the user experience by providing more accurate and informative timestamps for older posts.\n\n### Impact\nThis change improves the readability and context of the feed by giving users a clearer understanding of the age of posts, especially for content that is weeks, months, or years old.", "branch_name": "bot/upgrade-1774820117", "edits": [{"file": "apps/web/src/components/FeedClient.tsx", "search": "function formatRelativeTimestamp(timestamp: string | Date | number) {\n  const d = new Date(timestamp);\n  const now = new Date();\n  const diffMs = now.getTime() - d.getTime();\n  const minutes = Math.floor(diffMs / 60000);\n  if (minutes < 1) return 'Just now';\n  if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;\n  const hours = Math.floor(minutes / 60);\n  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;\n  const days = Math.floor(hours / 24);\n  return `${days} day${days > 1 ? 's' : ''} ago`;\n}", "replace": "function formatRelativeTimestamp(timestamp: string | Date | number) {\n  const d = new Date(timestamp);\n  const now = new Date();\n  const diffMs = now.getTime() - d.getTime();\n  const minutes = Math.floor(diffMs / 60000);\n  if (minutes < 1) return 'Just now';\n  if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;\n  const hours = Math.floor(minutes / 60);\n  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;\n  const days = Math.floor(hours / 24);\n  if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;\n  const weeks = Math.floor(days / 7);\n  if (weeks < 4) return `${weeks} week${weeks > 1 ? 's' : ''} ago`;\n  const months = Math.floor(weeks / 4);\n  if (months < 12) return `${months} month${months > 1 ? 's' : ''} ago`;\n  const years = Math.floor(months / 12);\n  return `${years} year${years > 1 ? 's' : ''} ago`;\n}"}]}
+
+**Reviewer**: APPROVE: The Executor's proposed edit correctly extends the `formatRelativeTimestamp` function to handle longer durations (weeks, months, years), as recommended by the Scanner. The search block is an exact match, and the replacement code is functionally sound, improves user experience by providing more precise timestamps, and correctly handles pluralization. This change directly addresses previous feedback from Joseph regarding timestamp formatting in this component.
 
 ---
