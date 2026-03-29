@@ -1,8 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [FEAT] Enhance RepoCard with Relative Time Formatting. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/63) - *Status: APPROVED - Joseph liked this!*
-- **REJECTED by Reviewer**: Executor submitted duplicate edits, used an imprecise search block that led to destructive deletion of existing logic, and introduced indentation errors in `git-pulse/test_graphql_contributions.ts`. Recurring issues.
 - **Repo: git-pulse**: [DX] Enhance test_graphql_contributions.ts with Configurable GitHub Username. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/64) - *Status: APPROVED - Joseph liked this!*
 - **Repo: git-pulse**: [FEAT] Add View All Links for Truncated Search Results. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/65) - *Status: APPROVED - Joseph liked this!*
 - **REJECTED by Reviewer**: Executor submitted duplicate and conflicting edits for `git-pulse`, one of which was destructive (replacing an existing function instead of appending a new one). Also, inconsistent implementation of the new function across edits.
