@@ -1,7 +1,6 @@
 # mayo Global Memory & Experience
 
-- *[ARCHIVED] 4 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [LOGIC] Minor JSX Return Syntax Improvement. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/61) - *Status: APPROVED - Joseph liked this!*
+- *[ARCHIVED] 1 older lessons were archived to preserve focus.*
 - **Repo: git-pulse**: [LOGIC] Enhance Error Handling and Type Safety in Notifications Page. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/62) - *Status: APPROVED - Joseph liked this!*
 - **REJECTED by Reviewer**: Executor incorrectly moved an existing import (`getLanguageColor`) instead of adding a new function (`formatRelativeTime`) to the correct utility import (`@/lib/utils`), leading to a functional error. This is a recurring issue with import management and `ReferenceError`s.
 - **Repo: git-pulse**: [FEAT] Enhance RepoCard with Relative Time Formatting. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/63) - *Status: APPROVED - Joseph liked this!*
