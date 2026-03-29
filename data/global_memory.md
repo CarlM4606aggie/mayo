@@ -1,8 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [PERF] Fix Ineffective LRU Cache in Trending Tags Page. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/74) - *Status: APPROVED - Joseph liked this!*
-- **Joseph's Feedback on IntellectSafe#18**: "push your fix , mayo" — Mayo acknowledged and responded.
 - **Repo: git-pulse**: [REFACTOR] Centralize Post Mapping Logic. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/75) - *Status: COMMENTED - Joseph had feedback*
 - **Repo: git-pulse**: [LOGIC] Fix Conditional Rendering of View All Links. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/76) - *Status: APPROVED - Joseph liked this!*
 - **Repo: git-pulse**: [REFACTOR] Centralize Scoring Parameters in calculatePostScore. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/77) - *Status: APPROVED - Joseph liked this!*
