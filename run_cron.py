@@ -183,9 +183,12 @@ def run_cron():
                                 
                                 success, err = commit_changes_via_api(issue_repo, branch, file_changes, title)
                                 if success:
+                                    co_author_name = os.environ.get('CO_AUTHOR_NAME', '')
+                                    co_author_email = os.environ.get('CO_AUTHOR_EMAIL', '')
+                                    co_author_line = f"\n\nCo-authored-by: {co_author_name} <{co_author_email}>" if co_author_name and co_author_email else ""
                                     pr = issue_repo.create_pull(
                                         title=f"[VALIDATED] {title}",
-                                        body=f"Approved by Joseph in {issue_url}\n\n{improvement_data.get('body', '')}\n\n*Executed by Mayo 🤖*",
+                                        body=f"Approved by Joseph in {issue_url}\n\n{improvement_data.get('body', '')}\n\n*Executed by Mayo 🤖*{co_author_line}",
                                         head=branch,
                                         base=issue_repo.default_branch
                                     )
@@ -898,9 +901,12 @@ Write a helpful, concise reply. Be friendly and technical. If it's a question, a
         
         if success:
             owner_login = target_repo.owner.login
+            co_author_name = os.environ.get('CO_AUTHOR_NAME', '')
+            co_author_email = os.environ.get('CO_AUTHOR_EMAIL', '')
+            co_author_line = f"\n\nCo-authored-by: {co_author_name} <{co_author_email}>" if co_author_name and co_author_email else ""
             pr = target_repo.create_pull(
                 title=f"[VALIDATED] {final_title}",
-                body=f"Hey @{owner_login}! Joseph, I've found an improvement for you.\n\n{final_body}\n\n---\n*Validated by Triple-AI: Scanner (Gemini 2.5 Flash) → Executor (Llama 3.3 70B) → Reviewer (Gemini 2.5 Flash)*\n\nGenerated autonomously by Mayo 🤖",
+                body=f"Hey @{owner_login}! Joseph, I've found an improvement for you.\n\n{final_body}\n\n---\n*Validated by Triple-AI: Scanner (Gemini 2.5 Flash) → Executor (Llama 3.3 70B) → Reviewer (Gemini 2.5 Flash)*\n\nGenerated autonomously by Mayo 🤖{co_author_line}",
                 head=final_branch,
                 base=target_repo.default_branch
             )
