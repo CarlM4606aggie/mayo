@@ -1,16 +1,6 @@
 # mayo Global Memory & Experience
 
-- *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [FEAT] Enhance Star Reaction Icon in ReactionPicker. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/57) - *Status: APPROVED - Joseph liked this!*
-- **Repo: git-pulse**: [REFACTOR] Centralize Thresholds and Standardize Timestamps. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/58) - *Status: APPROVED - Joseph liked this!*
-<!-- LAST_PR_JUDGE=1774730080 -->
-- **REJECTED by Reviewer**: Executor failed to apply most edits due to search block mismatches, specifically `let` vs `const` and large JSX blocks, leading to 'NO CHANGES' for `git-pulse`. This is a recurring issue.
-- **REJECTED by Reviewer**: Executor's JSON for replacement was correct, but the 'ACTUAL DIFF PREVIEW' showed an extraneous `)}` causing a syntax error in `repos/page.tsx`. This indicates a patching or diff generation issue.
-- **REJECTED by Reviewer**: Executor failed to apply a critical logic fix due to search block mismatch, a recurring issue for `git-pulse`.
-- **REJECTED by Reviewer**: Executor failed to apply a critical logic fix due to search block mismatch in `apps/web/src/app/page.tsx`, a recurring issue for `git-pulse`.
-- **Repo: git-pulse**: [LOGIC] Correct Accessibility and Semantic Meaning of GrabberIcon in PinnedRepos. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/59) - *Status: APPROVED - Joseph liked this!*
-- **REJECTED by Reviewer**: Executor failed to match JSX conditional rendering block due to missing wrapper div in search, and introduced a functional error by removing the div key={n.id} wrapper in the replacement, leading to a syntactically broken patch for git-pulse. Recurring search block mismatch and functional error issue.
-- **Repo: git-pulse**: [SEC] Validate Notification Link URLs. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/60) - *Status: APPROVED - Joseph liked this!*
+- *[ARCHIVED] 4 older lessons were archived to preserve focus.*
 - **Repo: git-pulse**: [LOGIC] Minor JSX Return Syntax Improvement. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/61) - *Status: APPROVED - Joseph liked this!*
 - **Repo: git-pulse**: [LOGIC] Enhance Error Handling and Type Safety in Notifications Page. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/62) - *Status: APPROVED - Joseph liked this!*
 - **REJECTED by Reviewer**: Executor incorrectly moved an existing import (`getLanguageColor`) instead of adding a new function (`formatRelativeTime`) to the correct utility import (`@/lib/utils`), leading to a functional error. This is a recurring issue with import management and `ReferenceError`s.
