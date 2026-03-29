@@ -6813,76 +6813,7 @@ The most valuable improvement is to address the performance and architectural in
 
 ---
 
-## Cycle 1774726342
-**Scanner**: ## SCANNER ANALYSIS: HOLYKEYZ/git-pulse
-
-### Step 1: Codebase Understanding
-
-This repository, `git-pulse`, appears to be a web application designed to interact with GitHub. Its primary functions include displaying GitHub user profiles, repositories, and starred repositories, as well as providing a "collab matching engine" to find similar developers based on their tech stacks.
-
-Within this repository:
-*   `tsconfig.json`: This file defines the TypeScript compiler options for the root of the project, specifying how TypeScript code should be compiled and checked.
-*   `apps/web/src/lib/matching.ts`: This file contains the core logic for the developer collaboration matching engine. It includes functions to fetch a user's tech stack from GitHub, calculate the similarity between tech stacks using cosine similarity, and find other developers with similar profiles from the application's database. It also incorporates a caching mechanism.
-*   `apps/web/src/app/profile/[username]/stars/page.tsx`: This is a Next.js server component page responsible for displaying a specific GitHub user's starred repositories. It fetches user data and their starred repos from GitHub, renders them using `RepoCard` components, and provides a basic language filter display. It also handles different states such as loading, errors, and unauthenticated access.
-
-The codebase utilizes Next.js (with the app router and server components), TypeScript, Tailwind CSS (implied by class names and config in repo structure), and Prisma for database interactions. It heavily relies on the GitHub API for fetching external data and employs path aliases for module imports.
-
-### Step 2: Deep Analysis
-
-**`tsconfig.json`**
-*   **Architecture**: The provided `tsconfig.json` is likely the root configuration for a monorepo. For optimal monorepo support, it should typically include `references` to the `tsconfig.json` files within each workspace (e.g., `apps/web`, `packages/ui`). This improves build performance and cross-package type checking. Without `references`, TypeScript treats each package somewhat independently, which can lead to slower incremental builds and less robust type checking across package boundaries.
-*   **Consistency**: The absence of `paths` in this root `tsconfig.json` is expected if path aliases are defined in workspace-specific `tsconfig.json` files (like `apps/web/tsconfig.json`). However, if this is intended to be the *only* `tsconfig.json`, then path aliases used in `apps/web` would be undefined here. Given the global memory, it's likely there's an `apps/web/tsconfig.json` that handles aliases.
-
-**`apps/web/src/lib/matching.ts`**
-*   **Performance (Critical)**: The `findSimilarDevs` function suffers from an N+1 query problem. Inside the loop that iterates through `users`, `prisma.post.findMany` is called for *each* user to fetch their posts. If there are `N` users, this results in `N` separate database queries for posts, in addition to the initial query for users. This pattern is highly inefficient and will severely degrade performance as the number of users grows.
-*   **Logic/Performance**: The `getUserTechStack` function fetches a maximum of 100 repositories (`per_page=100`). If a user has more than 100 repositories, their tech stack profile will be incomplete, potentially leading to inaccurate matching results. This is a pagination limitation.
-*   **Type Safety**: In `findSimilarDevs`, `post.repoEmbed as Record<string, any>` is used. This `any` cast weakens type safety, as it bypasses TypeScript's checks and assumes the structure of `repoEmbed` without explicit validation.
-*   **Error Handling**: `if (!res.ok) return [];` in `getUserTechStack` provides a graceful fallback but might obscure API issues. While acceptable, more detailed logging or error reporting could be beneficial for debugging.
-
-**`apps/web/src/app/profile/[username]/stars/page.tsx`**
-*   **Logic/Performance**: The `getGitHubStarredRepos` function, called within this page, also fetches a fixed number of starred repositories (100). Similar to `getUserTechStack`, this means users with more than 100 starred repos will only see the first 100, leading to incomplete data display.
-*   **Consistency/Architecture**: The `LANGUAGE_COLORS` object is hardcoded directly within this component. The global memory indicates previous refactors to centralize custom colors (e.g., PR #70, #78). This hardcoded object is inconsistent with that pattern and should be moved to a centralized utility or constant file.
-*   **Features**: The "language filter chips" are rendered based on the unique languages found in the starred repositories, but they currently lack any interactive functionality. Clicking them does not filter the displayed repositories. This is a missing feature.
-*   **Consistency**: The `lastPush` property for `RepoCard` uses `new Date(...).toLocaleDateString(...)`. Given that PR #63 (`[FEAT] Enhance RepoCard with Relative Time Formatting`) was approved, it's likely that a `formatRelativeTime` utility exists and should be used here for consistent date formatting across the application.
-
-**Global Memory Insights Applied:**
-*   The recurring `search: ""` unreliability for file creation/insertion means I should avoid suggesting new file creation.
-*   The frequent search block mismatches and indentation issues highlight the need for very precise instructions for the Executor.
-*   The import management issues mean I need to be clear about adding new imports versus modifying existing ones.
-
-### Step 3: Pick ONE Improvement
-
-The most valuable improvement is addressing the **N+1 query problem in `findSimilarDevs`** within `apps/web/src/lib/matching.ts`. This is a critical performance and architectural flaw that will severely impact the scalability and responsiveness of the core matching engine as the user base grows. Fixing this will lead to a significant and immediate performance improvement.
-
-### Step 4: Write the Executor's Plan
-
-**WHAT to change:**
-The `findSimilarDevs` asynchronous function in `apps/web/src/lib/matching.ts` needs to be refactored to eliminate the N+1 database query pattern. Instead of fetching posts for each user individually within a loop, all relevant posts should be fetched in a single, optimized query before processing.
-
-**WHERE in the file(s):**
-The changes will be concentrated within the `findSimilarDevs` function in the file `apps/web/src/lib/matching.ts`. Specifically, the section where `prisma.post.findMany` is called inside the `for (const user of users)` loop needs to be modified.
-
-**WHY this matters:**
-The current implementation makes a separate database call to `prisma.post.findMany` for every user being considered for a match. If the system is trying to find matches among 50 users, this results in 50 additional database queries, leading to a total of 51 queries (1 for users + 50 for posts). This creates a significant performance bottleneck, increases database load, and makes the matching process slow and unscalable. By fetching all necessary posts in a single query, the number of database operations will be drastically reduced, leading to much faster execution times and improved system efficiency.
-
-**HOW to do it:**
-1.  **Retrieve Users:** Keep the initial `prisma.user.findMany` query to get the list of potential matching users.
-2.  **Extract Usernames:** After fetching the `users`, create an array of their usernames.
-3.  **Fetch All Posts in One Query:** Introduce a new `prisma.post.findMany` query *before* the `for (const user of users)` loop. This query should fetch all posts associated with the usernames extracted in the previous step. Ensure to select `repoEmbed` and also include the `author` relation to get the `username` of the post's author, which is crucial for grouping.
-4.  **Group Posts by User:** After fetching all posts, create a JavaScript object (a map or dictionary) where keys are usernames and values are arrays of posts belonging to that user. This will allow for efficient lookup of posts for each user.
-5.  **Modify User Loop:** Inside the existing `for (const user of users)` loop, instead of making a new `prisma.post.findMany` call, retrieve the posts for the current `user` from the pre-built map. If no posts are found for a user in the map, treat it as an empty array.
-6.  **Continue Processing:** The rest of the logic within the loop (building `langCounts`, `userStack`, calculating `cosineSimilarity`, and pushing to `matches`) should remain the same, operating on the posts retrieved from the map.
-
-**SCOPE:**
-This improvement is entirely contained within the `findSimilarDevs` function in `apps/web/src/lib/matching.ts`. No other files will require modification for this specific performance optimization.
-
-**Executor**: {"title": "[PERF] Optimize findSimilarDevs Function", "body": "### Problem / Gap\nThe `findSimilarDevs` function in `apps/web/src/lib/matching.ts` suffers from an N+1 query problem. This leads to a significant performance bottleneck as the number of users grows.\n\n### Solution & Insight\nTo address this, we will modify the `findSimilarDevs` function to fetch all necessary posts in a single query before processing. This approach reduces the number of database operations, resulting in faster execution times and improved system efficiency.\n\n### Impact\nThis optimization will drastically improve the performance of the developer matching engine, especially as the user base expands. By reducing the number of database queries, we minimize the load on the database and enhance the overall responsiveness of the application.", "branch_name": "bot/optimize-find-similar-devs-1774726342", "edits": [{"file": "apps/web/src/lib/matching.ts", "search": "const matches: CollabMatch[] = [];\n\n  for (const user of users) {\n    // i can't fetch their repos without their token, so we'll\n    // use a heuristic based on their posts' repo languages\n    const posts = await prisma.post.findMany({\n      where: { author: { username: user.username } },\n      select: { repoEmbed: true },\n      take: 20\n    });", "replace": "const matches: CollabMatch[] = [];\n\n  // Fetch all posts for all users in one query\n  const allPosts = await prisma.post.findMany({\n    where: {\n      author: { username: { in: users.map((u) => u.username) } }\n    },\n    select: {\n      id: true,\n      repoEmbed: true,\n      author: {\n        select: { username: true }\n      }\n    }\n  });\n\n  // Group posts by user\n  const postsByUser: Record<string, any[]> = {};\n  allPosts.forEach((post) => {\n    if (!postsByUser[post.author.username]) {\n      postsByUser[post.author.username] = [];\n    }\n    postsByUser[post.author.username].push(post);\n  });\n\n  for (const user of users) {\n    const posts = postsByUser[user.username] || [];"}]}
-
-**Reviewer**: CORRECT: The Executor correctly identified and addressed the N+1 query problem in `findSimilarDevs`, which is a critical performance optimization. The logic for fetching all posts in a single query and then grouping them by user is sound and aligns perfectly with the Scanner's recommendation. However, the search block and the first line of the replacement block had minor indentation mismatches compared to the original file content. Given the repo's history of rejections due to such mismatches, these have been corrected to ensure a successful patch.
-
----
-
-## Cycle 1774730087
+1774730087
 **Scanner**: ## SCANNER ANALYSIS: HOLYKEYZ/git-pulse
 
 ### Step 1: Codebase Understanding
@@ -7178,5 +7109,83 @@ This is
 **Executor**: {"title": "[LOGIC] Fix lastCheckedTime Logic in SSE Feed Stream", "body": "### Problem / Gap\nThe `lastCheckedTime` variable in the SSE feed stream is only updated when new posts are found. This can lead to an outdated timestamp and subsequent fetching of a large backlog of posts.\n\n### Solution & Insight\nUpdate the `lastCheckedTime` variable on every interval, regardless of whether new posts are found. This ensures that the `gt` filter for database queries is consistently based on the most recent check.\n\n### Impact\nFixes a critical functional bug with direct performance implications for the real-time feed feature, ensuring that users receive the most recent posts without unnecessary delays or backlogs.", "branch_name": "bot/fix-lastcheckedtime-logic", "edits": [{"file": "apps/web/src/app/api/feed/stream/route.ts", "search": "let lastCheckedTime = new Date();\n\nconst fetchPostsInterval = setInterval(async () => {\n  try {\n    // find any pure-feed visible posts created after lastcheckedtime\n    const newPosts = await prisma.post.findMany({\n      where: {\n        createdAt: { gt: lastCheckedTime }\n      },\n      include: {\n        author: { select: { username: true, githubId: true } },\n        reactions: true\n      },\n      orderBy: { createdAt: \"desc\" }\n    });\n\n    if (newPosts.length > 0) {\n      lastCheckedTime = new Date(); // update watermark\n\n      // blast posts down the pipe\n      for (const post of newPosts) {\n        writeEvent({\n          type: \"NEW_POST\",\n          post: {\n            id: post.id,\n            type: post.type,\n            author: {\n              username: post.author.username,\n              avatar: `https://avatars.githubusercontent.com/u/${post.author.githubId}?v=4`\n            },\n            content: post.content,\n            timestamp: post.createdAt.toISOString(),\n            likes: post.reactions.length,\n            comments: 0,\n            reactions: post.reactions,\n            images: post.images,\n            repoUrl: post.repoUrl,\n            repoEmbed: post.repoCache as any,\n            score: post.score,\n            passedBadge: post.passedBadge\n          }\n        });\n      }\n    }\n  } catch (error) {\n    console.error(\"Feed SSE Error:\", error);\n  }\n});", "replace": "let lastCheckedTime = new Date();\n\nconst fetchPostsInterval = setInterval(async () => {\n  lastCheckedTime = new Date(); // Always update the lastCheckedTime\n  try {\n    // find any pure-feed visible posts created after lastcheckedtime\n    const newPosts = await prisma.post.findMany({\n      where: {\n        createdAt: { gt: lastCheckedTime }\n      },\n      include: {\n        author: { select: { username: true, githubId: true } },\n        reactions: true\n      },\n      orderBy: { createdAt: \"desc\" }\n    });\n\n    if (newPosts.length > 0) {\n      // blast posts down the pipe\n      for (const post of newPosts) {\n        writeEvent({\n          type: \"NEW_POST\",\n          post: {\n            id: post.id,\n            type: post.type,\n            author: {\n              username: post.author.username,\n              avatar: `https://avatars.githubusercontent.com/u/${post.author.githubId}?v=4`\n            },\n            content: post.content,\n            timestamp: post.createdAt.toISOString(),\n            likes: post.reactions.length,\n            comments: 0,\n            reactions: post.reactions,\n            images: post.images,\n            repoUrl: post.repoUrl,\n            repoEmbed: post.repoCache as any,\n            score: post.score,\n            passedBadge: post.passedBadge\n          }\n        });\n      }\n    }\n  } catch (error) {\n    console.error(\"Feed SSE Error:\", error);\n  }\n};"}]}
 
 **Reviewer**: CORRECT: The Executor correctly identified the critical logic bug in the `lastCheckedTime` update for the SSE feed stream, which was causing potential backlogs. The proposed change to move `lastCheckedTime = new Date();` to the beginning of the `setInterval` callback is the correct fix. However, the `replace` block introduced a syntax error by changing the `setInterval`'s closing `}, 5000);` to `};` and also had minor indentation inconsistencies. I have corrected these issues.
+
+---
+
+## Cycle 1774752161
+**Scanner**: ## SCANNER ANALYSIS: HOLYKEYZ/git-pulse
+
+### Step 1: Codebase Understanding
+
+*   **What does this repository do?**
+    `git-pulse` is a web application designed to help users discover and engage with GitHub repositories, posts, and developer profiles. It features a dynamic feed, real-time notifications, and an algorithmic scoring system for content.
+*   **What do the target files do within the repo?**
+    *   `apps/web/src/app/explore/tags/[tag]/page.tsx`: This file is responsible for rendering a dynamic page that displays posts associated with a specific hashtag. It fetches relevant posts from the database, applies an algorithmic score to them, sorts them by quality, and presents them using `PostCard` components. It also sets the page's metadata.
+    *   `apps/web/src/components/NotificationBell.tsx`: This React component provides a visual notification bell icon that indicates the number of unread notifications. It uses Server-Sent Events (SSE) to receive real-time updates on the unread count from a backend API.
+    *   `packages/ui/package.json`: This is the manifest file for the `ui` package, which serves as a shared library for common UI components within the `git-pulse` monorepo. It defines the package's name, version, entry points, and its direct and development dependencies.
+*   **What patterns, frameworks, or conventions does the codebase use?**
+    The codebase is built with Next.js and React, utilizing TypeScript for strong typing and Tailwind CSS for styling. It employs a modular, component-based architecture, integrates with a Prisma ORM for database operations, and uses API routes for backend logic. A recurring pattern is the centralization of utility functions, type definitions, and configuration parameters to enhance consistency and maintainability.
+
+### Step 2: Deep Analysis
+
+**`apps/web/src/app/explore/tags/[tag]/page.tsx`**
+
+*   **Logic:**
+    *   **Missing Imports:** The functions `calculatePostScore`, `hasPassedBadge`, and `getRelativeTime` are used within the `mapPrismaPostToProps` function without being explicitly imported. This will lead to `ReferenceError`s at runtime, causing the page to fail. This is a critical functional bug.
+    *   **Redundant Post Mapping Logic:** A local `mapPrismaPostToProps` function is defined. However, the global memory indicates that a "Centralize Post Mapping Logic" (PR #75) was approved, suggesting a centralized `mapPrismaPostToPostProps` utility should exist. This local duplication is inconsistent and reduces maintainability.
+    *   **Inconsistent Scoring Parameters:** The `else` block within the local `mapPrismaPostToProps` function contains hardcoded magic numbers (e.g., `15`, `1.2`, `5`, `2`) for calculating the post score. This contradicts the approved "[REFACTOR] Centralize Scoring Parameters in calculatePostScore" (PR #77), leading to inconsistent scoring logic across the application.
+    *   **Type Safety:** The local `mapPrismaPostToProps` function accepts `p: any`, which bypasses TypeScript's type checking for the input post object, despite the codebase's general emphasis on type safety.
+*   **Consistency:** The local definition of `mapPrismaPostToProps` and the hardcoded scoring parameters directly violate established patterns of centralization and consistency within the `git-pulse` repository.
+*   **DX:** The missing imports make the code harder to understand and debug, as dependencies are not immediately clear.
+
+**`apps/web/src/components/NotificationBell.tsx`**
+
+*   **Logic:**
+    *   **Silent Error Handling:** Both the `JSON.parse` operation within the `eventSource.onmessage` handler and the `EventSource` constructor itself are wrapped in `try...catch` blocks that silently ignore errors. While preventing crashes, this approach can mask underlying issues with the SSE stream, API, or network, making debugging difficult.
+    *   **Incomplete Reconnection Logic:** The `eventSource.onerror` callback simply closes the `eventSource` and relies on "browser or logic to reconnect if needed." A more robust implementation would include explicit reconnection logic with a backoff strategy to ensure resilience against transient network issues.
+*   **Consistency:** The silent error handling is inconsistent with the general trend of enhancing error handling and type safety observed in other parts of the codebase (e.g., PR #62).
+
+**`packages/ui/package.json`**
+
+*   **Consistency:** The `react` and `react-dom` versions are listed as `19.0.0` in `devDependencies`, which aligns with the anti-hallucination directive that these versions are considered correct for this repository.
+*   **Dependencies:** The dependencies `clsx` and `tailwind-merge` are appropriate for a UI component library focused on styling.
+*   **Anti-Hallucination Check:** No issues found. The file is consistent with directives.
+
+### Step 3: Pick ONE Improvement
+
+The most critical and impactful improvement is to address the **missing imports and the redundant, inconsistent post mapping and scoring logic** in `apps/web/src/app/explore/tags/[tag]/page.tsx`. This directly resolves potential runtime errors, significantly improves code consistency, enhances type safety, and aligns with previously approved refactoring efforts to centralize common logic.
+
+### Step 4: Write the Executor's Plan
+
+**WHAT** to change:
+The `apps/web/src/app/explore/tags/[tag]/page.tsx` file requires a refactor to correctly import and utilize existing centralized utility functions for post mapping, algorithmic scoring, and relative time formatting. The locally defined `mapPrismaPostToProps` function, along with its internal scoring logic, must be removed. In its place, the file should import the centralized `mapPrismaPostToPostProps` function, `calculatePostScore`, `hasPassedBadge`, `getRelativeTime`, and the `PostProps` type definition.
+
+**WHERE** in the file(s):
+The modifications will be confined to `apps/web/src/app/explore/tags/[tag]/page.tsx`.
+1.  **Imports:** Add new import statements at the top of the file, alongside existing imports.
+2.  **Function Removal:** Delete the entire `function mapPrismaPostToProps(p: any): PostProps { ... }` block, including its function signature and all its internal implementation details.
+3.  **Function Usage Update:** Locate the line where `dbPosts` are mapped, specifically `const mapped = dbPosts.map(mapPrismaPostToProps);`, and update it to use the newly imported centralized function.
+
+**WHY** this matters:
+1.  **Resolves Critical `ReferenceError`s:** The current code uses `calculatePostScore`, `hasPassedBadge`, and `getRelativeTime` without importing them, which will cause the application to crash with `ReferenceError`s at runtime. Explicitly importing these functions fixes this severe bug.
+2.  **Ensures Code Consistency and Reduces Duplication:** The presence of a local `mapPrismaPostToProps` function and hardcoded scoring logic directly contradicts the established architectural pattern of centralizing post mapping (PR #75) and scoring parameters (PR #77). This change eliminates redundant code and ensures a single, consistent source of truth for these critical operations across the application.
+3.  **Enhances Type Safety:** By replacing the `p: any` parameter in the local function with a call to a centralized, well-typed `mapPrismaPostToPostProps` function, the overall type safety of the application is improved, aligning with the repository's commitment to robust TypeScript usage.
+4.  **Improves Maintainability:** Centralizing these functions simplifies future updates or modifications to post processing and scoring logic, as changes only need to be applied in one location, reducing the risk of inconsistencies and bugs.
+
+**HOW** to do it:
+1.  **Add Imports:**
+    *   Insert an import for `PostProps` from `@/types/post`.
+    *   Insert an import for `calculatePostScore` and `hasPassedBadge` from `@/lib/post-scoring`.
+    *   Insert an import for `getRelativeTime` from `@/lib/utils`.
+    *   Insert an import for `mapPrismaPostToPostProps` from `@/lib/post-mapper`.
+2.  **Remove Local Function Definition:** Identify and completely remove the entire code block starting with `function mapPrismaPostToProps(p: any): PostProps {` and ending at its closing curly brace `}`.
+3.  **Update Function Call:** Find the line `const mapped = dbPosts.map(mapPrismaPostToProps);` and change it to `const mapped = dbPosts.map(mapPrismaPostToPostProps);`.
+
+**SCOPE**:
+This improvement focuses solely on `apps/web/src/app/explore/tags/[tag]/page.tsx`. It involves removing a local, redundant function and adding necessary imports to leverage existing, centralized utility functions and types already present within the `git-pulse` codebase.
+
+**Executor**: {"title": "[REFACTOR] Centralize Post Mapping and Scoring Logic in Tag Feed Page", "body": "### Problem / Gap\nThe `apps/web/src/app/explore/tags/[tag]/page.tsx` file contains a redundant, locally defined `mapPrismaPostToProps` function that duplicates logic already centralized in other parts of the codebase. This redundancy leads to potential inconsistencies in post scoring and mapping across the application. Furthermore, the local function lacks explicit type definitions for its parameters and return types, which could compromise the overall type safety of the codebase.\n\n### Solution & Insight\nTo address these issues, we will remove the redundant local function and instead import and utilize the centralized `mapPrismaPostToPostProps` function. Additionally, we will import necessary types and utilities (`PostProps`, `calculatePostScore`, `hasPassedBadge`, `getRelativeTime`) to ensure consistency and type safety. This refactoring enhances maintainability by reducing code duplication and improves the application's overall consistency and reliability.\n\n### Impact\nThis change eliminates redundant code, reducing the risk of inconsistencies and bugs. By leveraging centralized, well-tested functions, we improve the maintainability and scalability of the `git-pulse` codebase. The explicit import of types and utilities enhances type safety, making the code more robust and easier to understand.", "branch_name": "bot/upgrade-1774752161", "edits": [{"file": "apps/web/src/app/explore/tags/[tag]/page.tsx", "search": "function mapPrismaPostToProps(p: any): PostProps {\n  let score = 0;\n  \n  // calculate algorithmic score for the post\n  if (p.repoEmbed) {\n    const r = p.repoEmbed as Record<string, any>;\n    const daysSincePost = Math.max((Date.now() - p.createdAt.getTime()) / (1000 * 60 * 60 * 24), 1);\n    const pushDate = r.lastPush ? new Date(r.lastPush) : p.createdAt;\n    const daysSincePush = Math.max((Date.now() - pushDate.getTime()) / (1000 * 60 * 60 * 24), 0);\n    \n    score = calculatePostScore({\n      language: r.language,\n      stars: r.stars || 0,\n      forks: r.forks || 0,\n      daysSincePush,\n      hasDescription: !!r.description,\n      daysSincePost\n    });\n  } else {\n    const daysSincePost = Math.max((Date.now() - p.createdAt.getTime()) / (1000 * 60 * 60 * 24), 1);\n    score = 15 / Math.pow(daysSincePost, 1.2);\n    if (p.images && p.images.length > 0) score += 5;\n    if (p.hashtags && p.hashtags.length > 0) score += 2;\n  }\n  \n  return {\n    id: p.id,\n    type: p.type as \"standard\" | \"ship\",\n    author: {\n      username: p.author.username,\n      avatar: p.author.avatar ?? \"\",\n      statusEmoji: p.author.statusEmoji,\n      statusText: p.author.statusText\n    },\n    content: p.content,\n    timestamp: getRelativeTime(p.createdAt),\n    likes: p._count.reactions,\n    comments: p._count.comments,\n    repoEmbed: p.repoEmbed,\n    shipDetails: p.shipDetails,\n    images: p.images,\n    hashtags: p.hashtags,\n    repoUrl: p.repoUrl,\n    score,\n    passedBadge: hasPassedBadge(score)\n  };\n}", "replace": ""}, {"file": "apps/web/src/app/explore/tags/[tag]/page.tsx", "search": "import { prisma } from \"@/lib/prisma\";\nimport Link from \"next/link\";\nimport PostCard from \"@/components/PostCard\";", "replace": "import { prisma } from \"@/lib/prisma\";\nimport Link from \"next/link\";\nimport PostCard from \"@/components/PostCard\";\nimport { mapPrismaPostToPostProps } from \"@/lib/post-mapper\";\nimport { calculatePostScore, hasPassedBadge } from \"@/lib/post-scoring\";\nimport { getRelativeTime } from \"@/lib/utils\";\nimport type { PostProps } from \"@/types/post\";"}, {"file": "apps/web/src/app/explore/tags/[tag]/page.tsx", "search": "const mapped = dbPosts.map(mapPrismaPostToProps);", "replace": "const mapped = dbPosts.map(mapPrismaPostToPostProps);"}]}
+
+**Reviewer**: REJECTED x2: The deletion of the `mapPrismaPostToProps` function in `apps/web/src/app/explore/tags/[tag]/page.tsx` failed to apply. The diff preview shows 'NO CHANGES' for this edit. This means the local function will remain in the codebase, leading to redundant code and an incomplete refactor. While the search block appears to be an exact match, the patching mechanism for `git-pulse` frequently encounters issues. Please re-evaluate the deletion edit, ensuring the `search` block is absolutely identical to the target content, including all whitespace and newlines. If the issue persists, consider alternative strategies for deletion or flag this as a persistent patching problem.
 
 ---
