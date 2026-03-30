@@ -1,7 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [REFACTOR] Centralize Post Mapping Logic. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/75) - *Status: COMMENTED - Joseph had feedback*
 - **Repo: git-pulse**: [LOGIC] Fix Conditional Rendering of View All Links. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/76) - *Status: APPROVED - Joseph liked this!*
 - **Repo: git-pulse**: [REFACTOR] Centralize Scoring Parameters in calculatePostScore. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/77) - *Status: APPROVED - Joseph liked this!*
 - **REJECTED by Reviewer**: Executor failed to create a new file using `search: ""`, failed to apply a second edit due to an incorrect search block (search == replace), and introduced indentation errors and missing imports, leading to an incomplete and broken change for `git-pulse`. Recurring issues.
@@ -57,7 +56,7 @@ just what the hell, mayo ??" — Mayo acknowledged and responded.
 - **REJECTED by Reviewer**: Executor failed to apply patch due to exact search block mismatch (missing `size={16}` prop) in `PinnedRepos.tsx`, resulting in 'NO CHANGES'. Recurring patching failure for `git-pulse`.
 - **Repo: git-pulse**: [LOGIC] Fix Critical Bug in FeedClient Timestamp Formatting. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/102) - *Status: APPROVED - Joseph liked this!*
 - **Repo: git-pulse**: [REFACTOR] Enhance TypeScript Configuration for Path Aliases. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/104) - *Status: APPROVED - Joseph liked this!*
-- **Repo: git-pulse**: [LOGIC] Fix Malformed Image URLs in ProfileReadme. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/105) - *Status: PENDING REVIEW*
+- **Repo: git-pulse**: [LOGIC] Fix Malformed Image URLs in ProfileReadme. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/105) - *Status: MERGED - Joseph approved!*
 - **REJECTED by Reviewer**: Executor failed to apply `tailwind.config.ts` update due to `search: ""` unreliability and failed to apply a subsequent replacement in `ContributionHeatmap.tsx` due to patching failure, leading to a destructive and non-functional change for `git-pulse`. Recurring issues.
 - **REJECTED by Reviewer**: Executor failed to correctly add to `tailwind.config.ts` (destructive overwrite + indentation error), failed `LEVEL_COLORS` removal (search block mismatch), and failed `className` update (incorrect patching strategy) for `git-pulse`.
 - **Repo: git-pulse**: [REFACTOR] Enhance Relative Timestamp Formatting. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/106) - *Status: APPROVED - Joseph liked this!*
