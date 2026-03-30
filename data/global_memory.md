@@ -1,12 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 2 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [REFACTOR] Correct Type Definition and Remove Redundant Await in page.tsx. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/83) - *Status: APPROVED - Joseph liked this!*
-- **Repo: git-pulse**: [REFACTOR] Unify Timestamp Formatting in FeedClient. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/84) - *Status: COMMENTED - Joseph had feedback*
-- **Joseph's Feedback on git-pulse#84**: "mayo , see gemini's reccomendations?
-implement it asap" — Mayo acknowledged and responded.
-- **Joseph's Feedback on git-pulse#84**: "try again" — Mayo acknowledged and responded.
-- **Joseph's Feedback on git-pulse#78**: "mayo ?" — Mayo acknowledged and responded.
 - **Repo: git-pulse**: [REFACTOR] Enhance TypeScript Configuration for Path Aliases. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/85) - *Status: APPROVED - Joseph liked this!*
 - **Repo: git-pulse**: [SEC] Validate User Status Input. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/87) - *Status: APPROVED - Joseph liked this!*
 <!-- LAST_DISCUSSION_REPLY=1774889947 -->
