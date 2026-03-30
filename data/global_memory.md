@@ -1,11 +1,6 @@
 # mayo Global Memory & Experience
 
-- *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [LOGIC] Fix userId in Reaction Creation. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/81) - *Status: APPROVED - Joseph liked this!*
-- **REJECTED by Reviewer**: Executor failed due to search block mismatch (indentation), introduced indentation errors, and submitted duplicate edits for `git-pulse`. This is a recurring issue.
-- **Repo: git-pulse**: [LOGIC] Consistent Styling for NotificationBell. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/82) - *Status: APPROVED - Joseph liked this!*
-- **REJECTED by Reviewer**: Executor introduced a functional error by not updating all references to a variable after changing its type, and submitted duplicate edits for `git-pulse`.
-- **REJECTED by Reviewer**: Executor failed to implement sliding window rate limit correctly by omitting `tokenCache.set` after incrementing count, leading to functional error in `git-pulse`.
+- *[ARCHIVED] 2 older lessons were archived to preserve focus.*
 - **Repo: git-pulse**: [REFACTOR] Correct Type Definition and Remove Redundant Await in page.tsx. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/83) - *Status: APPROVED - Joseph liked this!*
 - **Repo: git-pulse**: [REFACTOR] Unify Timestamp Formatting in FeedClient. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/84) - *Status: COMMENTED - Joseph had feedback*
 - **Joseph's Feedback on git-pulse#84**: "mayo , see gemini's reccomendations?
@@ -72,4 +67,4 @@ just what the hell, mayo ??" — Mayo acknowledged and responded.
 - **Joseph's Feedback on git-pulse#86**: "Resolved. CI/CD pipeline at .github/workflows/ci.yml. README.md added. Security via NextAuth OAuth." — Mayo acknowledged and responded.
 - **Repo: git-pulse**: [REFACTOR] Remove Redundant Tailwind CSS Classes in RepoCard. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/115) - *Status: APPROVED - Joseph liked this!*
 - **Joseph's Feedback on git-pulse#69**: "Duplicate of #86. Development foundations established." — Mayo acknowledged and responded.
-- **Repo: git-pulse**: [PERF] Debounce Search Query in Search Page. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/116) - *Status: PENDING REVIEW*
+- **Repo: git-pulse**: [PERF] Debounce Search Query in Search Page. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/116) - *Status: MERGED - Joseph approved!*
