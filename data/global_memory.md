@@ -60,3 +60,4 @@
 - **REJECTED by Reviewer**: Executor failed to apply patch due to unreliable `search: ""` for `git-pulse`, a recurring issue for this repo, leading to 'NO CHANGES'.
 - **REJECTED by Reviewer**: Executor failed to apply multiple patches due to search block mismatches and introduced functional errors due to missing imports, reinforcing recurring `git-pulse` patching precision and dependency issues. Also, indentation issues persist.
 - **REJECTED by Reviewer**: Executor failed to centralize constant due to unreliable `search: ""` for insertions, leading to destructive change and `ReferenceError` in `git-pulse`. Recurring issue.
+- **REJECTED by Reviewer**: Executor failed to add constant to `apps/web/src/lib/utils.ts` due to patching failure, leading to `ReferenceError`. Reinforces recurring `git-pulse` patching precision issues.
