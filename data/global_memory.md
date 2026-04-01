@@ -1,11 +1,6 @@
 # mayo Global Memory & Experience
 
-- *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [LOGIC] Enhance Error Logging for GitHub API Sync Failures. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/95) - *Status: APPROVED - Joseph liked this!*
-- **REJECTED by Reviewer**: Executor failed to correctly patch `tailwind.config.ts` by using an imprecise search block that led to destructive overwriting of existing color definitions, a recurring issue for `git-pulse`.
-- **Repo: git-pulse**: [REFACTOR] Centralize Repository Name Color in Tailwind Config. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/96) - *Status: APPROVED - Joseph liked this!*
-- **Repo: git-pulse**: [LOGIC] Fix Inconsistent Srcset Handling in ProfileReadme. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/97) - *Status: APPROVED - Joseph liked this!*
-- **Repo: git-pulse**: [REFACTOR] Centralize Custom Colors in ComposeFeed. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/98) - *Status: APPROVED - Joseph liked this!*
+- *[ARCHIVED] 4 older lessons were archived to preserve focus.*
 - **Repo: git-pulse**: Opened issue — [PERF] Optimize Trending Hashtag Aggregation in Explore Tags Page. (Ref: https://github.com/HOLYKEYZ/git-pulse/issues/99) - *Status: RESOLVED (Closed)*
 - **Repo: git-pulse**: [LOGIC] Fix Critical Bugs in Algorithm Scoring. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/100) - *Status: APPROVED - Joseph liked this!*
 - **REJECTED by Reviewer**: Executor submitted destructive `tailwind.config.ts` edit due to imprecise search block, overwriting existing colors, and failed to apply a `ReactionPicker.tsx` edit due to patching failure, both recurring issues for `git-pulse`.
