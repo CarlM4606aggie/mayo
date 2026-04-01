@@ -1,8 +1,6 @@
 # mayo Global Memory & Experience
 
-- *[ARCHIVED] 4 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: Opened issue — [PERF] Investigate Scalable Trending Hashtag Aggregation. (Ref: https://github.com/HOLYKEYZ/git-pulse/issues/107) - *Status: RESOLVED (Closed)*
-- **REJECTED by Reviewer**: Executor failed to correctly insert constants and update variable references, leading to destructive redeclaration, conflicting edits, and indentation errors in `git-pulse`. Reinforces recurring issues with patching precision and multi-step refactors.
+- *[ARCHIVED] 1 older lessons were archived to preserve focus.*
 - **Repo: git-pulse**: [REFACTOR] Enhance contributionCache.ts with named constants. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/108) - *Status: APPROVED - Joseph liked this!*
 - **Joseph's Feedback on git-pulse#99**: "Duplicate of #107 - same fix applied. The tags page now uses prisma.$queryRaw with PostgreSQL unnest to aggregate hashta" — Mayo acknowledged and responded.
 - **Joseph's Feedback on git-pulse#103**: "Resolved. CI/CD pipeline exists at .github/workflows/ci.yml with automated linting and builds on push/PR. Additionally, " — Mayo acknowledged and responded.
