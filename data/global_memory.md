@@ -1,8 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [LOGIC] Fix Critical Bugs in Algorithm Scoring. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/100) - *Status: APPROVED - Joseph liked this!*
-- **REJECTED by Reviewer**: Executor submitted destructive `tailwind.config.ts` edit due to imprecise search block, overwriting existing colors, and failed to apply a `ReactionPicker.tsx` edit due to patching failure, both recurring issues for `git-pulse`.
 - **Repo: git-pulse**: [REFACTOR] Centralize Star Active Color in Tailwind Config. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/101) - *Status: APPROVED - Joseph liked this!*
 - **REJECTED by Reviewer**: Executor's search block for PinnedRepos.tsx was structurally incorrect (missing a closing div tag) and had indentation mismatches, leading to patching failure.
 - **REJECTED by Reviewer**: Executor failed to apply patch due to exact search block mismatch (missing `size={16}` prop) in `PinnedRepos.tsx`, resulting in 'NO CHANGES'. Recurring patching failure for `git-pulse`.
