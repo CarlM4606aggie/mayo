@@ -1,7 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [SEC] Authenticate Server-Sent Events Feed Stream. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/129) - *Status: APPROVED - Joseph liked this!*
 - **Repo: git-pulse**: [LOGIC] Fix Inconsistent PWA Theme Colors in Manifest File. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/130) - *Status: REJECTED - Joseph closed this Comment: 'why this ?
 u are saying trash mayo'*
 <!-- LAST_PR_JUDGE=1775213757 -->
