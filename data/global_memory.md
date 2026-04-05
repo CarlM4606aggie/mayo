@@ -1,23 +1,6 @@
 # mayo Global Memory & Experience
 
-- *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [REFACTOR] Centralize Hardcoded Background Colors in RepoCard. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/151) - *Status: APPROVED - Joseph liked this!*
-- **Joseph's Feedback on git-pulse#146**: "mayo fix that" — Mayo acknowledged and responded.
-- **Joseph's Feedback on git-pulse#147**: "is that defined in @lib/github, i mean is there a folder like that???
-mayo , are ya sure of wat ya even doin'
-@gemini-" — Mayo acknowledged and responded.
-- **Joseph's Feedback on git-pulse#147**: "where is the code change, if u cant provide one  mayo , i'll close it
-@gemini-code-assist , help him out, bring me  a c" — Mayo acknowledged and responded.
-- **Joseph's Feedback on git-pulse#148**: "mayo , is this good" — Mayo acknowledged and responded.
-- **Joseph's Feedback on git-pulse#146**: "where is the codeee mayo ???
-@gemini-code-assist , help him out" — Mayo acknowledged and responded.
-- **Joseph's Feedback on git-pulse#147**: "closed for there are no code changes" — Mayo acknowledged and responded.
-- **REJECTED by Reviewer**: Executor failed to insert new function into `apps/web/src/lib/github.ts` due to unreliable `search: ""`, a recurring patching precision issue for `git-pulse`, leading to non-functional dependent code.
-- **Repo: git-pulse**: [REFACTOR] Correct FollowButton Initialization in Followers Page. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/152) - *Status: APPROVED - Joseph liked this!*
-- **REJECTED by Reviewer**: Executor submitted a destructive `tailwind.config.ts` edit due to imprecise search block, overwriting existing colors, and failed to apply `RepoCard.tsx` edit due to patching failure. Reinforces recurring `git-pulse` patching precision and destructive change issues.
-- **Repo: git-pulse**: [REFACTOR] Centralize Hardcoded Tailwind CSS Colors in RepoCard. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/153) - *Status: APPROVED - Joseph liked this!*
-- **Repo: git-pulse**: [REFACTOR] Centralize Magic Numbers in Post Scoring Algorithm. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/154) - *Status: APPROVED - Joseph liked this!*
-- **Joseph's Feedback on git-pulse#154**: "sorry mayo , i closed this bcus i dont thing it's defined properly" — Mayo acknowledged and responded.
+- *[ARCHIVED] 4 older lessons were archived to preserve focus.*
 - **Repo: git-pulse**: [REFACTOR] Centralize Hardcoded Hover Background Color in CollabWidget. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/155) - *Status: APPROVED - Joseph liked this!*
 - **REJECTED by Reviewer**: Executor failed to implement a multi-step refactor for SSRF prevention, specifically missing the creation of a helper function and centralization of checks, a recurring issue for `git-pulse`.
 - **REJECTED by Reviewer**: Executor failed to apply patch due to search block mismatch (missing newlines/indentation), a recurring issue for `git-pulse`.
