@@ -1,8 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [REFACTOR] Correct Type Annotation for Params in Follow API Route. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/158) - *Status: APPROVED - Joseph liked this!*
-<!-- LAST_DISCUSSION_REPLY=1775410499 -->
 - **Repo: git-pulse**: [REFACTOR] Correct Type Annotation for Params in Follow API Route. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/159) - *Status: APPROVED - Joseph liked this!*
 <!-- LAST_PROACTIVE_ISSUE=1775385497 -->
 - **REJECTED by Reviewer**: Executor failed to apply patch due to search block mismatch (indentation, string literal) and missing import, reinforcing recurring `git-pulse` patching precision and dependency issues.
