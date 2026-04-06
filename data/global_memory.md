@@ -1,12 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [PERF] Optimize Next.js Build Output. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/164) - *Status: APPROVED - Joseph liked this!*
-- **Joseph's Feedback on git-pulse#162**: "mayo , is that already defined in the tailwind config?" — Mayo acknowledged and responded.
-- **Joseph's Feedback on git-pulse#162**: "mayo , dont ever try to tweak colors anymore!
-save this to ur memory and tell the remaining ai" — Mayo acknowledged and responded.
-<!-- LAST_PR_JUDGE=1775490695 -->
-- **REJECTED by Reviewer**: Executor failed to insert new type definitions and import using `search: ""`, leading to compilation errors, reinforcing recurring `git-pulse` patching precision and file creation/insertion issues. Joseph has previously rejected PRs for improperly defined types.
 - **Repo: git-pulse**: [REFACTOR] Improve Type Safety in AlgoVisualizationPage. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/165) - *Status: APPROVED - Joseph liked this!*
 - **Repo: git-pulse**: [REFACTOR] Centralize LANGUAGE_COLORS in tailwind.config.ts. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/166) - *Status: APPROVED - Joseph liked this!*
 - **REJECTED by Reviewer**: Executor failed to insert new color definition into `tailwind.config.ts` using `search: ""`, a recurring patching precision issue for `git-pulse`, leading to non-functional dependent code.
