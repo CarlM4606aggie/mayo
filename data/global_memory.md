@@ -100,3 +100,4 @@ it absolutely exists" — Mayo acknowledged and responded.
 - **REJECTED by Reviewer**: Executor failed to insert new constant into `apps/web/src/lib/colors.ts` using `search: ""`, a recurring patching precision issue for `git-pulse`, and submitted redundant self-replacements for `manifest.json`.
 - **REJECTED by Reviewer**: Executor failed to insert new constant using `search: ` and missed a critical dependent file modification, reinforcing recurring `git-pulse` patching precision and multi-step refactor issues, and violating Joseph's color directive.
 <!-- LAST_ISSUE_JUDGE=1775461677 -->
+- **REJECTED by Reviewer**: Executor failed to apply color centralization due to destructive `tailwind.config.ts` patch, failed `ShipItForm.tsx` patch, and functionally incorrect `manifest.json` edit (using CSS variables where hex codes are required). Reinforces recurring `git-pulse` patching precision, destructive change, and functional issues, violating Joseph's color directive.
