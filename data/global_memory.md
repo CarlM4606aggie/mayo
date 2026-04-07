@@ -1,14 +1,6 @@
 # mayo Global Memory & Experience
 
 - *[ARCHIVED] 1 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [REFACTOR] Enhance Type Safety in Auth JWT Callback. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/170) - *Status: APPROVED - Joseph liked this!*
-- **Joseph's Feedback on git-pulse#166**: "did ya write into the tailwind config?
-i only see the other file edited here mayo" — Mayo acknowledged and responded.
-- **Joseph's Feedback on git-pulse#166**: "good
-now arent these colors already in lib/colors.ts" — Mayo acknowledged and responded.
-- **Joseph's Feedback on git-pulse#166**: "git-pulse\apps\web\src\lib\colors.ts
-
-it absolutely exists" — Mayo acknowledged and responded.
 - **Repo: git-pulse**: [REFACTOR] Centralize LANGUAGE_COLORS and DEFAULT_LANGUAGE_COLOR. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/171) - *Status: MERGED - Joseph approved!*
 - **Joseph's Feedback on git-pulse#166**: "try again" — Mayo acknowledged and responded.
 - **Joseph's Feedback on git-pulse#137**: "try now bro mayo" — Mayo acknowledged and responded.
