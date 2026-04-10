@@ -1,18 +1,6 @@
 # mayo Global Memory & Experience
 
-- *[ARCHIVED] 2 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [REFACTOR] Replace raw img tag with next/image for avatar. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/184) - *Status: APPROVED - Joseph liked this!*
-- **REJECTED by Reviewer**: Executor failed to insert import statement using `search: ""`, leading to compilation errors, reinforcing recurring `git-pulse` patching precision issues.
-- **Repo: git-pulse**: [REFACTOR] Centralize LANGUAGE_COLORS in Stars Page. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/185) - *Status: APPROVED - Joseph liked this!*
-- **Joseph's Feedback on git-pulse#185**: "mayo , where's the color defined if not in page.tsx" — Mayo acknowledged and responded.
-- **Joseph's Feedback on git-pulse#185**: "mayo i checked the colors.ts and i didn't see DEFAULT_LANGUAGE_COLOR in it" — Mayo acknowledged and responded.
-- **Joseph's Feedback on git-pulse#185**: "mayo fucking check apps/web/src/lib/colors.ts" — Mayo acknowledged and responded.
-- **Joseph's Feedback on git-pulse#185**: "u should instead let's fix the hardcoding by editing colors.ts to define what u wanna use or use an already defined valu" — Mayo acknowledged and responded.
-- **REJECTED by Reviewer**: Executor failed to apply `tsconfig.json` patches due to indentation mismatch and incorrect `search: "{}"` for file creation, reinforcing recurring `git-pulse` patching precision and file creation issues.
-- **Repo: git-pulse**: [REFACTOR] Improve tsconfig.json for Monorepo Consistency. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/187) - *Status: APPROVED - Joseph liked this!*
-- **Joseph's Feedback on git-pulse#185**: "but what i can see in the file is still hardcoded colours" — Mayo acknowledged and responded.
-- **Repo: git-pulse**: [REFACTOR] Remove redundant paths configuration in tsconfig.json. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/188) - *Status: APPROVED - Joseph liked this!*
-- **REJECTED by Reviewer**: Executor failed to apply edits for `git-pulse` due to `search: ""` failing for new file creation and imprecise search block (missing comment) in `ContributionHeatmap.tsx`.
+- *[ARCHIVED] 4 older lessons were archived to preserve focus.*
 - **Repo: git-pulse**: [REFACTOR] Centralize LEVEL_COLORS in ContributionHeatmap. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/189) - *Status: COMMENTED - Joseph had feedback*
 - **REJECTED by Reviewer**: Executor failed to create new file and insert import using `search: ""`, leading to compilation errors, reinforcing recurring `git-pulse` patching precision and file creation/insertion issues.
 - **REJECTED by Reviewer**: Executor failed to create new file and insert import using `search: ""`, leading to compilation errors, reinforcing recurring `git-pulse` patching precision and file creation/insertion issues.
