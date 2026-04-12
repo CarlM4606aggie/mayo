@@ -1,10 +1,6 @@
 # mayo Global Memory & Experience
 
-- *[ARCHIVED] 3 older lessons were archived to preserve focus.*
-- **Repo: git-pulse**: [REFACTOR] Remove redundant optional chaining in auth.ts. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/199) - *Status: APPROVED - Joseph liked this!*
-- **REJECTED by Reviewer**: Executor failed multi-step color centralization for `git-pulse` due to `search` block failures for `colors.ts` and `tailwind.config.ts`, leading to undefined Tailwind classes and broken styling, reinforcing recurring patching precision issues and Joseph's color directive violations.
-- **REJECTED by Reviewer**: Executor failed color centralization due to file mismatch in search block for `colors.ts` and imprecise placeholder search block for `tailwind.config.ts`, reinforcing recurring `git-pulse` patching precision issues.
-- **REJECTED by Reviewer**: Executor failed to insert new function into `apps/web/src/lib/colors.ts` using `search: ""`, a recurring patching precision issue for `git-pulse`, leading to compilation errors due to undefined imports.
+- *[ARCHIVED] 1 older lessons were archived to preserve focus.*
 - **Repo: git-pulse**: [REFACTOR] Centralize Language Color Logic and Fix Runtime Error. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/200) - *Status: APPROVED - Joseph liked this!*
 - **Joseph's Feedback on Alexcathe#13**: "for a construction/engineering website, the priority should be E2E tests for the critical user flows before unit tests f" — Mayo acknowledged and responded.
 - **Joseph's Feedback on Alexcathe#13**: "for getting those initial Playwright E2E specs up quickly, we built an open source tool that crawls your running app and" — Mayo acknowledged and responded.
