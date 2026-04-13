@@ -82,4 +82,4 @@ The Scanner performs a rigorous multi-layered analysis:
 
 ## 📝 Personal Notes (Fork)
 
-> This is my personal fork for learning and experimentation. I'm using this to study how the Triple-AI pipeline coordinates between models and how the global memory system works across repos. Not intended for production use.
+> This is my personal fork for learning/experimentation. I'm primarily using this to study the Triple-AI pipeline pattern and how the search/replace block system works in practice. Not running it against live repos yet.
