@@ -76,28 +76,10 @@ The Scanner performs a rigorous multi-layered analysis:
 >    - `ayandajoseph390@gmail.com` → your email
 >    - `joe-gemini-bot` → your bot name
 >    - `mayo` → your bot repo name
->    - All API keys/env vars → your own keys
-> 3. **Set up your own GitHub App** and add secrets to your repo
-> 4. **Update the workflow file** (`.github/workflows/cron.yml`) with your secrets
-
-### Environment Variables
-| Variable | Purpose |
-|---|---|
-| `GEMINI_API_KEY` | Scanner (Gemini A) |
-| `GEMINI2_API_KEY` | Reviewer (Gemini B) |
-| `GROK_API_KEY` | Executor (Llama 3.3 70B via Groq) |
-| `APP_ID` / `PRIVATE_KEY` | GitHub App authentication |
-| `CRON_SECRET` | Hourly trigger authorization |
-
-### Deployment
-1. Deploy as a **GitHub App** on **Vercel**.
-2. Point webhook to `https://your-app.vercel.app/webhook`.
-3. Install on your repositories.
-4. The hourly cron (`.github/workflows/cron.yml`) handles the rest.
+>    - All API keys/env vars →
 
 ---
 
-## ℹ️ Author
-Created by **Joseph (@HOLYKEYZ)**. Advanced agentic engineering for autonomous codebase maintenance.
+## 📝 Personal Notes (Fork)
 
-Happy coding! 🚀 (v3.0 — Triple-AI)
+> This is my personal fork for learning and experimentation. I'm using this to study how the Triple-AI pipeline coordinates between models and how the global memory system works across repos. Not intended for production use.
