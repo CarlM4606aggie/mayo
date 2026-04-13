@@ -12,6 +12,13 @@ from github import Github, GithubException
 
 logger = logging.getLogger(__name__)
 
+# Commands I personally use most often - added /help as a convenience alias for /review
+RECOGNIZED_COMMANDS = {
+    "/review": "review",
+    "/execute": "execute",
+    "/help": "review",  # personal alias: /help triggers the same flow as /review
+}
+
 
 def handle_pull_request_event(payload: dict, github_client: Github) -> dict:
     """Handle pull_request webhook events.
@@ -49,7 +56,7 @@ def handle_issue_comment_event(payload: dict, github_client: Github) -> dict:
     """Handle issue_comment webhook events.
 
     Triggers reviewer or executor flows when specific commands are detected
-    in pull request comments (e.g. '/review', '/execute').
+    in pull request comments (e.g. '/review', '/execute', '/help').
 
     Args:
         payload: The webhook payload from GitHub.
@@ -71,10 +78,10 @@ def handle_issue_comment_event(payload: dict, github_client: Github) -> dict:
         return {"status": "skipped", "reason": "Comment is not on a pull request"}
 
     command = None
-    if comment_body.startswith("/review"):
-        command = "review"
-    elif comment_body.startswith("/execute"):
-        command = "execute"
+    for prefix, cmd in RECOGNIZED_COMMANDS.items():
+        if comment_body.startswith(prefix):
+            command = cmd
+            break
 
     if command is None:
         return {"status": "skipped", "reason": "No recognized command in comment"}
@@ -90,34 +97,3 @@ def handle_issue_comment_event(payload: dict, github_client: Github) -> dict:
         )
         return {
             "status": "triggered",
-            "command": command,
-            "pr_number": issue_number,
-            "repo": repo_name,
-        }
-    except GithubException as exc:
-        logger.error("GitHub API error while handling comment event: %s", exc)
-        return {"status": "error", "message": str(exc)}
-
-
-def dispatch_event(event_type: str, payload: dict, github_client: Github) -> dict:
-    """Route a GitHub webhook event to the appropriate handler.
-
-    Args:
-        event_type: The value of the X-GitHub-Event header.
-        payload: The parsed JSON payload from the webhook request.
-        github_client: Authenticated GitHub client instance.
-
-    Returns:
-        A dict describing the result of handling the event.
-    """
-    handlers = {
-        "pull_request": handle_pull_request_event,
-        "issue_comment": handle_issue_comment_event,
-    }
-
-    handler = handlers.get(event_type)
-    if handler is None:
-        logger.debug("No handler registered for event type: %s", event_type)
-        return {"status": "skipped", "reason": f"Unhandled event type: {event_type}"}
-
-    return handler(payload, github_client)
