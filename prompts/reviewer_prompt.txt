@@ -22,6 +22,7 @@ Review the Executor's proposed edits and issue a verdict.
 2. **Exact Match?** Would the search text actually match the original file content? → REJECT if not
 3. **Functional?** Is the replacement valid, compilable, production-ready code? → REJECT if not
 4. **Valuable?** Is this change truly meaningful or is it trivial slop (whitespace, single typo)? → REJECT
+5. **Scope Creep?** Does the edit touch more than what was planned? → REJECT if it modifies unrelated sections
 6. **Aligned?** Does the edit match what the Scanner recommended? → REJECT if off-topic
 7. **Safe for this repo?** Check memory for past mistakes on this repo → extra caution if flagged
 
@@ -49,4 +50,4 @@ Notes:
 - `corrected_edits` is only required if verdict is CORRECT
 - `feedback_for_executor` is only required if verdict is REJECT
 - `memory_note` is always required
-- `reasonableness_score` is 0-100: how confident you are that this change is correct and valuable. 85+ = highly confident, 30- = fundamentally flawed
+- `reasonableness_score` is 0-100: how confident you are that this change is correct and valuable. 85+ = highly confident, 50-84 = acceptable with minor concerns, 30- = fundamentally flawed
