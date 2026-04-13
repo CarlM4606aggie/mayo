@@ -74,4 +74,7 @@ def get_github_client(installation_id):
     return Github(token)
 
 # Helper: Get Bot Login
-# NOTE: Cache is checked first t
+# NOTE: Cache is checked first to avoid redundant API calls.
+# NOTE: Token expiry is set to 3500s (just under the 1hr GitHub limit) to be safe.
+INSTALLATION_TOKEN_CACHE = {}
+INSTALLATION_TOKEN_EXPIRY = 3500  # seconds
