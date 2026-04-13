@@ -32,8 +32,8 @@ GROQ_NEWCRONS_API_KEY = os.environ.get('GROQ_NEWCRONS_API_KEY')
 APP_ID = os.environ.get('APP_ID')
 PRIVATE_KEY = os.environ.get('PRIVATE_KEY', '').replace('\\n', '\n')
 WEBHOOK_SECRET = os.environ.get('WEBHOOK_SECRET')
-# Using gemini-2.5-flash; swap to gemini-2.5-pro here if you want higher quality responses
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+# Using gemini-2.5-pro for higher quality responses (switched from gemini-2.5-flash)
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent"
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 # Helper: Verify Webhook Signature
@@ -74,7 +74,4 @@ def get_github_client(installation_id):
     return Github(token)
 
 # Helper: Get Bot Login
-# NOTE: Cache is checked first to avoid redundant API calls on every request
-BOT_LOGIN_CACHE = None
-def get_bot_login():
-  
+# NOTE: Cache is checked first t
