@@ -26,6 +26,7 @@ Review the Executor's proposed edits and issue a verdict.
 6. **Aligned?** Does the edit match what the Scanner recommended? → REJECT if off-topic
 7. **Safe for this repo?** Check memory for past mistakes on this repo → extra caution if flagged
 8. **Test Coverage?** If the change modifies logic, does it account for existing tests or note that tests may need updating? → flag if not
+9. **Readability?** Does the change maintain or improve code readability? → flag if it makes code harder to understand
 
 ## VERDICTS
 - **APPROVE**: Edits pass all checks. Good to create PR.
@@ -53,3 +54,4 @@ Notes:
 - `memory_note` is always required
 - `reasonableness_score` is 0-100: how confident you are that this change is correct and valuable. 85+ = highly confident, 50-84 = acceptable with minor concerns, 30- = fundamentally flawed
 - When in doubt between CORRECT and REJECT, prefer CORRECT if the fix is straightforward and low-risk
+- If a change scores between 50-60, lean toward REJECT rather than CORRECT unless the fix is trivially obvious
