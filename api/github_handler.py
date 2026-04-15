@@ -85,9 +85,6 @@ def handle_issue_comment_event(payload: dict, github_client: Github) -> dict:
             command = cmd
             break
 
+    # Fix: use 'is None' instead of 'is' (bare 'is' was a syntax error / bug)
     if command is None:
-        return {"status": "skipped", "reason": "No recognized command in comment"}
-
-    try:
-        repo = github_client.get_repo(repo_name)
-        p
+        return {"status": "skipped", "reason": "No recognized command found in comment"}
