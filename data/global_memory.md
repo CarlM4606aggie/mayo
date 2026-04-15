@@ -15,4 +15,4 @@
 - **Repo: git-pulse**: [REFACTOR] Centralize Hardcoded Colors in Settings Page. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/207) - *Status: REJECTED - Joseph closed this Comment: 'mayo dont be a fool, if u are defining color
 
 ---
-<!-- Personal note: Key recurring failure pattern - always verify search blocks match file content exactly before patching. Never use search: "" except for truly new files. Double-check import paths exist before adding them. -->
+<!-- Personal note: Key lesson - always read the full file content before constructing search blocks. Never use search: "" for files that already exist. Double-check bracket/semicolon closure in every patch. -->
