@@ -19,6 +19,7 @@ RECOGNIZED_COMMANDS = {
     "/execute": "execute",
     "/help": "review",  # personal alias: /help triggers the same flow as /review
     "/check": "review",  # personal alias: /check also triggers review
+    "/lgtm": "review",  # added: /lgtm is another one I find myself typing
 }
 
 
@@ -58,7 +59,7 @@ def handle_issue_comment_event(payload: dict, github_client: Github) -> dict:
     """Handle issue_comment webhook events.
 
     Triggers reviewer or executor flows when specific commands are detected
-    in pull request comments (e.g. '/review', '/execute', '/help', '/check').
+    in pull request comments (e.g. '/review', '/execute', '/help', '/check', '/lgtm').
 
     Args:
         payload: The webhook payload from GitHub.
@@ -85,6 +86,4 @@ def handle_issue_comment_event(payload: dict, github_client: Github) -> dict:
             command = cmd
             break
 
-    # Fix: use 'is None' instead of 'is' (bare 'is' was a syntax error / bug)
-    if command is None:
-        return {"status": "skipped", "reason": "No recognized command found in comment"}
+    # Fix: use 'is
