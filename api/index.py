@@ -33,6 +33,7 @@ APP_ID = os.environ.get('APP_ID')
 PRIVATE_KEY = os.environ.get('PRIVATE_KEY', '').replace('\\n', '\n')
 WEBHOOK_SECRET = os.environ.get('WEBHOOK_SECRET')
 # Using gemini-2.5-pro for higher quality responses (switched from gemini-2.5-flash)
+# NOTE: If gemini-2.5-pro hits quota limits, swap back to gemini-2.5-flash by changing the model name below
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent"
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
@@ -75,5 +76,3 @@ def get_github_client(installation_id):
 
 # Helper: Get Bot Login
 # NOTE: Cache is checked first to avoid 
-# NOTE: hmac.new was renamed to hmac.new in older versions; using hmac.new is correct here.
-# TODO: Consider adding a request timeout to all external API calls to avoid hanging.
