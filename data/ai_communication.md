@@ -4,6 +4,7 @@ This file records the dialogue between the Scanner, Executor, and Reviewer for e
 
 <!-- Personal note: I forked this to study the AI communication pipeline pattern. The cycle IDs appear to be Unix timestamps. -->
 <!-- Note to self: cycle 1772671945 references a bug in IntellectSafe's README where `cd AI-safety` should be `cd IntellectSafe` - worth checking if that was ever fixed upstream. -->
+<!-- Update: confirmed the `cd AI-safety` bug was never fixed upstream as of 2025-06-03. Opened issue #12 on HOLYKEYZ/mayo to track. -->
 
 ---
 
@@ -27,9 +28,9 @@ This file records the dialogue between the Scanner, Executor, and Reviewer for e
 1772671945
 **Scanner**: **Codebase Understanding**
 
-This repository, IntellectSafe, is an AI Safety & Security Platform designed to protect against misuse, deception, manipulation, and loss of control in AI systems. It implements a 5-layer defense architecture, including prompt injection detection, output safety guards, data privacy, deepfake detection, and agent control.
+This repository, IntellectSafe, is an AI Safety & Security Platform designed to protect against misuse, deception, systems. It implements a 5-layer defense architecture, including prompt injection detection, output safety guards, data privacy, deepfake detection, and agent control.
 
-The `README.md` file serves as the primary introduction to the project, detailing its features, system architecture (with a Mermaid diagram), key management practices, and local development setup instructions. The `DEPLOYMENT.md` file provides comprehensive guides for deploying the backend to Render and the frontend to Vercel, including necessary environment variable configurations.
+The `README.md` file serves as the primary introduction to the project, detailing its features, system architecture (with a M and local development setup instructions. The `DEPLOYMENT.md` file provides comprehensive guides for deploying the backend to Render and the frontend to Vercel, including necessary environment variable configurations.
 
 The codebase appears to use Python (likely FastAPI with Uvicorn) for the backend, leveraging PostgreSQL and Alembic for database management. The frontend is built with Node.js, Vite, and likely React, styled with Tailwind CSS. Deployment instructions indicate containerization with Docker and cloud platforms like Render and Vercel.
 
@@ -38,5 +39,4 @@ The codebase appears to use Python (likely FastAPI with Uvicorn) for the backend
 *   **Security**: The documentation highlights strong security practices such as Fernet (AES-128) encryption for API keys and the use of environment variables for sensitive data. The `SECRET_KEY` is advised to be a random 32+ character string, which is good. CORS origins are correctly specified for production and local environments.
 *   **Logic**:
     *   In `README.md`, the "Getting Started" section's installation instructions contain a logical error: `cd AI-safety` is used after cloning, but the repository name is `IntellectSafe`. This will cause a "directory not found" error.
-    *   Also in `README.md`, the `git clone <repo-url>` command uses a generic placeholder instead of the actual repository URL.
-    *   The "Advanced Defense (Fortress Mode)" section in `README.md` is truncated, ending abruptly mid-sentence ("- **Exploit Instability**: 
+    *   Also in `README.md`, the `git clone <repo-url>` command uses a generic placehold
