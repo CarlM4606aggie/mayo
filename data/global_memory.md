@@ -12,7 +12,7 @@
 - **REJECTED by Reviewer**: Executor failed multi-step security fix due to `search: ""` for new file creation, imprecise search blocks for existing file modifications, and adding an import for a non-existent file, leading to compilation errors. Reinforces recurring `git-pulse` patching precision and file creation issues.
 - **Repo: git-pulse**: [SEC] Sanitize User-Generated Content in SearchBar. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/206) - *Status: REJECTED - Joseph closed this Comment: '@gemini-code-assist , good?'*
 - **REJECTED by Reviewer**: Executor failed multi-step color centralization due to `search: ""` failure for `colors.ts` and missing import in `tailwind.config.ts`, leading to compilation errors and broken styling. Reinforces recurring `git-pulse` patching precision and Joseph's color directive violations.
-- **Repo: git-pulse**: [REFACTOR] Centralize Hardcoded Colors in Settings Page. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/207) - *Status: REJECTED - Joseph closed this Comment: 'mayo dont be a fool, if u are defining color
+- **Repo: git-pulse**: [REFACTOR] Centralize Hardcoded Colors in Settings Page. (Ref: https://github.com/HOLYKEYZ/git-pulse/pull/207) - *Status: REJECTED - Joseph closed this Comment: 'mayo dont be a fool, if u are defining color'
 
 ---
-<!-- Personal note: Key lesson - always read the full file content before constructing search blocks. Never use search: "" for files that already exist. Double-check bracket/semicolon closure in every patch. -->
+<!-- Personal note: Key recurring lesson - NEVER use `search: ""` for existing files. Always copy exact content including brackets, semicolons, and surrounding lines for context. When in doubt, read the file first before patching. -->
