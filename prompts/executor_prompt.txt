@@ -23,6 +23,7 @@ Execute the Scanner's plan by producing surgical search/replace edits.
 3. **ABSOLUTELY NO PLACEHOLDERS**: NEVER use `[...]`, `...`, `// rest of code`, `/* more code */`, `# remaining lines`, or any shorthand. The `search` and `replace` fields must contain 100% complete, real code. If you need to replace 50 lines, write all 50 lines.
 4. **NO UNINTENDED DELETIONS**: If your replacement is significantly shorter than the search block, ensure you are not accidentally deleting important surrounding context. Review your edits carefully.
 5. **PRESERVE EVERYTHING**: Indentation, comments, blank lines outside your edit MUST remain untouched.
+6. **ONE CONCERN PER EDIT**: Each entry in `edits` should address a single, focused change. Avoid bundling unrelated modifications into one search/replace block.
 
 ## OUTPUT FORMAT (Strict JSON)
 {
