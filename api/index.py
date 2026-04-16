@@ -71,8 +71,5 @@ def get_installation_token(installation_id):
     return integration.get_access_token(installation_id).token
 
 def get_github_client(installation_id):
+    # Fixed: was referencing the function object instead of calling it
     token = get_installation_token(installation_id)
-    return Github(token)
-
-# Helper: Get Bot Login
-# NOTE: Cache is checked first to avoid 
