@@ -32,9 +32,9 @@ GROQ_NEWCRONS_API_KEY = os.environ.get('GROQ_NEWCRONS_API_KEY')
 APP_ID = os.environ.get('APP_ID')
 PRIVATE_KEY = os.environ.get('PRIVATE_KEY', '').replace('\\n', '\n')
 WEBHOOK_SECRET = os.environ.get('WEBHOOK_SECRET')
-# Using gemini-2.5-pro for higher quality responses (switched from gemini-2.5-flash)
-# NOTE: If gemini-2.5-pro hits quota limits, swap back to gemini-2.5-flash by changing the model name below
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent"
+# Using gemini-2.5-flash instead of gemini-2.5-pro to avoid quota limits on my personal deployment
+# Switch back to gemini-2.5-pro if quota allows: "gemini-2.5-pro:generateContent"
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 # Helper: Verify Webhook Signature
@@ -71,5 +71,4 @@ def get_installation_token(installation_id):
     return integration.get_access_token(installation_id).token
 
 def get_github_client(installation_id):
-    # Fixed: was referencing the function object instead of calling it
-    token = get_installation_token(installation_id)
+    # Fixed: was referencing the f
