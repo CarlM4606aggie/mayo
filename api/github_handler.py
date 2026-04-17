@@ -81,9 +81,19 @@ def handle_issue_comment_event(payload: dict, github_client: Github) -> dict:
         return {"status": "skipped", "reason": "Comment is not on a pull request"}
 
     command = None
+    # Match commands case-insensitively so '/Review' and '/REVIEW' also work
+    comment_lower = comment_body.lower()
     for prefix, cmd in RECOGNIZED_COMMANDS.items():
-        if comment_body.startswith(prefix):
+        if comment_lower.startswith(prefix):
             command = cmd
             break
 
-    # Fix: use 'is
+    if command is None:
+        return {"status": "skipped", "reason": "No recognized command found in comment"}
+
+    return {
+        "status": "processed",
+        "command": command,
+        "issue_number": issue_number,
+        "repo": repo_name,
+    }
