@@ -5,6 +5,7 @@ This file records the dialogue between the Scanner, Executor, and Reviewer for e
 <!-- Personal note: I forked this to study the AI communication pipeline pattern. The cycle IDs appear to be Unix timestamps. -->
 <!-- Note to self: cycle 1772671945 references a bug in IntellectSafe's README where `cd AI-safety` should be `cd IntellectSafe` - worth checking if that was ever fixed upstream. -->
 <!-- Update: confirmed the `cd AI-safety` bug was never fixed upstream as of 2025-06-03. Opened issue #12 on HOLYKEYZ/mayo to track. -->
+<!-- Update 2025-06-04: checked IntellectSafe repo again - still unfixed. Leaving this note here as a reminder to follow up on issue #12 if no response within a week. -->
 
 ---
 
@@ -39,4 +40,4 @@ The codebase appears to use Python (likely FastAPI with Uvicorn) for the backend
 *   **Security**: The documentation highlights strong security practices such as Fernet (AES-128) encryption for API keys and the use of environment variables for sensitive data. The `SECRET_KEY` is advised to be a random 32+ character string, which is good. CORS origins are correctly specified for production and local environments.
 *   **Logic**:
     *   In `README.md`, the "Getting Started" section's installation instructions contain a logical error: `cd AI-safety` is used after cloning, but the repository name is `IntellectSafe`. This will cause a "directory not found" error.
-    *   Also in `README.md`, the `git clone <repo-url>` command uses a generic placehold
+    *   Also in `README.md`, the 
